@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+*.log
+.claude/
+.planning/
+docs/superpowers/
+docs/all-hands-presentation.html
+examples/
+.firecrawl/
+demo.*
+.env
+.env.*
+*.secrets

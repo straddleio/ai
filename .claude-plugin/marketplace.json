@@ -1,0 +1,17 @@
+{
+  "name": "straddle-ai",
+  "description": "Straddle AI plugins for payment infrastructure",
+  "owner": {
+    "name": "Straddle"
+  },
+  "plugins": [
+    {
+      "name": "straddle",
+      "description": "Straddle payment infrastructure plugin with MCP, skills, and commands",
+      "source": "./providers/claude/plugin",
+      "version": "0.1.0",
+      "category": "engineering",
+      "tags": ["payments", "ach", "open-banking", "instant-payments", "a2a"]
+    }
+  ]
+}
