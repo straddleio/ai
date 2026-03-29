@@ -1,6 +1,6 @@
-# Straddle AI
+# Straddle AI Toolkit
 
-AI-native integrations for Straddle's payment infrastructure. Plugins, MCP servers, skills, and agent toolkits.
+AI-native developer tools for Straddle's payment infrastructure. MCP servers, skills, and editor plugins.
 
 ## Prerequisites
 
@@ -12,45 +12,39 @@ export STRADDLE_API_KEY="your-api-key-here"
 
 Add this to your shell profile (`~/.zshrc`, `~/.bashrc`, or `~/.config/fish/config.fish`) to persist it across sessions.
 
-## Connect to Straddle's MCP Server
-
-Two MCP servers:
-
-| Server | URL | Auth | What it provides |
-|--------|-----|------|------------------|
-| **Straddle API** | `https://mcp.straddle.com/mcp` | OAuth | Code execution, SDK docs search |
-| **Straddle Docs** | `https://docs.straddle.com/mcp` | None | Product docs search |
-
-For clients that don't support OAuth, use the Bearer token endpoint instead: `https://straddle.stlmcp.com/` with `Authorization: Bearer YOUR_API_KEY`.
+## Setup
 
 ### Claude Code
 
-Install the Straddle plugin (includes MCP servers, skills, and slash commands):
+Install the plugin. This sets up MCP servers, skills, and slash commands in one step:
 
 ```bash
 claude plugins marketplace add straddleio/ai
 claude plugins install straddle
 ```
 
-The plugin connects via OAuth -- a browser window opens on first use. Run `/straddle-setup` after installing to complete configuration.
+A browser window opens on first use for OAuth. Run `/straddle-setup` after installing.
 
-Or add just the MCP servers without the plugin:
+### CLI
 
 ```bash
-# API MCP with OAuth (opens browser to authenticate)
-claude mcp add --transport http straddle https://mcp.straddle.com/mcp
-
-# API MCP with Bearer token (for CI/agents, requires STRADDLE_API_KEY env var)
-claude mcp add --transport http straddle https://straddle.stlmcp.com/ \
-  --header "Authorization: Bearer $STRADDLE_API_KEY"
-
-# Docs MCP (no auth required)
-claude mcp add --transport http straddle-docs https://docs.straddle.com/mcp
+brew install straddleio/tools/straddle
 ```
+
+```bash
+straddle customers list --environment sandbox
+straddle charges create --environment sandbox --help
+```
+
+Works on its own or from inside any editor that can run shell commands. See [CLI docs](https://docs.straddle.com/sdks/cli) for the full command reference.
+
+### Cowork / Claude Desktop
+
+Install the Straddle plugin from the plugin browser. Same plugin as Claude Code.
 
 ### Cursor
 
-Add to `~/.cursor/mcp.json`:
+Cursor doesn't have a plugin system, so add the MCP servers directly to `~/.cursor/mcp.json`:
 
 ```json
 {
@@ -64,36 +58,139 @@ Add to `~/.cursor/mcp.json`:
 }
 ```
 
-### Claude Desktop / Cowork
-
-Install the Straddle plugin from the plugin browser, or add the MCP servers manually in Settings > MCP.
-
 ### Other MCP clients
 
-Point any MCP-compatible client at the server URLs above. Use `https://mcp.straddle.com/mcp` if your client supports OAuth, or `https://straddle.stlmcp.com/` with a Bearer token if it doesn't.
+Two hosted MCP servers:
+
+| Server | URL | Auth | What it provides |
+|--------|-----|------|------------------|
+| **Straddle API** | `https://mcp.straddle.com/mcp` | OAuth | Code execution, SDK docs search |
+| **Straddle Docs** | `https://docs.straddle.com/mcp` | None | Product docs search |
+
+For clients that don't support OAuth, use `https://straddle.stlmcp.com/` with `Authorization: Bearer YOUR_API_KEY` instead.
 
 ### Local MCP
 
-Run the Straddle MCP server locally using the npm package:
+Run the MCP server on your own machine:
 
 ```bash
 npx -y @straddlecom/straddle-mcp@latest --api-key=$STRADDLE_API_KEY
 ```
 
-## Straddle CLI
+### MCP without the plugin (Claude Code)
+
+If you want just the MCP servers without skills and slash commands:
 
 ```bash
-brew install straddleio/tools/straddle
+# OAuth (opens browser)
+claude mcp add --transport http straddle https://mcp.straddle.com/mcp
+
+# Bearer token (for CI/agents)
+claude mcp add --transport http straddle https://straddle.stlmcp.com/ \
+  --header "Authorization: Bearer $STRADDLE_API_KEY"
+
+# Docs (no auth)
+claude mcp add --transport http straddle-docs https://docs.straddle.com/mcp
 ```
 
-The CLI reads `STRADDLE_API_KEY` from your environment, or pass it per-command:
+## MCP server configuration
+
+The MCP servers accept flags for transport, environment, code execution, and access control.
+
+### Sandbox vs production
+
+Set `STRADDLE_ENVIRONMENT` to switch between sandbox and production:
 
 ```bash
-straddle customers list --environment sandbox
-straddle charges create --environment sandbox --help
+# Sandbox (default)
+export STRADDLE_ENVIRONMENT="sandbox"
+export STRADDLE_API_KEY="sk_test_..."
+
+# Production
+export STRADDLE_ENVIRONMENT="production"
+export STRADDLE_API_KEY="sk_live_..."
 ```
 
-See [CLI docs](https://docs.straddle.com/sdks/cli) for details.
+### Transport
+
+```bash
+# stdio (default, for local use)
+npx -y @straddlecom/straddle-mcp@latest --api-key=$STRADDLE_API_KEY
+
+# HTTP server
+npx -y @straddlecom/straddle-mcp@latest --transport=http --port=3000
+
+# Unix socket
+npx -y @straddlecom/straddle-mcp@latest --transport=http --socket=/tmp/mcp.sock
+```
+
+### Code execution mode
+
+```bash
+# Run code in Stainless-hosted sandbox (default)
+--code-execution-mode=stainless-sandbox
+
+# Run code locally on your machine
+--code-execution-mode=local
+```
+
+### Tool selection
+
+```bash
+# Enable only specific tools
+--tools code
+--tools docs
+
+# Disable specific tools
+--no-tools code
+```
+
+### Method-level access control
+
+Restrict which SDK methods the code tool can call:
+
+```bash
+# Allow all HTTP GET methods
+--code-allow-http-gets
+
+# Allow only specific method patterns (regex)
+--code-allowed-methods "customers\\..*" --code-allowed-methods "charges\\.list"
+
+# Block specific method patterns (regex)
+--code-blocked-methods "charges\\.create" --code-blocked-methods "payouts\\..*"
+```
+
+When no filtering flags are set, all methods are allowed. Once any filter is set, only explicitly allowed methods work.
+
+### Logging
+
+```bash
+--debug                    # Enable debug logging
+--log-format=pretty        # Human-readable logs (auto-detected for TTY)
+--log-format=json          # Structured JSON logs
+```
+
+### Environment variable convention
+
+Any CLI flag can be set as an environment variable with the `MCP_SERVER_` prefix:
+
+```bash
+export MCP_SERVER_TRANSPORT=http
+export MCP_SERVER_PORT=3000
+export MCP_SERVER_DEBUG=true
+```
+
+### HTTP headers (remote mode)
+
+When running with `--transport=http`, these headers configure per-request behavior:
+
+| Header | Purpose |
+|--------|---------|
+| `Authorization: Bearer <token>` | Authentication |
+| `x-straddle-api-key: <key>` | Alternative to Bearer token |
+| `x-stainless-api-key: <key>` | Override Stainless API key |
+| `x-stainless-mcp-client-envs: <json>` | Pass environment variables upstream |
+| `x-stainless-mcp-client-permissions: <json>` | Override method permissions per-request |
 
 ## What you get
 
@@ -134,7 +231,6 @@ Available sandbox test scenarios: `payment-lifecycle`, `payout-flow`, `failures`
 | Go | `straddle-go` | [straddleio/straddle-go](https://github.com/straddleio/straddle-go) |
 | Ruby | [`straddle`](https://rubygems.org/gems/straddle) | [straddleio/straddle-ruby](https://github.com/straddleio/straddle-ruby) |
 | C# | [`Straddle`](https://www.nuget.org/packages/Straddle) | [straddleio/straddle-csharp](https://github.com/straddleio/straddle-csharp) |
-| CLI | `brew install straddleio/tools/straddle` | [straddleio/straddle-cli](https://github.com/straddleio/straddle-cli) |
 
 SDK reference docs: [sdk.straddle.com](https://sdk.straddle.com/api)
 
