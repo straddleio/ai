@@ -115,24 +115,27 @@ This server provides documentation search tools. It does not call the Straddle A
 
 ## Straddle CLI
 
-Direct API access from your terminal. The CLI complements MCP tools -- use it for quick lookups, scripting, and workflows outside an AI editor.
+The Straddle CLI gives you full API access from the terminal. Every resource available through the SDKs -- customers, paykeys, charges, payouts, bridge, embed -- is available as a CLI command.
 
 ```bash
 brew install straddleio/tools/straddle
 ```
 
-After installation, authenticate:
+Set your API key and confirm it works:
 
 ```bash
-straddle auth login
+export STRADDLE_API_KEY=your_sandbox_key
+straddle charges create --help
 ```
 
-Example usage:
+The `--help` flag shows available parameters for any command. Use it to explore the API surface:
 
 ```bash
-straddle customers list --limit 10
-straddle charges get ch_abc123
+straddle --help
+straddle paykeys --help
 ```
+
+Use `--format json` for structured output and `--debug` to see the full HTTP request and response when troubleshooting.
 
 The CLI uses the same API keys and environments as the SDKs.
 
@@ -197,5 +200,15 @@ Ask your AI agent:
 > Search Straddle docs for how to create a charge
 
 This confirms documentation search returns actionable integration guidance. You should see results covering charge creation parameters and the payment flow.
+
+### 4. Test CLI (if installed)
+
+Run:
+
+```bash
+straddle charges create --help
+```
+
+This confirms the CLI is installed and working. You should see the full list of parameters for creating a charge.
 
 If any check fails, verify the MCP server is registered (`claude mcp list` in Claude Code) and that your API key is set correctly for the environment you are targeting.
