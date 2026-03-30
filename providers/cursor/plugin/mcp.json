@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "straddle": {
+      "url": "https://straddle.stlmcp.com/",
+      "headers": { "Authorization": "Bearer ${STRADDLE_API_KEY}" }
+    },
+    "straddle-docs": { "url": "https://docs.straddle.com/mcp" }
+  }
+}

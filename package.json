@@ -1,0 +1,12 @@
+{
+  "name": "straddle-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI plugins for Straddle payment infrastructure",
+  "scripts": {
+    "sync": "node skills/sync.js",
+    "validate": "node scripts/validate.js",
+    "test": "node scripts/validate.js"
+  },
+  "license": "MIT"
+}
