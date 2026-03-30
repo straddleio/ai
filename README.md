@@ -27,16 +27,19 @@ A browser window opens on first use for OAuth. Run `/straddle-setup` after insta
 
 ### CLI
 
+Full API access from your terminal. Every resource -- customers, paykeys, charges, payouts, bridge, embed -- available as a command.
+
 ```bash
 brew install straddleio/tools/straddle
 ```
 
 ```bash
-straddle customers list --environment sandbox
-straddle charges create --environment sandbox --help
+straddle --help
+straddle charges create --help
+straddle customers list --format json
 ```
 
-Works on its own or from inside any editor that can run shell commands. See [CLI docs](https://docs.straddle.com/sdks/cli) for the full command reference.
+Supports structured output (`--format json|yaml`), data extraction (`--transform`), and request debugging (`--debug`). Works on its own or from inside any editor that can run shell commands. See [CLI docs](https://sdk.straddle.com/api/cli) for the full command reference.
 
 ### Cowork / Claude Desktop
 
