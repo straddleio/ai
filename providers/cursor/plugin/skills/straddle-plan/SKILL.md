@@ -64,13 +64,12 @@ Ask questions one at a time. Skip conditional questions when they don't apply.
 
 Recommend (do not gate):
 
-> Before we start, a couple of tools that help:
+> Before we start, two things that help:
 >
-> **Straddle CLI** (optional, recommended for exploring the API):
+> **Straddle CLI** -- full API access from your terminal:
 > ```
 > brew install straddleio/tools/straddle
 > export STRADDLE_API_KEY=your_sandbox_key
-> straddle customers list --environment sandbox
 > ```
 >
 > **API key** from the [Straddle Dashboard](https://dashboard.straddle.io).
@@ -167,6 +166,7 @@ Search SDK docs for `customers.create` and Bridge setup.
 - Customers in `review` can proceed (items held until cleared)
 - Bank connection based on step 7: Bridge (`@straddlecom/bridge-react` or `bridge-js`), Plaid token, or Quiltt token
 - Paykey creation statuses: active, review, rejected
+- Verify with CLI: `straddle customers get <id> --format json`, `straddle paykeys list --format json`
 
 ### Section 4: Payment Flow
 
@@ -177,6 +177,7 @@ Search SDK docs for `charges.create` / `payouts.create`.
 - Consent type: `internet` for individual, `signed` for B2B
 - Authorization guides: https://help.straddle.com/article/authorization-guide, https://help.straddle.com/article/b2b-agreements
 - Balance check modes: `enabled` (default), `required` (high-value), `disabled` (future-dated/manual-entry)
+- Test with CLI before writing SDK code: `straddle charges create --help` to see required fields, `straddle charges get <id> --debug` to inspect responses
 
 ### Section 5: Webhook Handler
 
@@ -195,7 +196,11 @@ Search product docs for sandbox guide.
 
 - `sandbox_outcomes` for test scenarios
 - `simulate` for account onboarding (saas/marketplace)
-- CLI commands: `straddle customers list --environment sandbox`, etc.
+- CLI commands for verifying sandbox state:
+  - `straddle customers list --environment sandbox --format json`
+  - `straddle charges get <id> --environment sandbox --debug`
+  - `straddle paykeys list --environment sandbox --format json`
+  - Use `--help` on any command to see available parameters
 - Link: https://docs.straddle.com/guides/resources/sandbox-paybybank
 
 ### Section 7: Pre-Production Checklist
@@ -206,6 +211,7 @@ Search product docs for sandbox guide.
 - NACHA compliance: consent records, notification emails
 - Retry on 429 (no inherent rate limits)
 - Address note: account uses `line1`/`postal_code`, customer uses `address1`/`zip` (known, will be unified)
+- Use `straddle <resource> <command> --debug` to troubleshoot unexpected API responses
 
 ## Delivering the plan
 
