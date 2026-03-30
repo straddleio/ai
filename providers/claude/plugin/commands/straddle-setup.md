@@ -41,13 +41,13 @@ Run `which straddle` to check if the CLI is installed.
 brew install straddleio/tools/straddle
 ```
 
-After installation, authenticate:
+Verify it works:
 
 ```bash
-straddle auth login
+straddle --help
 ```
 
-The CLI is optional but useful for quick lookups and scripting outside the editor.
+The CLI gives full API access from the terminal -- every resource available through the SDKs is available as a command. Use `--help` on any command to explore.
 
 ## 3. Environment and API Key
 
