@@ -9,6 +9,6 @@ const SYNC_TARGETS = [
   path.join(ROOT, 'providers', 'claude', 'plugin', 'skills'),
   path.join(ROOT, 'providers', 'cursor', 'plugin', 'skills'),
 ];
-const SKIP = new Set(['sync.js']);
+const SKIP = new Set(['sync.js', 'evals']);
 
 module.exports = { ROOT, SKILLS_DIR, SYNC_TARGETS, SKIP };

@@ -201,8 +201,8 @@ Skills activate automatically based on what you're doing. No slash command neede
 | Skill | When it activates | What it does |
 |-------|-------------------|--------------|
 | **Setup** | First-time setup, connecting MCP servers, configuring environments | Walks through API key setup, MCP connection, and environment selection |
-| **Integration** | Building payment flows, working with Straddle APIs and SDKs | Guides integration decisions: customers, paykeys, charges, payouts, Bridge, Embed, webhooks, ACH returns |
-| **Build** | Planning a new Straddle integration from scratch | Runs a guided conversation (5-8 questions) that produces a complete integration plan tailored to your use case |
+| **Plan** | Planning a new Straddle integration from scratch | Runs a guided conversation (5-8 questions) that produces a complete integration plan tailored to your use case |
+| **Integrate** | Building payment flows, working with Straddle APIs and SDKs | Guides integration decisions: customers, paykeys, charges, payouts, Bridge, Embed, webhooks, ACH returns |
 
 ### Commands
 
