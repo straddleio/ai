@@ -63,7 +63,7 @@ The header follows resource ownership. See <references/embed.md> for code exampl
 | Code execution        | straddle API MCP      | Execute API calls, test methods, explore responses                        |
 | SDK docs search       | straddle API MCP      | Field-level API reference, SDK examples, request/response shapes. **Always pass `language` param matching user's SDK.** |
 | Product docs search   | straddle-docs Docs MCP | Risk scores, identity verification, payment guides, integration patterns, status code meanings, ACH returns |
-| CLI               | Straddle CLI          | Verify resources, test operations, inspect responses, debug API issues. See <references/cli.md> |
+| Terminal operations | Straddle CLI          | Verify resources, test operations, inspect responses, debug API issues. See <references/cli.md> |
 
 ## Integration routing
 
