@@ -10,3 +10,5 @@ demo.*
 .env
 .env.*
 *.secrets
+**/evals/
+.venv/
