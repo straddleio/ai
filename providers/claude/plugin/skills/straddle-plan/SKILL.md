@@ -1,5 +1,5 @@
 ---
-name: straddle-build
+name: straddle-plan
 description: >-
   This skill should be used when the user asks to "integrate with Straddle",
   "build my Straddle integration", "plan my integration", "walk me through
@@ -19,7 +19,7 @@ The plan is the artifact the developer uses to build their sandbox integration.
 ## Scope boundaries
 
 - Execute API calls -> use `sandbox-test`
-- Answer ad-hoc integration questions -> use `straddle-integration`
+- Answer ad-hoc integration questions -> use `straddle-integrate`
 - Set up MCP/CLI/keys -> use `setup`
 - Explain statuses -> use `explain-status`
 
@@ -27,14 +27,14 @@ Point users to the appropriate skill if they ask for something outside scope.
 
 ## Reference files
 
-Read before generating each plan section. Shared with `straddle-integration`:
+Read before generating each plan section. Shared with `straddle-integrate`:
 
 | Topic | Reference |
 |-------|-----------|
-| Entities, statuses, webhooks, ACH | <../straddle-integration/references/domain.md> |
-| Embed: onboarding, accounts, headers | <../straddle-integration/references/embed.md> |
-| Pay by Bank: customer, bridge, payments | <../straddle-integration/references/pay-by-bank.md> |
-| SDKs, Bridge Widget, errors | <../straddle-integration/references/sdk.md> |
+| Entities, statuses, webhooks, ACH | <../straddle-integrate/references/domain.md> |
+| Embed: onboarding, accounts, headers | <../straddle-integrate/references/embed.md> |
+| Pay by Bank: customer, bridge, payments | <../straddle-integrate/references/pay-by-bank.md> |
+| SDKs, Bridge Widget, errors | <../straddle-integrate/references/sdk.md> |
 
 ## Doc search enforcement
 
@@ -99,7 +99,7 @@ Store as `use_case`: `account`, `saas`, or `marketplace`.
 Store as `sdk_language`. Map to `search_docs` language param:
 typescript, python, go, ruby, http. For C#, the `search_docs` tool does not have a `csharp` option -- use `http` for raw API shapes and supplement with `typescript` examples (the C# SDK follows the same patterns).
 
-After answer, recommend the SDK install command from <../straddle-integration/references/sdk.md>.
+After answer, recommend the SDK install command from <../straddle-integrate/references/sdk.md>.
 
 ### Step 3: Business context
 
@@ -214,6 +214,6 @@ Present the full plan in conversation. Then offer to save as a file.
 Suggest next steps:
 
 > **Next steps:**
-> 1. Review the plan -- ask questions via `/straddle-integration`
+> 1. Review the plan -- ask questions via `/straddle-integrate`
 > 2. Test in sandbox -- try `/sandbox-test` for guided testing
 > 3. Explore the [Straddle docs](https://docs.straddle.com) for deep dives

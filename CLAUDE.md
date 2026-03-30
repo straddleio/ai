@@ -12,8 +12,8 @@ Core principle: **architectural knowledge in files, enumerated facts via live do
 skills/                              # Canonical skill source (edit here)
   sync.js                            # Copies skills/ to providers/*/plugin/skills/
   setup/SKILL.md                     # First-time setup skill
-  straddle-build/SKILL.md            # Guided integration planning skill
-  straddle-integration/              # Integration guidance skill
+  straddle-plan/SKILL.md             # Guided integration planning skill
+  straddle-integrate/                # Integration guidance skill
     SKILL.md
     references/                      # Stable architectural knowledge
       domain.md                      # Entities, status machines, webhooks, ACH

@@ -1,5 +1,5 @@
 ---
-name: straddle-integration
+name: straddle-integrate
 description: >-
   This skill should be used when the user asks to "integrate Straddle",
   "create a customer", "create a charge", "create a payout", "connect a bank
