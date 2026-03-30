@@ -9,7 +9,6 @@
 | Ruby | `straddle` | `gem install straddle` |
 | C# | `straddle` | `dotnet add package straddle` |
 | Go | `straddle-go` | `go get github.com/straddleio/straddle-go` |
-| CLI | `straddle` | `brew install straddleio/tools/straddle` |
 
 ## MCP Tool Interaction Model
 
