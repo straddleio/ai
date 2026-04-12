@@ -215,11 +215,16 @@ Search product docs for sandbox guide.
 
 ## Delivering the plan
 
-Present the full plan in conversation. Then offer to save as a file.
+Present the full plan in conversation. Then offer:
 
-Suggest next steps:
+> Save this plan to `straddle-integration-plan.md`?
 
-> **Next steps:**
-> 1. Review the plan -- ask questions via `/straddle-integrate`
+**Revising the plan:**
+
+To revise a section, ask about it. There is no need to restart the full conversation. Re-read the relevant reference files and re-search docs for the updated sections only.
+
+**Next steps:**
+
+> 1. Review the plan -- ask questions or request changes to any section
 > 2. Test in sandbox -- try `/sandbox-test` for guided testing
 > 3. Explore the [Straddle docs](https://docs.straddle.com) for deep dives
