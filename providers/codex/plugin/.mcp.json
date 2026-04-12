@@ -1,6 +1,5 @@
 {
   "mcpServers": {
-    "straddle": { "type": "http", "url": "https://mcp.straddle.com/mcp" },
-    "straddle-docs": { "type": "http", "url": "https://docs.straddle.com/mcp" }
+    "straddle": { "type": "http", "url": "https://mcp.straddle.com/mcp" }
   }
 }
