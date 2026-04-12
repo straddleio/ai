@@ -131,6 +131,8 @@ if (fs.existsSync(cmdDir)) {
     if (!fm) { fail(`commands/${file}: no frontmatter`); continue; }
     if (!fm.description) fail(`commands/${file}: missing 'description'`);
     else pass(`commands/${file}: has description`);
+    const lines = fs.readFileSync(path.join(cmdDir, file), 'utf8').trim().split('\n');
+    if (lines.length < 3) fail(`commands/${file}: appears empty (fewer than 3 lines)`);
   }
 }
 
@@ -164,11 +166,70 @@ checkJson(
   ['name', 'description', 'version']
 );
 checkJson(
+  path.join(ROOT, 'providers', 'codex', 'plugin', '.codex-plugin', 'plugin.json'),
+  ['name', 'description', 'version']
+);
+checkJson(
   path.join(ROOT, '.claude-plugin', 'marketplace.json'),
   ['name', 'description', 'plugins']
 );
+checkJson(
+  path.join(ROOT, '.agents', 'plugins', 'marketplace.json'),
+  ['name', 'plugins']
+);
 
-// --- Check 5: Internal references ---
+// --- Check 5: Version consistency ---
+
+console.log('\n=== Version consistency ===');
+const pkgVersion = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')
+).version;
+
+const versionFiles = [
+  path.join(ROOT, 'providers', 'claude', 'plugin', '.claude-plugin', 'plugin.json'),
+  path.join(ROOT, 'providers', 'codex', 'plugin', '.codex-plugin', 'plugin.json'),
+  path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'),
+];
+
+let versionOk = true;
+for (const f of versionFiles) {
+  const label = path.relative(ROOT, f);
+  if (!fs.existsSync(f)) continue;
+  try {
+    const data = JSON.parse(fs.readFileSync(f, 'utf8'));
+    if (data.version && data.version !== pkgVersion) {
+      fail(`${label}: version ${data.version} does not match package.json ${pkgVersion}`);
+      versionOk = false;
+    }
+  } catch (e) {
+    fail(`${label}: could not parse for version check`);
+    versionOk = false;
+  }
+}
+if (versionOk) pass(`All manifests match package.json version ${pkgVersion}`);
+
+// --- Check 6: MCP configs ---
+
+console.log('\n=== MCP configs ===');
+const mcpFiles = [
+  path.join(ROOT, 'providers', 'claude', 'plugin', '.mcp.json'),
+  path.join(ROOT, 'providers', 'codex', 'plugin', '.mcp.json'),
+  path.join(ROOT, 'providers', 'cursor', 'plugin', 'mcp.json'),
+];
+
+for (const f of mcpFiles) {
+  const label = path.relative(ROOT, f);
+  if (!fs.existsSync(f)) { fail(`${label}: file not found`); continue; }
+  let data;
+  try { data = JSON.parse(fs.readFileSync(f, 'utf8')); }
+  catch (e) { fail(`${label}: invalid JSON`); continue; }
+  const servers = data.mcpServers;
+  if (!servers) { fail(`${label}: missing mcpServers`); continue; }
+  if (!servers.straddle) { fail(`${label}: missing straddle server`); continue; }
+  pass(`${label}: valid`);
+}
+
+// --- Check 7: Internal references ---
 
 console.log('\n=== Internal references ===');
 let refsChecked = 0;
