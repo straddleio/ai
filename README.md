@@ -77,6 +77,33 @@ claude mcp add --transport http straddle https://straddle.stlmcp.com/ \
   --header "Authorization: Bearer $STRADDLE_API_KEY"
 ```
 
+## CLI
+
+Full API access from your terminal. Built for developers and AI agents.
+
+```bash
+brew install straddleio/tools/straddle
+```
+
+```bash
+# Explore the API
+straddle --help
+straddle charges create --help
+
+# List customers with structured output
+straddle customers list --format json
+
+# Inspect a charge with full HTTP details
+straddle charges get ch_123 --debug
+
+# Extract specific fields
+straddle customers list --format json --transform 'data.#.{id,name,status}'
+```
+
+Interactive terminal gets styled tables. Piped output switches to JSON automatically.
+
+See [CLI docs](https://sdk.straddle.com/api/cli) for the full command reference.
+
 ## MCP server configuration
 
 The MCP servers accept flags for transport, environment, code execution, and access control.
