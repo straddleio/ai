@@ -31,7 +31,7 @@ Install the Straddle plugin from the plugin browser. Same plugin as Claude Code.
 
 ### Cursor
 
-Install the Straddle plugin from the [Cursor Marketplace](https://cursor.com/marketplace), or add the MCP servers directly to `~/.cursor/mcp.json`:
+Add the MCP servers to `~/.cursor/mcp.json`:
 
 ```json
 {
