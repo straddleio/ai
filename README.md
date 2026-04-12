@@ -1,6 +1,6 @@
 # Straddle AI Toolkit
 
-AI-native developer tools for Straddle's payment infrastructure. MCP servers, skills, and editor plugins.
+Build payment integrations faster with AI-powered tools for Straddle. Contextual guidance, live API access, and sandbox testing inside your editor.
 
 ## Prerequisites
 
@@ -46,6 +46,8 @@ Add the MCP servers to `~/.cursor/mcp.json`:
 ```
 
 ### Other MCP clients
+
+[MCP (Model Context Protocol)](https://modelcontextprotocol.io) connects AI agents to external tools and data sources.
 
 Two hosted MCP servers:
 
@@ -122,86 +124,7 @@ export STRADDLE_ENVIRONMENT="production"
 export STRADDLE_API_KEY="sk_live_..."
 ```
 
-### Transport
-
-```bash
-# stdio (default, for local use)
-npx -y @straddlecom/straddle-mcp@latest --api-key=$STRADDLE_API_KEY
-
-# HTTP server
-npx -y @straddlecom/straddle-mcp@latest --transport=http --port=3000
-
-# Unix socket
-npx -y @straddlecom/straddle-mcp@latest --transport=http --socket=/tmp/mcp.sock
-```
-
-### Code execution mode
-
-```bash
-# Run code in Stainless-hosted sandbox (default)
---code-execution-mode=stainless-sandbox
-
-# Run code locally on your machine
---code-execution-mode=local
-```
-
-### Tool selection
-
-```bash
-# Enable only specific tools
---tools code
---tools docs
-
-# Disable specific tools
---no-tools code
-```
-
-### Method-level access control
-
-Restrict which SDK methods the code tool can call:
-
-```bash
-# Allow all HTTP GET methods
---code-allow-http-gets
-
-# Allow only specific method patterns (regex)
---code-allowed-methods "customers\\..*" --code-allowed-methods "charges\\.list"
-
-# Block specific method patterns (regex)
---code-blocked-methods "charges\\.create" --code-blocked-methods "payouts\\..*"
-```
-
-When no filtering flags are set, all methods are allowed. Once any filter is set, only explicitly allowed methods work.
-
-### Logging
-
-```bash
---debug                    # Enable debug logging
---log-format=pretty        # Human-readable logs (auto-detected for TTY)
---log-format=json          # Structured JSON logs
-```
-
-### Environment variable convention
-
-Any CLI flag can be set as an environment variable with the `MCP_SERVER_` prefix:
-
-```bash
-export MCP_SERVER_TRANSPORT=http
-export MCP_SERVER_PORT=3000
-export MCP_SERVER_DEBUG=true
-```
-
-### HTTP headers (remote mode)
-
-When running with `--transport=http`, these headers configure per-request behavior:
-
-| Header | Purpose |
-|--------|---------|
-| `Authorization: Bearer <token>` | Authentication |
-| `x-straddle-api-key: <key>` | Alternative to Bearer token |
-| `x-stainless-api-key: <key>` | Override Stainless API key |
-| `x-stainless-mcp-client-envs: <json>` | Pass environment variables upstream |
-| `x-stainless-mcp-client-permissions: <json>` | Override method permissions per-request |
+For advanced configuration (transport, code execution, access control, logging), see the [MCP server reference](https://docs.straddle.com/mcp).
 
 ## What you get
 

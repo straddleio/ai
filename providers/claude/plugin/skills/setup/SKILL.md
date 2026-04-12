@@ -195,6 +195,18 @@ This confirms the CLI is installed and working. The output should show the full 
 
 If any check fails, verify the MCP server is registered (`claude mcp list` in Claude Code) and that your API key is set correctly for the environment you are targeting.
 
+## Next steps
+
+Based on integration type:
+
+**Direct account:**
+- Ask to plan your integration, or run `/sandbox-test` to test payment flows
+- Ask about specific payment operations (charges, payouts, Bridge)
+
+**SaaS platform or marketplace:**
+- Ask to plan your integration -- the plan covers Embed onboarding, customer management, and payment flows
+- Run `/sandbox-test embed-onboarding` to test the merchant onboarding flow
+
 ## Troubleshooting
 
 ### OAuth flow does not open a browser
