@@ -1,15 +1,21 @@
 node_modules/
 .DS_Store
 *.log
+.env
+.env.*
+*.secrets
+.venv/
+
+# Internal working files (not part of the public plugin)
 .claude/
 .planning/
 docs/
 examples/
 .firecrawl/
-demo.*
-.env
-.env.*
-*.secrets
-**/evals/
-.venv/
 .harness/
+
+# Eval results (eval definitions may be committed in the future)
+**/evals/
+
+# Demo files
+demo.*

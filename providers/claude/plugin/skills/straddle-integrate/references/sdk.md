@@ -7,7 +7,7 @@
 | TypeScript/Node.js | `@straddlecom/straddle` | `npm install @straddlecom/straddle` |
 | Python | `straddle` | `pip install straddle` |
 | Ruby | `straddle` | `gem install straddle` |
-| C# | `straddle` | `dotnet add package straddle` |
+| C# | `Straddle` | `dotnet add package Straddle` |
 | Go | `straddle-go` | `go get github.com/straddleio/straddle-go` |
 
 ## MCP Tool Interaction Model
@@ -16,7 +16,7 @@ When using Straddle through an MCP server, the AI agent calls tools that map to 
 
 ## Bridge Widget SDK
 
-The Bridge Widget is a drop-in UI component for connecting **customer** bank accounts (open banking). It is NOT for merchant/account onboarding -- that uses the hosted onboarding form (see embed reference).
+The Bridge Widget is a drop-in UI component for connecting **customer** bank accounts (open banking). It is not for merchant/account onboarding -- that uses the hosted onboarding form (see embed reference).
 
 Source: https://github.com/straddleio/straddle-bridge-client
 
@@ -27,7 +27,7 @@ Source: https://github.com/straddleio/straddle-bridge-client
 | `@straddlecom/bridge-js` | Vanilla JavaScript |
 | `@straddlecom/bridge-core` | Core utilities/types (not for direct use) |
 
-The Bridge Widget handles:
+The Bridge Widget handles the following tasks:
 - Bank selection and search (open banking)
 - Manual bank entry (routing + account number) as fallback
 - Customer authentication with the bank
@@ -164,7 +164,7 @@ All list endpoints return paginated results.
 
 ### Auto-Pagination
 
-The simplest approach. Iterates through all pages automatically:
+Auto-pagination iterates through all pages automatically.
 
 ```typescript
 for await (const item of client.customers.list()) {
@@ -174,7 +174,7 @@ for await (const item of client.customers.list()) {
 
 ### Manual Pagination
 
-For more control over page fetching:
+Manual pagination gives you more control over page fetching.
 
 ```typescript
 let page = await client.customers.list({ page_number: 1, page_size: 50 });
@@ -215,7 +215,7 @@ try {
 }
 ```
 
-Common status codes:
+The following list describes common status codes.
 - **400** BadRequestError -- invalid request format or parameters
 - **401** AuthenticationError -- missing or invalid API key
 - **403** PermissionDeniedError -- key lacks required permissions

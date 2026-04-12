@@ -20,6 +20,7 @@ skills/                              # Canonical skill source (edit here)
       embed.md                       # Embed platform integration
       pay-by-bank.md                 # Payment flow walkthrough
       sdk.md                         # SDK operations and patterns
+      cli.md                         # CLI command structure and usage
 providers/
   claude/plugin/                     # Claude Code plugin
     .claude-plugin/plugin.json       # Plugin manifest
@@ -30,13 +31,17 @@ providers/
     .cursor-plugin/plugin.json
     mcp.json                         # MCP servers (Bearer token + docs)
     skills/                          # Synced from skills/ -- DO NOT EDIT
-  gemini/                            # Coming soon
-  vscode/                            # Coming soon
+  codex/plugin/                      # Codex plugin
+    .codex-plugin/plugin.json
+    .mcp.json                        # MCP servers (OAuth + docs)
+    skills/                          # Synced from skills/ -- DO NOT EDIT
 scripts/
   shared.js                          # Constants shared by sync.js and validate.js
   validate.js                        # Structural validation
 .claude-plugin/
   marketplace.json                   # Plugin marketplace manifest
+.agents/
+  plugins/marketplace.json           # Codex marketplace manifest
 ```
 
 ## How things connect
@@ -86,13 +91,17 @@ Enumerated facts (return codes, limits, event names) link to docs.straddle.com i
 ## How to add a new provider
 
 1. Create `providers/<name>/plugin/` with provider-specific manifest and MCP config
-2. Add target path to `SYNC_TARGETS` in `skills/sync.js`
+2. Add target path to `SYNC_TARGETS` in `scripts/shared.js`
 3. Run `npm run sync`
 
 ## Conventions
 
 - Directories and files: kebab-case
 - No package dependencies -- scripts use Node.js builtins only
+
+## Cross-skill dependencies
+
+`straddle-plan` references files in `straddle-integrate/references/` via relative paths (`<../straddle-integrate/references/domain.md>`). These two skills must always be synced together. The `validate.js` script catches broken cross-skill references.
 
 ## Testing changes
 

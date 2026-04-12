@@ -127,10 +127,12 @@ console.log('\n=== Command frontmatter ===');
 const cmdDir = path.join(ROOT, 'providers', 'claude', 'plugin', 'commands');
 if (fs.existsSync(cmdDir)) {
   for (const file of fs.readdirSync(cmdDir).filter(f => f.endsWith('.md'))) {
-    const fm = parseFrontmatter(fs.readFileSync(path.join(cmdDir, file), 'utf8'));
+    const content = fs.readFileSync(path.join(cmdDir, file), 'utf8');
+    const fm = parseFrontmatter(content);
     if (!fm) { fail(`commands/${file}: no frontmatter`); continue; }
     if (!fm.description) fail(`commands/${file}: missing 'description'`);
     else pass(`commands/${file}: has description`);
+    if (content.trim().split('\n').length < 3) fail(`commands/${file}: appears empty (fewer than 3 lines)`);
   }
 }
 
@@ -140,35 +142,83 @@ console.log('\n=== Plugin manifests ===');
 
 function checkJson(filePath, requiredFields) {
   const label = path.relative(ROOT, filePath);
-  if (!fs.existsSync(filePath)) { fail(`${label}: file not found`); return; }
+  if (!fs.existsSync(filePath)) { fail(`${label}: file not found`); return null; }
   let data;
   try {
     data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (e) {
     fail(`${label}: invalid JSON`);
-    return;
+    return null;
   }
   let ok = true;
   for (const field of requiredFields) {
     if (!data[field]) { fail(`${label}: missing '${field}'`); ok = false; }
   }
   if (ok) pass(`${label}: required fields present`);
+  return data;
 }
 
-checkJson(
-  path.join(ROOT, 'providers', 'claude', 'plugin', '.claude-plugin', 'plugin.json'),
-  ['name', 'description', 'version']
-);
-checkJson(
-  path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'),
-  ['name']
-);
+const providerManifests = [
+  { path: path.join(ROOT, 'providers', 'claude', 'plugin', '.claude-plugin', 'plugin.json'), fields: ['name', 'description', 'version'] },
+  { path: path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'), fields: ['name', 'description', 'version'] },
+  { path: path.join(ROOT, 'providers', 'codex', 'plugin', '.codex-plugin', 'plugin.json'), fields: ['name', 'description', 'version'] },
+];
+
+const parsedManifests = new Map();
+for (const m of providerManifests) {
+  const data = checkJson(m.path, m.fields);
+  if (data) parsedManifests.set(m.path, data);
+}
 checkJson(
   path.join(ROOT, '.claude-plugin', 'marketplace.json'),
   ['name', 'description', 'plugins']
 );
+checkJson(
+  path.join(ROOT, '.agents', 'plugins', 'marketplace.json'),
+  ['name', 'plugins']
+);
 
-// --- Check 5: Internal references ---
+// --- Check 5: Version consistency ---
+
+console.log('\n=== Version consistency ===');
+const pkgVersion = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')
+).version;
+
+let versionOk = true;
+for (const m of providerManifests) {
+  const data = parsedManifests.get(m.path);
+  if (!data) continue;
+  const label = path.relative(ROOT, m.path);
+  if (data.version && data.version !== pkgVersion) {
+    fail(`${label}: version ${data.version} does not match package.json ${pkgVersion}`);
+    versionOk = false;
+  }
+}
+if (versionOk) pass(`All manifests match package.json version ${pkgVersion}`);
+
+// --- Check 6: MCP configs ---
+
+console.log('\n=== MCP configs ===');
+const mcpFiles = [
+  path.join(ROOT, 'providers', 'claude', 'plugin', '.mcp.json'),
+  path.join(ROOT, 'providers', 'codex', 'plugin', '.mcp.json'),
+  path.join(ROOT, 'providers', 'cursor', 'plugin', 'mcp.json'),
+];
+
+for (const f of mcpFiles) {
+  const label = path.relative(ROOT, f);
+  if (!fs.existsSync(f)) { fail(`${label}: file not found`); continue; }
+  let data;
+  try { data = JSON.parse(fs.readFileSync(f, 'utf8')); }
+  catch (e) { fail(`${label}: invalid JSON`); continue; }
+  const servers = data.mcpServers;
+  if (!servers) { fail(`${label}: missing mcpServers`); continue; }
+  if (!servers.straddle) { fail(`${label}: missing straddle server`); continue; }
+  pass(`${label}: valid`);
+}
+
+// --- Check 7: Internal references ---
 
 console.log('\n=== Internal references ===');
 let refsChecked = 0;

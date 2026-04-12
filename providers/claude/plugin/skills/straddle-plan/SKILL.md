@@ -42,13 +42,22 @@ Reference files contain stable structural and behavioral knowledge. Enumerated
 factual lists (return codes, event names, numeric limits) have been replaced
 with links to authoritative documentation pages.
 
+**Two search tools exist. They return different content:**
+
+| Tool | What it searches | When to use |
+|------|-----------------|-------------|
+| `search_docs` | SDK and API reference (method signatures, parameters, code examples) | Writing code examples, looking up fields and request shapes. **Always pass `language` param.** |
+| `search_straddle_docs` | Product guides (payment lifecycle, compliance, sandbox testing) | Understanding concepts, checking business rules, finding operational guidance |
+
+**Default to `search_docs`** for any code or API question. Use `search_straddle_docs` only for product concepts and compliance.
+
 For EACH section of the output plan:
 
 1. Read the relevant reference file for structural baseline
 2. Follow all documentation links in the reference file for current values
-3. Search SDK docs MCP (`search_docs`, pass `language` param) for method signatures and code examples
-4. Search product docs MCP (`search_straddle_docs`) for current guides and compliance info
-5. Compare all sources. **MCP docs win on conflicts** (they are live). Flag discrepancies.
+3. Use `search_docs` (pass `language` param) for method signatures and code examples
+4. Use `search_straddle_docs` for current guides and compliance info
+5. Compare all sources. **MCP results win on conflicts** (they are live). Flag discrepancies.
 
 Never generate a plan section from reference files alone. Never guess at enumerated values -- always search or follow the doc links.
 
@@ -145,19 +154,19 @@ After all questions, announce:
 Generate each section below. Follow doc search enforcement for every section.
 Use the developer's business terms (from step 3) throughout.
 
-### Section 1: Entity Mapping
+### Section 1: Entity mapping
 
 Table mapping their domain concepts to Straddle entities.
 
 - `account`: their business = account holder, their customers = Customer, bank links = Paykey
 - `saas`/`marketplace`: their platform = Platform, their merchants = Account (hosted onboarding), their end-users = Customer, bank links = Paykey
 
-### Section 2: Onboarding Flow
+### Section 2: Onboarding flow
 
 - `account`: "Not applicable -- account set up via Dashboard."
 - `saas`/`marketplace`: Hosted onboarding form. Search SDK docs for embed component. Show code. Explain `platform.id`, `env`, `external.id`. Document status flow: `created` -> `onboarding` -> `active`.
 
-### Section 3: Customer & Paykey Flow
+### Section 3: Customer and paykey flow
 
 Search SDK docs for `customers.create` and Bridge setup.
 
@@ -168,7 +177,7 @@ Search SDK docs for `customers.create` and Bridge setup.
 - Paykey creation statuses: active, review, rejected
 - Verify with CLI: `straddle customers get <id> --format json`, `straddle paykeys list --format json`
 
-### Section 4: Payment Flow
+### Section 4: Payment flow
 
 Search SDK docs for `charges.create` / `payouts.create`.
 
@@ -179,7 +188,7 @@ Search SDK docs for `charges.create` / `payouts.create`.
 - Balance check modes: `enabled` (default), `required` (high-value), `disabled` (future-dated/manual-entry)
 - Test with CLI before writing SDK code: `straddle charges create --help` to see required fields, `straddle charges get <id> --debug` to inspect responses
 
-### Section 5: Webhook Handler
+### Section 5: Webhook handler
 
 Search product docs for webhook events and security.
 
@@ -190,7 +199,7 @@ Search product docs for webhook events and security.
 - Signature verification
 - Idempotency: store webhook-id, dedup on replay
 
-### Section 6: Sandbox Testing
+### Section 6: Sandbox testing
 
 Search product docs for sandbox guide.
 
@@ -215,11 +224,16 @@ Search product docs for sandbox guide.
 
 ## Delivering the plan
 
-Present the full plan in conversation. Then offer to save as a file.
+Present the full plan in conversation. Then offer:
 
-Suggest next steps:
+> Save this plan to `straddle-integration-plan.md`?
 
-> **Next steps:**
-> 1. Review the plan -- ask questions via `/straddle-integrate`
+**Revising the plan:**
+
+To revise a section, ask about it. There is no need to restart the full conversation. Re-read the relevant reference files and re-search docs for the updated sections only.
+
+**Next steps:**
+
+> 1. Review the plan -- ask questions or request changes to any section
 > 2. Test in sandbox -- try `/sandbox-test` for guided testing
 > 3. Explore the [Straddle docs](https://docs.straddle.com) for deep dives

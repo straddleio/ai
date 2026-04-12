@@ -29,11 +29,41 @@ Commands are provider-specific. Claude commands live in `providers/claude/plugin
 3. Add the provider as a sync target in `scripts/shared.js`.
 4. Run `npm run sync` to populate skills.
 
+## Local testing
+
+### Claude Code
+
+```bash
+claude --plugin-dir /path/to/straddle-ai/providers/claude/plugin
+```
+
+Then try the skills and commands to verify they load and work.
+
+### Codex
+
+Copy or symlink the plugin directory into your Codex plugins directory and restart.
+
+### Cursor
+
+Symlink the plugin into `~/.cursor/plugins/local/`:
+
+```bash
+ln -s /path/to/straddle-ai/providers/cursor/plugin ~/.cursor/plugins/local/straddle
+```
+
+Restart Cursor or run Developer > Reload Window.
+
+## Pull requests
+
+- Run `npm run sync` and `npm run validate` before opening a PR
+- Edit skills in `skills/` only, never in `providers/*/plugin/skills/`
+- Include synced copies in your commit
+- Describe what you changed and which provider(s) it affects
+
 ## Providers
 
 | Provider | Status |
 |----------|--------|
 | Claude Code / Cowork | Available |
+| Codex | Available |
 | Cursor | Available |
-| Gemini | Coming soon |
-| VS Code | Coming soon |

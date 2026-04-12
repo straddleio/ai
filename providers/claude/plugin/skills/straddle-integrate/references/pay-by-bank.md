@@ -39,7 +39,7 @@ const result = await client.customers.create({
 - **Business customers** without `compliance_profile`: automatically go to `verified`. Useful for small businesses without an EIN. Tradeoff: no B2B chargeback protection.
 - **Business customers** with `compliance_profile`: standard verification.
 
-**Important: `review` does NOT block the flow.** Customers in `review` can proceed through the entire pay-by-bank flow -- Bridge, Paykey creation, charge/payout creation all work. Downstream objects will be placed in `review` or `on_hold` until the customer clears. Once the customer is verified, held items release automatically.
+**Important: `review` does not block the flow.** Customers in `review` can proceed through the entire pay-by-bank flow -- Bridge, paykey creation, charge/payout creation all work. Downstream objects are placed in `review` or `on_hold` until the customer clears. After the customer is verified, held items release automatically.
 
 **Handling `review` status:**
 
@@ -52,9 +52,9 @@ POST /v1/customers/{id}/decision -- approve or reject
 
 ## Step 2: Connect Bank Account
 
-Connect the customer's bank account to generate a Paykey. There are three connection methods plus a fourth option for platforms with existing third-party integrations.
+Connect the customer's bank account to generate a paykey. Four connection methods are available, including one for platforms with existing third-party integrations.
 
-### Choosing a Connection Method
+### Choose a Connection Method
 
 | Scenario | Method | Pros | Cons |
 |----------|--------|------|------|
@@ -74,7 +74,7 @@ Body: { "customer_id": "cus_123" }
 Response: { "data": { "bridge_token": "..." } }
 ```
 
-2. Embed the widget in your frontend using the `@straddlecom/bridge` SDK (see the SDK reference for installation and usage details).
+2. Embed the widget in your frontend using the `@straddlecom/bridge-react` or `@straddlecom/bridge-js` SDK (see the SDK reference for installation and usage details).
 
 3. The widget returns a Paykey on successful bank connection.
 
@@ -116,7 +116,7 @@ Body: {
 }
 ```
 
-**Warning:** Manual entry paykeys have higher fraud risk and cannot perform balance checks. Use `balance_check: "disabled"` or `balance_check: "enabled"` (which proceeds if unavailable) when charging against manual paykeys. Do not use `balance_check: "required"` -- it will fail.
+**Warning:** Manual entry paykeys have higher fraud risk and cannot perform balance checks. Use `balance_check: "disabled"` or `balance_check: "enabled"` (which proceeds if unavailable) when charging against manual paykeys. Do not use `balance_check: "required"` -- it fails.
 
 ### After Connection
 

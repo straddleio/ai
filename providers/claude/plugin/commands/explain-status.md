@@ -10,7 +10,7 @@ Parse the user's arguments to identify the entity type and the status, transitio
 ## Supported Entity Types
 
 - **customer** -- statuses: pending, review, verified, inactive, rejected
-- **paykey** -- statuses: active, expired, blocked, revoked
+- **paykey** -- statuses: active, review, rejected, blocked, inactive, expired
 - **charge** -- statuses: created, scheduled, pending, paid, failed, reversed, cancelled, on_hold, validating
 - **payout** -- statuses: created, scheduled, pending, paid, failed, reversed, cancelled, on_hold
 - **funding_event** -- statuses tied to settlement lifecycle
@@ -18,7 +18,7 @@ Parse the user's arguments to identify the entity type and the status, transitio
 
 ## What to Explain
 
-For each status, cover all of the following:
+For each status, cover the following:
 
 1. **Meaning** -- what this status indicates
 2. **Cause** -- how the entity reached this status
@@ -40,38 +40,32 @@ created -> scheduled -> pending -> paid
 
 Key rules:
 - Once a payment reaches `pending`, it cannot be modified, held, released, or cancelled
-- `paid`, `failed`, `reversed`, and `cancelled` are terminal states
+- `failed`, `reversed`, and `cancelled` are terminal states
+- `paid` can still transition to `reversed` (ACH return after settlement)
 - `on_hold` can transition to `released` (back to `scheduled`) or `cancelled`
 
-## ACH Return Codes
+## Status Details
 
-If the question involves an ACH return code, explain:
+When a payment fails or reverses, `status_details` explains why:
 
-1. **Code and meaning** (e.g., R01 = Insufficient Funds)
-2. **Fraud vs operational** -- fraud returns (R05, R07, R10, R11, R29) indicate unauthorized transactions; operational returns (R01, R02, R03, R04) are non-fraud
-3. **Paykey impact** -- fraud returns (especially R29) may block the paykey. Check `unblock_eligible` to determine if the paykey can be reactivated.
-4. **Recovery path** -- whether the payment can be retried and under what conditions
+- `reason` -- human-readable category (e.g., `insufficient_funds`, `account_closed`, `unauthorized`)
+- `message` -- detailed explanation of what happened
+- `code` -- raw return code when applicable (e.g., `R01`)
 
-Common codes:
+Search Straddle docs for the current list of status reason codes and their meanings. Do not rely on hardcoded lists -- reason codes are maintained in the documentation.
 
-| Code | Meaning | Type |
-|------|---------|------|
-| R01 | Insufficient funds | Operational |
-| R02 | Account closed | Operational |
-| R03 | No account / unable to locate | Operational |
-| R04 | Invalid account number | Operational |
-| R05 | Unauthorized debit to consumer account | Fraud |
-| R07 | Authorization revoked by customer | Fraud |
-| R10 | Customer advises originator is not known | Fraud |
-| R11 | Check truncation entry return | Fraud |
-| R29 | Corporate customer advises not authorized | Fraud |
+Key distinctions:
+- **Operational reasons** (insufficient funds, closed account, invalid account) -- non-fraud, often retryable
+- **Unauthorized reasons** (unauthorized debit, authorization revoked, customer advises not known) -- fraud-related, may block the paykey
+
+When explaining a status, always show the full `status_details` object and explain each field.
 
 ## Identity Review
 
 If the question involves customer `review` status or identity verification:
 
-- Use the `search_straddle_docs` tool to look up risk score details and thresholds
-- Explain that `GET /v1/customers/{id}/review` shows the identity verification scores (fraud, email, address, IP, phone, watchlist)
+- Use the `search_straddle_docs` tool to look up current risk score details, thresholds, and scoring categories
+- Explain that `GET /v1/customers/{id}/review` shows the identity verification scores
 - Explain that `POST /v1/customers/{id}/decision` is used to approve or reject after review
 - Note that 98% of customers clear instantly to `verified`; `review` means one or more risk signals were elevated
 
@@ -85,7 +79,7 @@ After explaining the status, use the `search_straddle_docs` tool to find relevan
 
 **Paykey:** `active` is the only status that allows payments. `blocked` may be recoverable if `unblock_eligible` is true. `expired` requires the customer to reconnect their bank account.
 
-**Charge/Payout:** Same state machine. Key difference is funding timing -- payouts require Straddle to withdraw from the business account first.
+**Charge/Payout:** Same state machine. When a payment reaches `failed` or `reversed`, check `status_details` for the reason. The `reason` field categorizes the cause, `message` provides detail, and `code` gives the raw return code when applicable. Use `search_straddle_docs` to look up specific reason codes.
 
 **Funding Event:** Tracks settlement of money after a payment reaches `paid`. Query via `/v1/funding/search`.
 
