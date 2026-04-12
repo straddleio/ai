@@ -85,6 +85,7 @@ Two MCP servers provide two different search tools. They have confusingly simila
 | Entities and lifecycle         | <references/domain.md>        | Status machines, webhooks, ACH, identity, gotchas                 |
 | SDK setup and code             | <references/sdk.md>           | All SDKs, TypeScript operations, Bridge Widget SDK, pagination, errors |
 | CLI usage and output           | <references/cli.md>           | CLI command structure, output formats, data extraction, debugging         |
+| MCP server setup               | <references/mcp-server.md>    | Connection methods, tool filtering, environments, production safety      |
 
 Read the relevant reference file before answering any integration question or writing code.
 
