@@ -9,7 +9,7 @@
       "name": "straddle",
       "description": "Straddle payment infrastructure plugin with MCP, skills, and commands",
       "source": "./providers/claude/plugin",
-      "version": "0.1.0",
+      "version": "0.5.0",
       "category": "engineering",
       "tags": ["payments", "ach", "open-banking", "instant-payments", "a2a"]
     }

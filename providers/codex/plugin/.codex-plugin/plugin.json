@@ -1,6 +1,6 @@
 {
   "name": "straddle",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "description": "Straddle payment infrastructure plugin for Codex with MCP-backed API access and SDK guidance.",
   "author": {
     "name": "Straddle",
