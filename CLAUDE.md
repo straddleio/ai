@@ -30,8 +30,10 @@ providers/
     .cursor-plugin/plugin.json
     mcp.json                         # MCP servers (Bearer token + docs)
     skills/                          # Synced from skills/ -- DO NOT EDIT
-  gemini/                            # Coming soon
-  vscode/                            # Coming soon
+  codex/plugin/                      # Codex plugin
+    .codex-plugin/plugin.json
+    mcp.json                         # MCP servers (Bearer token + docs)
+    skills/                          # Synced from skills/ -- DO NOT EDIT
 scripts/
   shared.js                          # Constants shared by sync.js and validate.js
   validate.js                        # Structural validation

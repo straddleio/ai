@@ -194,3 +194,63 @@ straddle charges create --help
 This confirms the CLI is installed and working. You should see the full list of parameters for creating a charge.
 
 If any check fails, verify the MCP server is registered (`claude mcp list` in Claude Code) and that your API key is set correctly for the environment you are targeting.
+
+## Troubleshooting
+
+### OAuth flow does not open a browser
+
+Headless environment (CI, SSH, containers). Switch to the API key connection method:
+
+```bash
+claude mcp add --transport http straddle https://straddle.stlmcp.com/ \
+  --header "Authorization: Bearer $STRADDLE_API_KEY"
+```
+
+### 401 Unauthorized after initial setup
+
+OAuth token expired. Remove and re-add the MCP server:
+
+```bash
+claude mcp remove straddle
+claude mcp add --transport http straddle https://mcp.straddle.com/mcp
+```
+
+### Connection timeout
+
+Firewall or proxy blocking the connection. Try the local npx method:
+
+```bash
+claude mcp add straddle -- npx -y @straddlecom/straddle-mcp@latest
+```
+
+### MCP server registered but tools not appearing
+
+Restart the editor. MCP servers load on session start.
+
+- Claude Code: start a new session
+- Cursor: Developer > Reload Window
+- Codex: restart the CLI
+
+### Wrong environment (sandbox vs production)
+
+API keys are environment-specific. A sandbox key returns 401 against production and vice versa. Check which key is set:
+
+```bash
+echo $STRADDLE_API_KEY | head -c 10
+```
+
+Sandbox keys start with `sk_test_`, production keys start with `sk_live_`.
+
+### CLI returns "command not found"
+
+Homebrew did not add the binary to PATH. Run:
+
+```bash
+brew link straddleio/tools/straddle
+```
+
+Or install with Go:
+
+```bash
+go install 'github.com/straddleio/straddle-cli/cmd/straddle@latest'
+```

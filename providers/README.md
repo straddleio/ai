@@ -5,9 +5,8 @@ Each provider directory contains the plugin configuration and synced skills for 
 | Provider | Directory | Status | Description |
 |----------|-----------|--------|-------------|
 | Claude Code / Cowork | `claude/` | Available | Plugin with MCP config, slash commands, and skills |
+| Codex | `codex/` | Available | Plugin with MCP config and skills |
 | Cursor | `cursor/` | Available | Plugin with MCP config and skills |
-| Gemini | `gemini/` | Coming soon | Gemini extension |
-| VS Code | `vscode/` | Coming soon | VS Code MCP configuration |
 
 ## How skills get here
 

@@ -34,6 +34,5 @@ Commands are provider-specific. Claude commands live in `providers/claude/plugin
 | Provider | Status |
 |----------|--------|
 | Claude Code / Cowork | Available |
+| Codex | Available |
 | Cursor | Available |
-| Gemini | Coming soon |
-| VS Code | Coming soon |
