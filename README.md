@@ -249,6 +249,7 @@ SDK reference docs: [sdk.straddle.com](https://sdk.straddle.com/api)
 - [Straddle documentation](https://docs.straddle.com)
 - [API reference](https://docs.straddle.com/api-reference)
 - [Sandbox testing guide](https://docs.straddle.com/guides/testing)
+- [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License
