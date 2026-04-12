@@ -151,6 +151,26 @@ const client = new Straddle({
 });
 ```
 
+## Integration Type
+
+Ask the user what they are building:
+
+- **Direct account** -- A single business collecting or sending payments. No sub-merchants, no embedded accounts. This is the simplest integration.
+- **SaaS platform** -- Software with embedded payments for your clients. Your clients (embedded accounts) own their customers in the Straddle API. Examples: loan servicing, property management, subscription billing software.
+- **Marketplace** -- A platform connecting buyers with multiple sellers. The platform owns customer relationships directly. Examples: e-commerce marketplace, gig economy, rental platform.
+
+Write the answer to the plugin's `.local.md` file:
+
+```markdown
+---
+platform_type: account
+---
+```
+
+Valid values: `account`, `saas`, `marketplace`.
+
+If `.local.md` already exists with a `platform_type`, show the current value and ask if they want to change it.
+
 ## Verification
 
 After setup, verify everything works with these checks:
