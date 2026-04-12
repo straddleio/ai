@@ -52,7 +52,7 @@ When a payment fails or reverses, `status_details` explains why:
 - `message` -- detailed explanation of what happened
 - `code` -- raw return code when applicable (e.g., `R01`)
 
-Search Straddle docs for the current list of status reason codes and their meanings. Do not rely on hardcoded lists -- reason codes are maintained in the documentation.
+Search product docs by POSTing to `https://docs.straddle.com/mcp` for the current list of status reason codes and their meanings. Do not rely on hardcoded lists -- reason codes are maintained in the documentation.
 
 Key distinctions:
 - **Operational reasons** (insufficient funds, closed account, invalid account) -- non-fraud, often retryable
@@ -64,14 +64,14 @@ When explaining a status, always show the full `status_details` object and expla
 
 If the question involves customer `review` status or identity verification:
 
-- Use the `search_straddle_docs` tool to look up current risk score details, thresholds, and scoring categories
+- Search product docs by POSTing to `https://docs.straddle.com/mcp` to look up current risk score details, thresholds, and scoring categories
 - Explain that `GET /v1/customers/{id}/review` shows the identity verification scores
 - Explain that `POST /v1/customers/{id}/decision` is used to approve or reject after review
 - Note that 98% of customers clear instantly to `verified`; `review` means one or more risk signals were elevated
 
 ## Documentation Links
 
-After explaining the status, use the `search_straddle_docs` tool to find relevant documentation pages. Link to specific guides when available.
+After explaining the status, search product docs by POSTing to `https://docs.straddle.com/mcp` to find relevant documentation pages. Link to specific guides when available.
 
 ## Entity-Specific Notes
 
@@ -79,7 +79,7 @@ After explaining the status, use the `search_straddle_docs` tool to find relevan
 
 **Paykey:** `active` is the only status that allows payments. `blocked` may be recoverable if `unblock_eligible` is true. `expired` requires the customer to reconnect their bank account.
 
-**Charge/Payout:** Same state machine. When a payment reaches `failed` or `reversed`, check `status_details` for the reason. The `reason` field categorizes the cause, `message` provides detail, and `code` gives the raw return code when applicable. Use `search_straddle_docs` to look up specific reason codes.
+**Charge/Payout:** Same state machine. When a payment reaches `failed` or `reversed`, check `status_details` for the reason. The `reason` field categorizes the cause, `message` provides detail, and `code` gives the raw return code when applicable. Search product docs (POST to `https://docs.straddle.com/mcp`) to look up specific reason codes.
 
 **Funding Event:** Tracks settlement of money after a payment reaches `paid`. Query via `/v1/funding/search`.
 
