@@ -42,13 +42,22 @@ Reference files contain stable structural and behavioral knowledge. Enumerated
 factual lists (return codes, event names, numeric limits) have been replaced
 with links to authoritative documentation pages.
 
+**Two search tools exist. They return different content:**
+
+| Tool | What it searches | When to use |
+|------|-----------------|-------------|
+| `search_docs` | SDK and API reference (method signatures, parameters, code examples) | Writing code examples, looking up fields and request shapes. **Always pass `language` param.** |
+| `search_straddle_docs` | Product guides (payment lifecycle, compliance, sandbox testing) | Understanding concepts, checking business rules, finding operational guidance |
+
+**Default to `search_docs`** for any code or API question. Use `search_straddle_docs` only for product concepts and compliance.
+
 For EACH section of the output plan:
 
 1. Read the relevant reference file for structural baseline
 2. Follow all documentation links in the reference file for current values
-3. Search SDK docs MCP (`search_docs`, pass `language` param) for method signatures and code examples
-4. Search product docs MCP (`search_straddle_docs`) for current guides and compliance info
-5. Compare all sources. **MCP docs win on conflicts** (they are live). Flag discrepancies.
+3. Use `search_docs` (pass `language` param) for method signatures and code examples
+4. Use `search_straddle_docs` for current guides and compliance info
+5. Compare all sources. **MCP results win on conflicts** (they are live). Flag discrepancies.
 
 Never generate a plan section from reference files alone. Never guess at enumerated values -- always search or follow the doc links.
 

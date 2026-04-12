@@ -56,16 +56,25 @@ The header follows resource ownership. See <references/embed.md> for code exampl
 - Push the hosted onboarding widget.
 - The platform reviews customers and paykeys directly.
 
-## Tool routing
+## MCP tool disambiguation
 
-Route requests to the appropriate tool based on the need.
+Two MCP servers provide two different search tools. They have confusingly similar names but return different content. Using the wrong one produces wrong answers.
+
+| MCP tool name | Server | What it searches | When to use |
+|---------------|--------|-----------------|-------------|
+| `search_docs` | straddle (API MCP) | SDK and API reference: method signatures, parameters, response shapes, code examples | Writing code, looking up fields, checking request/response formats. **Always pass the `language` param matching the user's SDK.** |
+| `search_straddle_docs` | straddle-docs (Docs MCP) | Product guides: payment lifecycle, risk scores, identity verification, sandbox testing, compliance, ACH returns | Understanding concepts, checking business rules, finding guides and tutorials |
+
+**Default to `search_docs`** for any question about how to call the API. Use `search_straddle_docs` only for product concepts, compliance guidance, and operational behavior.
+
+## Tool routing
 
 | Need                  | Tool                  | Use for                                                                   |
 | --------------------- | --------------------- | ------------------------------------------------------------------------- |
 | Code execution        | straddle API MCP      | Run API calls, test methods, explore responses                            |
-| SDK docs search       | straddle API MCP      | Field-level API reference, SDK examples, request/response shapes. **Always pass `language` param matching user's SDK.** |
-| Product docs search   | straddle-docs Docs MCP | Risk scores, identity verification, payment guides, integration patterns, status code meanings, ACH returns |
-| Terminal operations | Straddle CLI          | Verify resources, test operations, inspect responses, debug API issues. See <references/cli.md> |
+| SDK reference         | `search_docs`         | Method signatures, parameters, response shapes, code examples             |
+| Product guides        | `search_straddle_docs` | Risk scores, payment guides, sandbox testing, compliance, ACH returns    |
+| Terminal operations   | Straddle CLI          | Verify resources, test operations, inspect responses, debug API issues. See <references/cli.md> |
 
 ## Integration routing
 
@@ -86,9 +95,9 @@ factual lists (return codes, event names, numeric limits) have been replaced
 with links to authoritative documentation pages.
 
 When a reference file links to docs.straddle.com:
-1. Use `search_straddle_docs` to find current values
+1. Use `search_straddle_docs` (product guides) to find current values
 2. If MCP search returns insufficient results, fetch the linked URL directly
-3. MCP docs and linked pages are authoritative -- they win on conflicts
+3. MCP results and linked pages are authoritative -- they win on conflicts
 
 **Documentation index:** https://docs.straddle.com/llms.txt -- complete sitemap
 of all Straddle documentation pages with descriptions. Use as a fallback when
