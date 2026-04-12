@@ -123,7 +123,7 @@ Test the Bridge integration for bank account connectivity.
 
 1. Create a customer (or use existing).
 2. **Create a Bridge session** via `POST /v1/bridge/session` with the customer ID. Extract the `bridge_token`.
-3. Explain that in a real integration, this token is passed to the `@straddlecom/bridge` frontend SDK to render the bank connection widget.
+3. Explain that in a real integration, this token is passed to the `@straddlecom/bridge-react` or `@straddlecom/bridge-js` frontend SDK to render the bank connection widget.
 4. **Alternative: manual bank entry** via `POST /v1/bridge/bank_account` with test routing/account numbers.
 5. Verify the paykey is returned and its status is `active`.
 

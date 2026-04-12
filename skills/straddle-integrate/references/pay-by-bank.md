@@ -74,7 +74,7 @@ Body: { "customer_id": "cus_123" }
 Response: { "data": { "bridge_token": "..." } }
 ```
 
-2. Embed the widget in your frontend using the `@straddlecom/bridge` SDK (see the SDK reference for installation and usage details).
+2. Embed the widget in your frontend using the `@straddlecom/bridge-react` or `@straddlecom/bridge-js` SDK (see the SDK reference for installation and usage details).
 
 3. The widget returns a Paykey on successful bank connection.
 
