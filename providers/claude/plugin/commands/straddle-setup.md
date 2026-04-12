@@ -8,7 +8,7 @@ Walk through each section below. Skip any step the user has already completed. O
 
 ## 1. MCP Server Connection
 
-Run `/mcp` to list connected MCP servers. Check for both `straddle` and `straddle-docs`.
+Run `/mcp` to list connected MCP servers. Check for `straddle`.
 
 **If `straddle` is missing**, add it:
 
@@ -22,14 +22,6 @@ On first use this initiates an OAuth flow in the browser. For non-interactive en
 claude mcp add --transport http straddle https://straddle.stlmcp.com/ \
   --header "Authorization: Bearer $STRADDLE_API_KEY"
 ```
-
-**If `straddle-docs` is missing**, add it:
-
-```bash
-claude mcp add --transport http straddle-docs https://docs.straddle.com/mcp
-```
-
-This is a read-only documentation search server. No authentication required.
 
 ## 2. Straddle CLI
 
@@ -92,8 +84,6 @@ If the call fails:
 - Check the MCP server is registered (`/mcp`)
 - Verify the API key matches the target environment
 - For OAuth: re-authenticate by removing and re-adding the MCP server
-
-Then use the `search_straddle_docs` tool to search for "paykey". This confirms the docs MCP server is connected.
 
 ## 6. Next Steps
 

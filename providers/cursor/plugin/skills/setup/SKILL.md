@@ -91,28 +91,6 @@ Requires the `STRADDLE_API_KEY` environment variable to be set in your shell.
 }
 ```
 
-## Straddle Docs MCP
-
-A separate, read-only MCP server that searches Straddle product documentation. No authentication required.
-
-```bash
-claude mcp add --transport http straddle-docs https://docs.straddle.com/mcp
-```
-
-**Cursor / VS Code (mcp.json):**
-
-```json
-{
-  "mcpServers": {
-    "straddle-docs": {
-      "url": "https://docs.straddle.com/mcp"
-    }
-  }
-}
-```
-
-This server provides documentation search tools. It does not call the Straddle API or require any credentials.
-
 ## Straddle CLI
 
 The Straddle CLI gives you full API access from the terminal. Every resource available through the SDKs -- customers, paykeys, charges, payouts, bridge, embed -- is available as a CLI command.
@@ -175,17 +153,9 @@ const client = new Straddle({
 
 ## Verification
 
-After setup, verify everything works with these three checks:
+After setup, verify everything works with these checks:
 
-### 1. Test SDK docs search
-
-Ask your AI agent:
-
-> Search the Straddle docs for "paykey"
-
-This confirms the `straddle-docs` MCP server is connected. You should get results about Straddle's Paykey concept.
-
-### 2. Test a code tool
+### 1. Test a code tool
 
 Ask your AI agent:
 
@@ -193,15 +163,7 @@ Ask your AI agent:
 
 This confirms the `straddle` MCP server is connected and authenticated. You should get a response from the Straddle API (even if the customer list is empty in sandbox).
 
-### 3. Test product docs search
-
-Ask your AI agent:
-
-> Search Straddle docs for how to create a charge
-
-This confirms documentation search returns actionable integration guidance. You should see results covering charge creation parameters and the payment flow.
-
-### 4. Test CLI (if installed)
+### 2. Test CLI (if installed)
 
 Run:
 

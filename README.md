@@ -91,9 +91,6 @@ claude mcp add --transport http straddle https://mcp.straddle.com/mcp
 # Bearer token (for CI/agents)
 claude mcp add --transport http straddle https://straddle.stlmcp.com/ \
   --header "Authorization: Bearer $STRADDLE_API_KEY"
-
-# Docs (no auth)
-claude mcp add --transport http straddle-docs https://docs.straddle.com/mcp
 ```
 
 ## MCP server configuration
