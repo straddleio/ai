@@ -161,7 +161,7 @@ checkJson(
 );
 checkJson(
   path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'),
-  ['name']
+  ['name', 'description', 'version']
 );
 checkJson(
   path.join(ROOT, '.claude-plugin', 'marketplace.json'),
