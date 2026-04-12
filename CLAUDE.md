@@ -94,6 +94,10 @@ Enumerated facts (return codes, limits, event names) link to docs.straddle.com i
 - Directories and files: kebab-case
 - No package dependencies -- scripts use Node.js builtins only
 
+## Cross-skill dependencies
+
+`straddle-plan` references files in `straddle-integrate/references/` via relative paths (`<../straddle-integrate/references/domain.md>`). These two skills must always be synced together. The `validate.js` script catches broken cross-skill references.
+
 ## Testing changes
 
 ```bash
