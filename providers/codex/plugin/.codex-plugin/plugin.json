@@ -35,6 +35,8 @@
       "Look up the right Straddle payment lifecycle behavior before I code",
       "Use the Straddle MCP tools to inspect the API and SDK contracts"
     ],
-    "brandColor": "#111111"
+    "brandColor": "#111111",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.svg"
   }
 }
