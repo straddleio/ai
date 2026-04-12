@@ -127,12 +127,12 @@ console.log('\n=== Command frontmatter ===');
 const cmdDir = path.join(ROOT, 'providers', 'claude', 'plugin', 'commands');
 if (fs.existsSync(cmdDir)) {
   for (const file of fs.readdirSync(cmdDir).filter(f => f.endsWith('.md'))) {
-    const fm = parseFrontmatter(fs.readFileSync(path.join(cmdDir, file), 'utf8'));
+    const content = fs.readFileSync(path.join(cmdDir, file), 'utf8');
+    const fm = parseFrontmatter(content);
     if (!fm) { fail(`commands/${file}: no frontmatter`); continue; }
     if (!fm.description) fail(`commands/${file}: missing 'description'`);
     else pass(`commands/${file}: has description`);
-    const lines = fs.readFileSync(path.join(cmdDir, file), 'utf8').trim().split('\n');
-    if (lines.length < 3) fail(`commands/${file}: appears empty (fewer than 3 lines)`);
+    if (content.trim().split('\n').length < 3) fail(`commands/${file}: appears empty (fewer than 3 lines)`);
   }
 }
 
@@ -142,33 +142,33 @@ console.log('\n=== Plugin manifests ===');
 
 function checkJson(filePath, requiredFields) {
   const label = path.relative(ROOT, filePath);
-  if (!fs.existsSync(filePath)) { fail(`${label}: file not found`); return; }
+  if (!fs.existsSync(filePath)) { fail(`${label}: file not found`); return null; }
   let data;
   try {
     data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (e) {
     fail(`${label}: invalid JSON`);
-    return;
+    return null;
   }
   let ok = true;
   for (const field of requiredFields) {
     if (!data[field]) { fail(`${label}: missing '${field}'`); ok = false; }
   }
   if (ok) pass(`${label}: required fields present`);
+  return data;
 }
 
-checkJson(
-  path.join(ROOT, 'providers', 'claude', 'plugin', '.claude-plugin', 'plugin.json'),
-  ['name', 'description', 'version']
-);
-checkJson(
-  path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'),
-  ['name', 'description', 'version']
-);
-checkJson(
-  path.join(ROOT, 'providers', 'codex', 'plugin', '.codex-plugin', 'plugin.json'),
-  ['name', 'description', 'version']
-);
+const providerManifests = [
+  { path: path.join(ROOT, 'providers', 'claude', 'plugin', '.claude-plugin', 'plugin.json'), fields: ['name', 'description', 'version'] },
+  { path: path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'), fields: ['name', 'description', 'version'] },
+  { path: path.join(ROOT, 'providers', 'codex', 'plugin', '.codex-plugin', 'plugin.json'), fields: ['name', 'description', 'version'] },
+];
+
+const parsedManifests = new Map();
+for (const m of providerManifests) {
+  const data = checkJson(m.path, m.fields);
+  if (data) parsedManifests.set(m.path, data);
+}
 checkJson(
   path.join(ROOT, '.claude-plugin', 'marketplace.json'),
   ['name', 'description', 'plugins']
@@ -185,24 +185,13 @@ const pkgVersion = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')
 ).version;
 
-const versionFiles = [
-  path.join(ROOT, 'providers', 'claude', 'plugin', '.claude-plugin', 'plugin.json'),
-  path.join(ROOT, 'providers', 'codex', 'plugin', '.codex-plugin', 'plugin.json'),
-  path.join(ROOT, 'providers', 'cursor', 'plugin', '.cursor-plugin', 'plugin.json'),
-];
-
 let versionOk = true;
-for (const f of versionFiles) {
-  const label = path.relative(ROOT, f);
-  if (!fs.existsSync(f)) continue;
-  try {
-    const data = JSON.parse(fs.readFileSync(f, 'utf8'));
-    if (data.version && data.version !== pkgVersion) {
-      fail(`${label}: version ${data.version} does not match package.json ${pkgVersion}`);
-      versionOk = false;
-    }
-  } catch (e) {
-    fail(`${label}: could not parse for version check`);
+for (const m of providerManifests) {
+  const data = parsedManifests.get(m.path);
+  if (!data) continue;
+  const label = path.relative(ROOT, m.path);
+  if (data.version && data.version !== pkgVersion) {
+    fail(`${label}: version ${data.version} does not match package.json ${pkgVersion}`);
     versionOk = false;
   }
 }
