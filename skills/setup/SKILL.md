@@ -65,7 +65,7 @@ Replace `YOUR_API_KEY` with your actual Straddle API key. Do not commit this con
 
 ### 3. Local npx (offline)
 
-Runs the MCP server locally via npx. Useful for offline development or when you need to inspect traffic.
+Runs the MCP server locally via npx. Useful for offline development or for inspecting traffic.
 
 **Claude Code:**
 
@@ -181,7 +181,7 @@ Ask your AI agent:
 
 > List my Straddle customers
 
-This confirms the `straddle` MCP server is connected and authenticated. You should get a response from the Straddle API (even if the customer list is empty in sandbox).
+This confirms the `straddle` MCP server is connected and authenticated. Expect a response from the Straddle API (even if the customer list is empty in sandbox).
 
 ### 2. Test CLI (if installed)
 
@@ -191,7 +191,7 @@ Run:
 straddle charges create --help
 ```
 
-This confirms the CLI is installed and working. You should see the full list of parameters for creating a charge.
+This confirms the CLI is installed and working. The output should show the full list of parameters for creating a charge.
 
 If any check fails, verify the MCP server is registered (`claude mcp list` in Claude Code) and that your API key is set correctly for the environment you are targeting.
 

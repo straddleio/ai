@@ -147,7 +147,7 @@ For consent type requirements and authorization language guidance:
 
 ### Payment Rails
 
-Straddle automatically selects the optimal rail. You do not choose the rail directly. Available rails include ACH, Same-Day ACH, RTP, and FedNow (availability varies).
+Straddle automatically selects the optimal rail. The rail is not chosen directly. Available rails include ACH, Same-Day ACH, RTP, and FedNow (availability varies).
 
 For current rail availability, speed, limits, and characteristics:
 - https://docs.straddle.com/help/ACH101/same-day-vs-standard-ach
