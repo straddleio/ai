@@ -23,7 +23,7 @@ Use the SDK language to:
 - Write code examples in the correct SDK
 - Recommend the right package names and install commands
 
-Suggest running `/straddle-setup` if they have not completed initial setup.
+If the user has not completed initial setup, suggest running `/straddle-setup`.
 
 ### `Straddle-Account-Id` header rules
 
@@ -58,9 +58,11 @@ The header follows resource ownership. See <references/embed.md> for code exampl
 
 ## Tool routing
 
+Route requests to the appropriate tool based on the need.
+
 | Need                  | Tool                  | Use for                                                                   |
 | --------------------- | --------------------- | ------------------------------------------------------------------------- |
-| Code execution        | straddle API MCP      | Execute API calls, test methods, explore responses                        |
+| Code execution        | straddle API MCP      | Run API calls, test methods, explore responses                            |
 | SDK docs search       | straddle API MCP      | Field-level API reference, SDK examples, request/response shapes. **Always pass `language` param matching user's SDK.** |
 | Product docs search   | straddle-docs Docs MCP | Risk scores, identity verification, payment guides, integration patterns, status code meanings, ACH returns |
 | Terminal operations | Straddle CLI          | Verify resources, test operations, inspect responses, debug API issues. See <references/cli.md> |

@@ -48,7 +48,7 @@ straddle charges create --help
 | `--format explore` | Interactive explorer | Navigating large responses |
 | `--format raw` | Unprocessed API response | Debugging |
 
-Default is `auto` -- `pretty` for TTY, `json` for pipes.
+Default is `auto`: `pretty` for TTY, `json` for pipes.
 
 ## Data extraction
 
@@ -61,9 +61,9 @@ straddle charges get ch_123 --transform 'data.status'
 
 GJSON syntax: https://github.com/tidwall/gjson/blob/master/SYNTAX.md
 
-## Debugging
+## Debug
 
-`--debug` shows the full HTTP request and response -- headers, timing, and body. Use when troubleshooting authentication, environment targeting, or unexpected API behavior.
+`--debug` shows the full HTTP request and response: headers, timing, and body. Use when troubleshooting authentication, environment targeting, or unexpected API behavior.
 
 ```bash
 straddle charges get ch_123 --debug

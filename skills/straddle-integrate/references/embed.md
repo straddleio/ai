@@ -11,15 +11,15 @@ Embed is Straddle's white-label solution for platforms (ISVs, vertical SaaS, pay
 | **SaaS Platform** | Software with embedded payments for clients | Embedded account owns customers |
 | **Marketplace** | Platform connecting buyers with multiple sellers | Platform owns customers |
 
-The platform is identified by a **Platform ID** (found in Dashboard > Settings > Company Profile). This is NOT an Organization ID -- do not confuse them.
+The platform is identified by a **Platform ID** (found in Dashboard > Settings > Company Profile). This is **not** an Organization ID; do not confuse them.
 
 ## Onboarding: Hosted vs API
 
 ### Hosted Onboarding (Recommended)
 
-The hosted onboarding form handles the entire account setup in a single embedded UI: organization creation, account creation, business profile collection, representative info, bank account linking, capability selection, and onboarding submission. The platform just embeds the form.
+The hosted onboarding form handles the entire account setup in a single embedded UI: organization creation, account creation, business profile collection, representative info, bank account linking, capability selection, and onboarding submission. The platform embeds the form.
 
-**This is NOT the Bridge widget.** Bridge (`@straddlecom/bridge-react`) is for open banking -- customers connecting their bank accounts. Hosted onboarding is a separate iframe/React component for merchant account setup.
+**This is not the Bridge widget.** Bridge (`@straddlecom/bridge-react`) is for open banking -- customers connecting their bank accounts. Hosted onboarding is a separate iframe/React component for merchant account setup.
 
 Docs:
 - https://docs.straddle.com/guides/embed/hosted-onboarding
@@ -43,7 +43,7 @@ Account status transitions via webhooks: `created` -> `onboarding` -> `active` (
 
 ### API Onboarding (Full Control)
 
-For platforms needing complete UX control, the API flow has 6 steps:
+For platforms needing complete UX control, the API flow has six steps:
 
 #### Step 1: Create Organization
 
@@ -101,7 +101,7 @@ await client.embed.accounts.capabilityRequests.create(accountId, {
 });
 ```
 
-Six capability types: `charges`, `payouts`, `individuals`, `businesses`, `internet`, `signed_agreement`. Payment types require limit fields. Customer/consent types only need `enable: boolean`.
+Six capability types: `charges`, `payouts`, `individuals`, `businesses`, `internet`, `signed_agreement`. Payment types require limit fields. Customer or consent types only need `enable: boolean`.
 
 The capability request API is also useful post-onboarding to change limits.
 

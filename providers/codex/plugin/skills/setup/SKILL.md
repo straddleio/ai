@@ -9,7 +9,7 @@ This skill covers first-time setup for working with Straddle. Follow the section
 
 ## MCP Server Connection
 
-Straddle provides an MCP server that gives AI agents direct access to the Straddle API. There are three connection methods depending on your environment.
+Straddle provides an MCP server that gives AI agents direct access to the Straddle API. Straddle supports three connection methods depending on your environment.
 
 ### 1. Remote OAuth (default)
 
@@ -37,7 +37,7 @@ On first use, the server initiates an OAuth flow in your browser to authenticate
 
 ### 2. API Key (for agents and CI/CD)
 
-For automated environments where interactive OAuth is not available. Uses a separate endpoint that accepts API key authentication via header.
+For automated environments where interactive OAuth isn't available. Uses a separate endpoint that accepts API key authentication through a header.
 
 **Claude Code:**
 
@@ -93,7 +93,7 @@ Requires the `STRADDLE_API_KEY` environment variable to be set in your shell.
 
 ## Straddle CLI
 
-The Straddle CLI gives you full API access from the terminal. Every resource available through the SDKs -- customers, paykeys, charges, payouts, bridge, embed -- is available as a CLI command.
+The Straddle CLI gives you full API access from the terminal. Every resource available through the SDKs (customers, paykeys, charges, payouts, bridge, embed) is available as a CLI command.
 
 ```bash
 brew install straddleio/tools/straddle
@@ -123,7 +123,7 @@ Straddle API keys are opaque strings. Get them from the Straddle Dashboard:
 
 **Dashboard:** https://dashboard.straddle.com
 
-Each environment (sandbox, production) has its own set of keys. Keys are not interchangeable between environments.
+Each environment (sandbox, production) has its own set of keys. Keys aren't interchangeable between environments.
 
 **Rules:**
 - Never commit API keys to version control
@@ -155,9 +155,9 @@ const client = new Straddle({
 
 Ask the user what they are building:
 
-- **Direct account** -- A single business collecting or sending payments. No sub-merchants, no embedded accounts. This is the simplest integration.
-- **SaaS platform** -- Software with embedded payments for your clients. Your clients (embedded accounts) own their customers in the Straddle API. Examples: loan servicing, property management, subscription billing software.
-- **Marketplace** -- A platform connecting buyers with multiple sellers. The platform owns customer relationships directly. Examples: e-commerce marketplace, gig economy, rental platform.
+- **Direct account:** A single business collecting or sending payments. No sub-merchants, no embedded accounts. This is the simplest integration.
+- **SaaS platform:** Software with embedded payments for your clients. Your clients (embedded accounts) own their customers in the Straddle API. Examples: loan servicing, property management, subscription billing software.
+- **Marketplace:** A platform connecting buyers with multiple sellers. The platform owns customer relationships directly. Examples: e-commerce marketplace, gig economy, rental platform.
 
 Write the answer to the plugin's `.local.md` file:
 
@@ -233,7 +233,7 @@ Restart the editor. MCP servers load on session start.
 
 ### Wrong environment (sandbox vs production)
 
-API keys are environment-specific. A sandbox key returns 401 against production and vice versa. Check which key is set:
+API keys are environment-specific. A sandbox key returns 401 against production, and a production key returns 401 against sandbox. Check which key is set:
 
 ```bash
 echo $STRADDLE_API_KEY | head -c 10

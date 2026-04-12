@@ -145,19 +145,19 @@ After all questions, announce:
 Generate each section below. Follow doc search enforcement for every section.
 Use the developer's business terms (from step 3) throughout.
 
-### Section 1: Entity Mapping
+### Section 1: Entity mapping
 
 Table mapping their domain concepts to Straddle entities.
 
 - `account`: their business = account holder, their customers = Customer, bank links = Paykey
 - `saas`/`marketplace`: their platform = Platform, their merchants = Account (hosted onboarding), their end-users = Customer, bank links = Paykey
 
-### Section 2: Onboarding Flow
+### Section 2: Onboarding flow
 
 - `account`: "Not applicable -- account set up via Dashboard."
 - `saas`/`marketplace`: Hosted onboarding form. Search SDK docs for embed component. Show code. Explain `platform.id`, `env`, `external.id`. Document status flow: `created` -> `onboarding` -> `active`.
 
-### Section 3: Customer & Paykey Flow
+### Section 3: Customer and paykey flow
 
 Search SDK docs for `customers.create` and Bridge setup.
 
@@ -168,7 +168,7 @@ Search SDK docs for `customers.create` and Bridge setup.
 - Paykey creation statuses: active, review, rejected
 - Verify with CLI: `straddle customers get <id> --format json`, `straddle paykeys list --format json`
 
-### Section 4: Payment Flow
+### Section 4: Payment flow
 
 Search SDK docs for `charges.create` / `payouts.create`.
 
@@ -179,7 +179,7 @@ Search SDK docs for `charges.create` / `payouts.create`.
 - Balance check modes: `enabled` (default), `required` (high-value), `disabled` (future-dated/manual-entry)
 - Test with CLI before writing SDK code: `straddle charges create --help` to see required fields, `straddle charges get <id> --debug` to inspect responses
 
-### Section 5: Webhook Handler
+### Section 5: Webhook handler
 
 Search product docs for webhook events and security.
 
@@ -190,7 +190,7 @@ Search product docs for webhook events and security.
 - Signature verification
 - Idempotency: store webhook-id, dedup on replay
 
-### Section 6: Sandbox Testing
+### Section 6: Sandbox testing
 
 Search product docs for sandbox guide.
 

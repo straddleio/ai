@@ -5,9 +5,9 @@
 Straddle is a payment infrastructure platform for account-to-account (A2A) payments. It is the coordination layer between software platforms and payment rails, providing identity verification, bank account connectivity, and payment processing through a unified API.
 
 Straddle combines three capabilities that are normally separate services:
-1. **Identity verification** (KYC/AML) via Straddle ID
-2. **Bank account connectivity** via Bridge (open banking)
-3. **Payment processing** via Pay by Bank (ACH, Same-Day ACH, RTP, FedNow)
+1. **Identity verification** (KYC/AML) through Straddle ID
+2. **Bank account connectivity** through Bridge (open banking)
+3. **Payment processing** through Pay by Bank (ACH, Same-Day ACH, RTP, FedNow)
 
 Base URLs:
 - Sandbox: `https://sandbox.straddle.com`
@@ -44,13 +44,13 @@ A Paykey is Straddle's core innovation: a secure token linking a verified identi
 - `review` -- name mismatch between customer and account holder, or recent NSF history
 - `rejected` -- bad bank account (invalid routing/account number)
 
-**Important: customers in `review` can still proceed.** The entire pay-by-bank flow works regardless of customer verification status. If a customer is in `review`, they can connect via Bridge, get a Paykey, and have charges/payouts created -- but those downstream objects will be placed in `review` or `on_hold` until the customer clears. Once verified, held items release and move forward automatically.
+**Important: customers in `review` can still proceed.** The entire pay-by-bank flow works regardless of customer verification status. If a customer is in `review`, they can connect through Bridge, get a Paykey, and have charges/payouts created -- but those downstream objects are placed in `review` or `on_hold` until the customer clears. Once verified, held items release and move forward automatically.
 
-**Post-creation transitions:** Active paykeys can transition to `blocked` (e.g., R29 ACH return), `inactive`, or `expired`.
+**Post-creation transitions:** Active paykeys can transition to `blocked` (for example, R29 ACH return), `inactive`, or `expired`.
 
 **Important behaviors:**
 - Paykeys expire after a set period. Always check `expires_at` before processing.
-- Paykeys can be blocked (e.g., after an R29 ACH return) and unblocked if `unblock_eligible` is true.
+- Paykeys can be blocked (for example, after an R29 ACH return) and unblocked if `unblock_eligible` is true.
 - Store paykeys securely and reuse them for recurring payments against the same bank account.
 
 ## Payment Status Lifecycle

@@ -18,7 +18,7 @@ Parse the user's arguments to identify the entity type and the status, transitio
 
 ## What to Explain
 
-For each status, cover all of the following:
+For each status, cover the following:
 
 1. **Meaning** -- what this status indicates
 2. **Cause** -- how the entity reached this status
