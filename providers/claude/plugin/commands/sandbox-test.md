@@ -16,6 +16,15 @@ If the user provided a scenario argument, jump directly to that scenario. Otherw
 - Generate unique `external_id` values for each test run to avoid idempotency collisions.
 - Always include `Idempotency-Key` headers on POST/PATCH requests.
 
+## Documentation Sources
+
+Before walking through any scenario, search product docs for current sandbox simulation parameters:
+
+- Pay by Bank sandbox guide: https://docs.straddle.com/guides/resources/sandbox-paybybank
+- Platform sandbox guide: https://docs.straddle.com/guides/resources/sandbox-platform
+
+Use `search_straddle_docs` to find the current `sandbox_outcomes` parameter values and simulation mechanisms. Do not guess simulation parameters -- always verify against current documentation.
+
 ## Available Scenarios
 
 1. **payment-lifecycle** -- Full charge from created through paid
@@ -56,6 +65,8 @@ Walk through a payout and explain the funding timing difference from charges.
 
 ## 3. failures
 
+Search `search_straddle_docs` for "sandbox outcomes" to find the current simulation parameters before walking through each failure scenario.
+
 Test failure scenarios to verify error handling.
 
 **Scenarios to walk through:**
@@ -71,6 +82,8 @@ For each failure:
 4. Explain recovery options (retry, different paykey, manual review)
 
 ## 4. ach-returns
+
+Search `search_straddle_docs` for "sandbox ACH returns" to find how to simulate specific return codes in sandbox.
 
 Walk through ACH return code scenarios.
 
