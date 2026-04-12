@@ -13,7 +13,7 @@ Run `/mcp` to list connected MCP servers. Check for both `straddle` and `straddl
 **If `straddle` is missing**, add it:
 
 ```bash
-claude mcp add --transport http straddle https://mcp.straddle.com
+claude mcp add --transport http straddle https://mcp.straddle.com/mcp
 ```
 
 On first use this initiates an OAuth flow in the browser. For non-interactive environments (CI, agents), use the API key method instead:

@@ -18,7 +18,7 @@ The simplest method. Uses Straddle's hosted MCP server with OAuth authentication
 **Claude Code:**
 
 ```bash
-claude mcp add --transport http straddle https://mcp.straddle.com
+claude mcp add --transport http straddle https://mcp.straddle.com/mcp
 ```
 
 **Cursor / VS Code (mcp.json):**
@@ -27,7 +27,7 @@ claude mcp add --transport http straddle https://mcp.straddle.com
 {
   "mcpServers": {
     "straddle": {
-      "url": "https://mcp.straddle.com"
+      "url": "https://mcp.straddle.com/mcp"
     }
   }
 }
