@@ -1,0 +1,40 @@
+{
+  "name": "straddle",
+  "version": "0.1.0",
+  "description": "Straddle payment infrastructure plugin for Codex with MCP-backed API access and SDK guidance.",
+  "author": {
+    "name": "Straddle",
+    "url": "https://straddle.com"
+  },
+  "homepage": "https://docs.straddle.com",
+  "repository": "https://github.com/straddleio/ai",
+  "license": "MIT",
+  "keywords": [
+    "payments",
+    "ach",
+    "open-banking",
+    "instant-payments",
+    "a2a"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Straddle",
+    "shortDescription": "Straddle API access and SDK guidance for payments work",
+    "longDescription": "Use Straddle to access the hosted Straddle MCP server from Codex, search SDK and API behavior, and load Straddle payment infrastructure guidance directly from the shared plugin repo.",
+    "developerName": "Straddle",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://docs.straddle.com",
+    "defaultPrompt": [
+      "Search the Straddle SDK docs for the charge API surface",
+      "Look up the right Straddle payment lifecycle behavior before I code",
+      "Use the Straddle MCP tools to inspect the API and SDK contracts"
+    ],
+    "brandColor": "#111111"
+  }
+}
