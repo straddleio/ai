@@ -175,11 +175,17 @@ SDK reference docs: [sdk.straddle.com](https://sdk.straddle.com/api)
 | Claude Code | Available | Plugin with skills, commands, and MCP |
 | Cowork | Available | Same plugin as Claude Code |
 | Codex | Available | Plugin with skills and MCP |
-| Cursor | Available | MCP and skills |
+| Cursor | Available | Skills and MCP |
 
 Additional editor support is in development.
 
-## Learn More
+## Community
+
+Join our developer community for help, support, and feedback.
+
+[![Slack](https://img.shields.io/badge/Slack-4A154B?logo=slack&logoColor=white)](https://strddl.co/mmunity)
+
+## Learn more
 
 - [Straddle documentation](https://docs.straddle.com)
 - [API reference](https://docs.straddle.com/api-reference)

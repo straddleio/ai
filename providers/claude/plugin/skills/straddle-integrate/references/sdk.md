@@ -7,7 +7,7 @@
 | TypeScript/Node.js | `@straddlecom/straddle` | `npm install @straddlecom/straddle` |
 | Python | `straddle` | `pip install straddle` |
 | Ruby | `straddle` | `gem install straddle` |
-| C# | `straddle` | `dotnet add package straddle` |
+| C# | `Straddle` | `dotnet add package Straddle` |
 | Go | `straddle-go` | `go get github.com/straddleio/straddle-go` |
 
 ## MCP Tool Interaction Model
