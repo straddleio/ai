@@ -32,13 +32,15 @@ providers/
     skills/                          # Synced from skills/ -- DO NOT EDIT
   codex/plugin/                      # Codex plugin
     .codex-plugin/plugin.json
-    mcp.json                         # MCP servers (Bearer token + docs)
+    .mcp.json                        # MCP servers (OAuth + docs)
     skills/                          # Synced from skills/ -- DO NOT EDIT
 scripts/
   shared.js                          # Constants shared by sync.js and validate.js
   validate.js                        # Structural validation
 .claude-plugin/
   marketplace.json                   # Plugin marketplace manifest
+.agents/
+  plugins/marketplace.json           # Codex marketplace manifest
 ```
 
 ## How things connect
