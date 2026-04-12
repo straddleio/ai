@@ -56,6 +56,7 @@ A Paykey is Straddle's core innovation: a secure token linking a verified identi
 ## Payment Status Lifecycle
 
 ```
+created -> validating -> scheduled -> pending -> paid
 created -> scheduled -> pending -> paid
                                 -> failed
                      -> on_hold -> released -> scheduled
@@ -66,6 +67,7 @@ created -> scheduled -> pending -> paid
 | Status | Modifiable? | Description |
 |--------|-------------|-------------|
 | `created` | Yes | Initial state, awaiting verification |
+| `validating` | No | Pre-scheduling verification in progress |
 | `scheduled` | Yes | Verified, queued for processing |
 | `pending` | **NO** | Sent to network -- cannot be modified, held, released, or cancelled |
 | `paid` | No | Successfully completed. Can still transition to `reversed`. |

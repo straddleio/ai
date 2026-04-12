@@ -10,7 +10,7 @@ Parse the user's arguments to identify the entity type and the status, transitio
 ## Supported Entity Types
 
 - **customer** -- statuses: pending, review, verified, inactive, rejected
-- **paykey** -- statuses: active, expired, blocked, revoked
+- **paykey** -- statuses: active, review, rejected, blocked, inactive, expired
 - **charge** -- statuses: created, scheduled, pending, paid, failed, reversed, cancelled, on_hold, validating
 - **payout** -- statuses: created, scheduled, pending, paid, failed, reversed, cancelled, on_hold
 - **funding_event** -- statuses tied to settlement lifecycle
@@ -40,7 +40,8 @@ created -> scheduled -> pending -> paid
 
 Key rules:
 - Once a payment reaches `pending`, it cannot be modified, held, released, or cancelled
-- `paid`, `failed`, `reversed`, and `cancelled` are terminal states
+- `failed`, `reversed`, and `cancelled` are terminal states
+- `paid` can still transition to `reversed` (ACH return after settlement)
 - `on_hold` can transition to `released` (back to `scheduled`) or `cancelled`
 
 ## Status Details
