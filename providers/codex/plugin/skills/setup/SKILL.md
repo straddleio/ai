@@ -245,13 +245,10 @@ Restart the editor. MCP servers load on session start.
 
 ### Wrong environment (sandbox vs production)
 
-API keys are environment-specific. A sandbox key returns 401 against production, and a production key returns 401 against sandbox. Check which key is set:
+API keys are JWT bearer tokens. The same key format works for both environments. The environment is determined by the base URL, not the key. If API calls return unexpected results, verify the environment URL matches the dashboard where the key was generated:
 
-```bash
-echo $STRADDLE_API_KEY | head -c 10
-```
-
-Sandbox keys start with `sk_test_`, production keys start with `sk_live_`.
+- Sandbox: `https://sandbox.straddle.com`
+- Production: `https://production.straddle.com`
 
 ### CLI returns "command not found"
 

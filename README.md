@@ -115,12 +115,14 @@ Set `STRADDLE_ENVIRONMENT` to switch between sandbox and production:
 ```bash
 # Sandbox (default)
 export STRADDLE_ENVIRONMENT="sandbox"
-export STRADDLE_API_KEY="sk_test_..."
+export STRADDLE_API_KEY="your-sandbox-api-key"
 
 # Production
 export STRADDLE_ENVIRONMENT="production"
-export STRADDLE_API_KEY="sk_live_..."
+export STRADDLE_API_KEY="your-production-api-key"
 ```
+
+API keys are JWT bearer tokens. The environment is determined by the base URL, not the key format.
 
 For advanced configuration (transport, code execution, access control, logging), see the [MCP server reference](https://docs.straddle.com/mcp).
 
