@@ -23,7 +23,7 @@ Before walking through any scenario, search product docs for current sandbox sim
 - Pay by Bank sandbox guide: https://docs.straddle.com/guides/resources/sandbox-paybybank
 - Platform sandbox guide: https://docs.straddle.com/guides/resources/sandbox-platform
 
-Use `search_straddle_docs` to find the current `sandbox_outcomes` parameter values and simulation mechanisms. Do not guess simulation parameters -- always verify against current documentation.
+Search product docs by POSTing to `https://docs.straddle.com/mcp` to find the current `sandbox_outcomes` parameter values and simulation mechanisms. Do not guess simulation parameters -- always verify against current documentation.
 
 ## Available Scenarios
 
@@ -65,7 +65,7 @@ Walk through a payout and explain the funding timing difference from charges.
 
 ## 3. failures
 
-Search `search_straddle_docs` for "sandbox outcomes" to find the current simulation parameters before walking through each failure scenario.
+Search product docs by POSTing to `https://docs.straddle.com/mcp` for "sandbox outcomes" to find the current simulation parameters before walking through each failure scenario.
 
 Test failure scenarios to verify error handling.
 
@@ -83,7 +83,7 @@ For each failure:
 
 ## 4. ach-returns
 
-Search `search_straddle_docs` for "sandbox ACH returns" to find how to simulate specific return codes in sandbox.
+Search product docs by POSTing to `https://docs.straddle.com/mcp` for "sandbox ACH returns" to find how to simulate specific return codes in sandbox.
 
 Walk through ACH return code scenarios.
 

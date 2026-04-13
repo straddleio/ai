@@ -39,8 +39,7 @@ Add the MCP servers to `~/.cursor/mcp.json`:
     "straddle": {
       "url": "https://straddle.stlmcp.com/",
       "headers": { "Authorization": "Bearer YOUR_STRADDLE_API_KEY" }
-    },
-    "straddle-docs": { "url": "https://docs.straddle.com/mcp" }
+    }
   }
 }
 ```
@@ -49,12 +48,11 @@ Add the MCP servers to `~/.cursor/mcp.json`:
 
 [MCP (Model Context Protocol)](https://modelcontextprotocol.io) connects AI agents to external tools and data sources.
 
-Two hosted MCP servers:
+One hosted MCP server:
 
 | Server | URL | Auth | What it provides |
 |--------|-----|------|------------------|
 | **Straddle API** | `https://mcp.straddle.com/mcp` | OAuth | Code execution, SDK docs search |
-| **Straddle Docs** | `https://docs.straddle.com/mcp` | None | Product docs search |
 
 For clients that don't support OAuth, use `https://straddle.stlmcp.com/` with `Authorization: Bearer YOUR_API_KEY` instead.
 
@@ -154,7 +152,7 @@ Available sandbox test scenarios: `payment-lifecycle`, `payout-flow`, `failures`
 |------|--------|-------------|
 | Code execution | API MCP | Run code against Straddle's sandbox |
 | SDK docs search | API MCP | Search SDK and API reference documentation |
-| Product docs search | Docs MCP | Search product guides and tutorials |
+| Product docs search | product-docs skill | Search product guides and tutorials |
 
 ## SDKs
 
