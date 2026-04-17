@@ -106,10 +106,6 @@ See [CLI docs](https://sdk.straddle.com/api/cli) for the full command reference.
 
 ## MCP server configuration
 
-The MCP servers accept flags for transport, environment, code execution, and access control.
-
-### Sandbox vs production
-
 Set `STRADDLE_ENVIRONMENT` to switch between sandbox and production:
 
 ```bash
@@ -117,14 +113,14 @@ Set `STRADDLE_ENVIRONMENT` to switch between sandbox and production:
 export STRADDLE_ENVIRONMENT="sandbox"
 export STRADDLE_API_KEY="your-sandbox-api-key"
 
-# Production
+# Production -- restrict to read-only so the agent cannot mutate resources
 export STRADDLE_ENVIRONMENT="production"
 export STRADDLE_API_KEY="your-production-api-key"
 ```
 
 API keys are JWT bearer tokens. The environment is determined by the base URL, not the key format.
 
-For advanced configuration (transport, code execution, access control, logging), see the [MCP server reference](https://docs.straddle.com/mcp).
+For advanced configuration (transport, tool filtering, client presets, production safety), see the [MCP server reference](skills/straddle-integrate/references/mcp-server.md).
 
 ## What you get
 

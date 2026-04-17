@@ -182,6 +182,36 @@ Run `--describe-capabilities` to see all available capability flags and what the
 
 **CI/CD agent** -- use the API key connection (see above). For read-only CI checks, use the local variant with `--operation read` instead.
 
+## Code execution permissions
+
+The hosted MCP servers restrict which SDK methods the code execution tool can call. These restrictions are enforced server-side via static analysis -- they apply regardless of client configuration.
+
+**Blocked by default in production:**
+
+| Pattern | What it blocks |
+|---------|----------------|
+| `.*\.unmask` | Unmask operations on any resource |
+| `.*\.unmasked` | Unmasked data access on any resource |
+| `.*\.reveal` | Reveal operations (e.g. paykey reveal) |
+| `reports\..*` | All reporting operations |
+
+These protect sensitive data from being accessed through the code tool. The restrictions apply to the code execution sandbox, not to direct API tool calls.
+
+For local MCP servers, configure code execution permissions with CLI flags:
+
+```bash
+# Read-only code execution (blocks all POST/PUT/PATCH/DELETE SDK methods)
+npx -y @straddlecom/straddle-mcp@latest --code-allow-http-gets
+
+# Allow specific resources only
+npx -y @straddlecom/straddle-mcp@latest --code-allowed-methods "charges\..*" --code-allowed-methods "customers\.list"
+
+# Block specific methods
+npx -y @straddlecom/straddle-mcp@latest --code-blocked-methods ".*\.delete" --code-blocked-methods ".*\.unmask"
+```
+
+Code exec permissions use regex matching against fully qualified SDK method names (e.g. `customers.list`, `charges.create`, `embed.accounts.onboard`).
+
 ## Full reference
 
 Package: https://www.npmjs.com/package/@straddlecom/straddle-mcp

@@ -11,29 +11,35 @@ Core principle: **architectural knowledge in files, enumerated facts via live do
 ```
 skills/                              # Canonical skill source (edit here)
   sync.js                            # Copies skills/ to providers/*/plugin/skills/
+  product-docs/SKILL.md              # Product docs search via HTTP POST
   setup/SKILL.md                     # First-time setup skill
   straddle-plan/SKILL.md             # Guided integration planning skill
   straddle-integrate/                # Integration guidance skill
     SKILL.md
     references/                      # Stable architectural knowledge
+      cli.md                         # CLI command structure and usage
       domain.md                      # Entities, status machines, webhooks, ACH
       embed.md                       # Embed platform integration
+      mcp-server.md                  # MCP server config, tool filtering, client presets
       pay-by-bank.md                 # Payment flow walkthrough
       sdk.md                         # SDK operations and patterns
-      cli.md                         # CLI command structure and usage
 providers/
   claude/plugin/                     # Claude Code plugin
     .claude-plugin/plugin.json       # Plugin manifest
-    .mcp.json                        # MCP servers (OAuth + docs)
+    .mcp.json                        # MCP server (OAuth via mcp.straddle.com)
     commands/                        # Slash commands (Claude-only)
+      explain-status.md              # Explain any Straddle status or error
+      product-docs.md                # Search product documentation
+      sandbox-test.md                # Guided sandbox testing scenarios
+      straddle-setup.md              # First-time setup wizard
     skills/                          # Synced from skills/ -- DO NOT EDIT
   cursor/plugin/                     # Cursor plugin
     .cursor-plugin/plugin.json
-    mcp.json                         # MCP servers (Bearer token + docs)
+    mcp.json                         # MCP server (Bearer token via straddle.stlmcp.com)
     skills/                          # Synced from skills/ -- DO NOT EDIT
   codex/plugin/                      # Codex plugin
     .codex-plugin/plugin.json
-    .mcp.json                        # MCP servers (OAuth + docs)
+    .mcp.json                        # MCP server (OAuth via mcp.straddle.com)
     skills/                          # Synced from skills/ -- DO NOT EDIT
 scripts/
   shared.js                          # Constants shared by sync.js and validate.js
@@ -66,8 +72,13 @@ Enumerated facts (return codes, limits, event names) link to docs.straddle.com i
 
 ### MCP servers
 
-- `providers/claude/plugin/.mcp.json` -- OAuth (`mcp.straddle.com/mcp`) + docs
-- `providers/cursor/plugin/mcp.json` -- Bearer token (`straddle.stlmcp.com`) + docs
+Two auth modes, same backend:
+
+- `providers/claude/plugin/.mcp.json` -- OAuth (`mcp.straddle.com/mcp`), used by Claude Code
+- `providers/codex/plugin/.mcp.json` -- OAuth (`mcp.straddle.com/mcp`), used by Codex
+- `providers/cursor/plugin/mcp.json` -- Bearer token (`straddle.stlmcp.com`), used by Cursor and headless agents
+
+See `skills/straddle-integrate/references/mcp-server.md` for the full MCP server reference (connection methods, tool filtering, client presets, production safety).
 
 ### Marketplace
 
