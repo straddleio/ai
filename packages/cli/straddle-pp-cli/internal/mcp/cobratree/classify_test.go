@@ -16,7 +16,18 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	docs := &cobra.Command{Use: "docs"}
 	docsSearch := &cobra.Command{Use: "search <query>", Run: func(*cobra.Command, []string) {}}
 	docs.AddCommand(docsSearch)
-	root.AddCommand(topLevelSearch, docs)
+	// PATCH: sandbox-guide verifies nested sandbox guide commands are exposed
+	// as novel shell-out tools instead of hidden framework commands.
+	sandbox := &cobra.Command{Use: "sandbox"}
+	sandboxGuide := &cobra.Command{
+		Use: "guide [scenario]",
+		Annotations: map[string]string{
+			ReadOnlyAnnotation: "true",
+		},
+		Run: func(*cobra.Command, []string) {},
+	}
+	sandbox.AddCommand(sandboxGuide)
+	root.AddCommand(topLevelSearch, docs, sandbox)
 
 	if got := classify(topLevelSearch); got != commandFramework {
 		t.Fatalf("top-level search classified as %v, want commandFramework", got)
@@ -34,5 +45,8 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["docs_search"]; !ok {
 		t.Fatalf("docs_search shell-out tool was not registered; tools = %#v", tools)
+	}
+	if _, ok := tools["sandbox_guide"]; !ok {
+		t.Fatalf("sandbox_guide shell-out tool was not registered; tools = %#v", tools)
 	}
 }

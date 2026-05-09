@@ -643,6 +643,18 @@ straddle-pp-cli docs search "create charge" --source api --json
 
 `--source product` is the default. It uses the unauthenticated product docs MCP endpoint. Endpoint overrides are loopback local-test only. Use `--source commands` for local generated command capabilities. Use `--source api` or `--source sdk` to get structured guidance for the `search_docs` MCP source.
 
+## Sandbox Guide
+
+Use `sandbox guide` for help-only sandbox testing guidance. It lists the sandbox scenarios from `/sandbox-test` and returns concise scenario steps without calling Straddle APIs, calling the docs endpoint, or writing sandbox or production data.
+
+```bash
+straddle-pp-cli sandbox guide --json
+straddle-pp-cli sandbox guide ach-returns --json
+straddle-pp-cli sandbox guide payment-lifecycle --agent
+```
+
+Before any separately approved live sandbox execution, run `docs search` to verify current simulation parameters for the scenario. Live execution requires explicit sandbox credentials supplied through a secure flow.
+
 ## Agent Mode
 
 Add `--agent` to any command. Expands to: `--json --compact --no-input --no-color --yes`.
@@ -695,6 +707,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli --help
 /tmp/straddle-pp-cli customers list --help
 /tmp/straddle-pp-cli payments list --help
+/tmp/straddle-pp-cli sandbox guide --help
+/tmp/straddle-pp-cli sandbox guide --json
 ```
 
 Config-only passing checks:
@@ -807,7 +821,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 80 because the MCP runtime also exposes 7 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 81 because the MCP runtime also exposes 8 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

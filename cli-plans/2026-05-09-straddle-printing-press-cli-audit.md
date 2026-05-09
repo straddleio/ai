@@ -38,7 +38,7 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
 | Phase 3 Build workflow commands | Not done | The generated baseline exists, but absorbed features and new workflow commands have not been built. |
-| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. MCP count semantics are now resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 80 with 7 Cobra shell-out tools including `docs_search`. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
+| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. MCP count semantics are now resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 81 with 8 Cobra shell-out tools including `docs_search` and `sandbox_guide`. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
@@ -96,7 +96,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Featureful across reconciliation | README lists reconciliation as follow-up gap | Not done |
 | Featureful across fraud monitoring | README lists fraud monitoring as follow-up gap | Not done |
 | Featureful across collections | README lists collections as follow-up gap | Not done |
-| Featureful across sandbox testing | Sandbox-safe help, config, local build, and read-only walkthrough is documented. For this slice, production calls are out of scope. | Partial |
+| Featureful across sandbox testing | Sandbox-safe help, config, local build, read-only walkthrough, and help-only `sandbox guide [scenario]` flow are documented. For this slice, production calls and live writes are out of scope. | Partial |
 | Featureful across docs/search integration | Generated `search` remains synced local data search. `docs search` now provides product docs lookup, local command search, and API or SDK `search_docs` guidance. | Partial |
 | Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
@@ -142,12 +142,13 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - `agent-context --agent` now uses the target envelope with the existing v3 agent context object under `data`.
    - Local word art and preview status are partially done through `about`.
    - Docs search is implemented as a first-class `docs search` command, separate from synced-data `search`.
+   - Sandbox testing now has a help-only `sandbox guide [scenario]` command that absorbs the `/sandbox-test` scenario list without live API calls or docs endpoint calls.
    - The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`.
    - Normal `--json` stream output remains raw NDJSON for compatibility.
    - Real launch packaging remains open.
    - Product review remains open.
    - Richer workflow commands remain open.
-   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 80 tools because it includes those 73 typed tools plus 7 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
+   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 81 tools because it includes those 73 typed tools plus 8 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
    - Patch-layer cleanup is documented for generated-code `// PATCH:` markers, `.printing-press-patches.json`, root registration overwrite risk, and MCP workflow exposure.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:

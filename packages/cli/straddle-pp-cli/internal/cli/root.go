@@ -189,6 +189,9 @@ Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
 	// PATCH: docs-search adds a first-class docs lookup flow separate from
 	// generated local synced-data search and endpoint commands.
 	rootCmd.AddCommand(newDocsCmd(flags))
+	// PATCH: sandbox-guide adds help-only sandbox scenario guidance without
+	// calling Straddle APIs, docs endpoints, or production.
+	rootCmd.AddCommand(newSandboxCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))

@@ -299,7 +299,7 @@ After each slice passes spec review, quality review, and verification, the contr
 
 #### Task 11: Add sandbox-safe read-only walkthrough
 
-**Description:** Add one setup walkthrough that uses sandbox-safe configuration and read-only customer and payment exploration. It must not make production calls and must not create customers, charges, payouts, or other payment-side effects.
+**Description:** Add one setup walkthrough that uses sandbox-safe configuration and read-only customer and payment exploration. Add a first-class help-only `sandbox guide [scenario]` flow for sandbox testing scenarios. It must not make production calls and must not create customers, charges, payouts, or other payment-side effects.
 
 **Acceptance criteria:**
 
@@ -308,11 +308,14 @@ After each slice passes spec review, quality review, and verification, the contr
 - [ ] Customer exploration is read-only.
 - [ ] Payment exploration is read-only.
 - [ ] The walkthrough states that production calls are out of scope for this slice.
+- [x] `sandbox guide [scenario]` exists as local guidance only and covers the previous `/sandbox-test` scenarios.
+- [x] `sandbox guide` blocks `--deliver` and exposes `sandbox_guide` as an MCP read-only shell-out tool.
 
 **Verification:**
 
 - [ ] Run `npm run validate`.
 - [ ] Dry-read every walkthrough command and classify it as local, help-only, config-only, or read-only sandbox.
+- [x] Run focused sandbox and MCP tests for the help-only command.
 - [ ] Run spec and quality review subagents.
 
 **Dependencies:** Tasks 7 through 10.

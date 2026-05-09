@@ -47,7 +47,7 @@ Absorbed implications:
 - The existing hosted MCP configs are plugin integration surfaces, not the generated Printing Press MCP binary.
 - The generated MCP manifest already expects a sensitive `STRADDLE_TOKEN` user config and launches `bin/straddle-pp-mcp`.
 - The next implementation slice should not create a second MCP command tree. It should extend or document the generated CLI and generated MCP relationship.
-- MCP count evidence is now resolved. `packages/cli/straddle-pp-cli/.printing-press.json:15` records 70 generated endpoint tools, `packages/cli/straddle-pp-cli/internal/mcp/tools.go` has 73 typed tools after adding `search`, `sql`, and `context`, and runtime `tools/list` exposes 80 tools after seven Cobra shell-out tools are registered, including `docs_search`. Phase 4 now validates this source count invariant.
+- MCP count evidence is now resolved. `packages/cli/straddle-pp-cli/.printing-press.json:15` records 70 generated endpoint tools, `packages/cli/straddle-pp-cli/internal/mcp/tools.go` has 73 typed tools after adding `search`, `sql`, and `context`, and runtime `tools/list` exposes 81 tools after eight Cobra shell-out tools are registered, including `docs_search` and `sandbox_guide`. Phase 4 now validates this source count invariant.
 
 ## Canonical Skills
 
@@ -193,7 +193,7 @@ These are suggestions only. They are not required implementation unless a future
 |---|---|---|
 | Add `straddle-pp-cli docs search <query>` as a docs-specific command | later | It would remove confusion with local synced data search, but it needs a docs source contract and verification path. |
 | Add `straddle-pp-cli status explain <entity> <status>` | later | It maps to the existing slash command, but it must call current docs or cite local reference files instead of embedding stale lists. |
-| Add `straddle-pp-cli sandbox guide <scenario>` as a help-only command first | later | It can absorb `/sandbox-test` without making live API calls. Live smoke can come later. |
+| Add `straddle-pp-cli sandbox guide <scenario>` as a help-only command first | done | It absorbs `/sandbox-test` without making live API calls. Live smoke can come later. |
 | Add `straddle-pp-cli mcp doctor` or extend `doctor` with generated MCP checks | later | Current `doctor` is CLI health. MCP binary launch and generated tool exposure are a separate launch readiness concern. |
 | Add `straddle-pp-cli workflow pay-by-bank inspect` as read-only walkthrough output | later | It can combine customer, paykey, charge, payout, and funding references without creating resources. |
 | Add `straddle-pp-cli workflow embed inspect` as read-only onboarding readiness output | later | It can use account scoping rules and hosted onboarding docs without making API calls. |
@@ -204,8 +204,8 @@ These are suggestions only. They are not required implementation unless a future
 - Generated CLI has `which`, but no command that maps slash-command scenarios to CLI commands.
 - Generated CLI has `agent-context`, but generated MCP context and CLI context need an explicit docs contract for users.
 - Generated CLI has `doctor`, and generated MCP smoke guidance now documents how to build `/tmp/straddle-pp-mcp`, run `tools/list`, and remove the temporary binary afterward.
-- Generated CLI metadata and typed MCP registrations now have explicit count semantics: generated metadata says 70 endpoint tools, typed registration count is 73 after 3 framework typed tools, and runtime `tools/list` count is 80 after Cobra shell-out tools.
-- Generated CLI has sandbox-capable API roots, but no help-only sandbox scenario command that avoids live writes.
+- Generated CLI metadata and typed MCP registrations now have explicit count semantics: generated metadata says 70 endpoint tools, typed registration count is 73 after 3 framework typed tools, and runtime `tools/list` count is 81 after Cobra shell-out tools.
+- Generated CLI has sandbox-capable API roots and a help-only `sandbox guide [scenario]` command that avoids live writes.
 - Generated CLI has `auth set-token`, while the generated MCP manifest expects `STRADDLE_TOKEN`; docs need to reconcile config file auth and env auth.
 - Generated CLI has promoted `payments`, `reports`, `account-settings`, and `funding-event-payments`, but no plain map showing which are OpenAPI endpoint mirrors versus custom workflow commands.
 

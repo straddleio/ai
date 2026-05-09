@@ -107,6 +107,7 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 }
 
 // PATCH: mcp-count-breakdown verifies the context tool explains endpoint, typed, and runtime MCP counts separately.
+// PATCH: sandbox-guide verifies sandbox_guide is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
 	if err != nil {
@@ -130,6 +131,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 		"analytics",
 		"docs_search",
 		"import",
+		"sandbox_guide",
 		"sync",
 		"tail",
 		"workflow_archive",
@@ -145,8 +147,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 80 {
-		t.Fatalf("runtime_tool_count = %d, want 80", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 81 {
+		t.Fatalf("runtime_tool_count = %d, want 81", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -159,20 +161,23 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	}
 }
 
+// PATCH: sandbox-guide verifies the help-only sandbox guide shell-out is read-only.
 func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	mcpServer := server.NewMCPServer("test", "0.0.0")
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	tool, ok := tools["docs_search"]
-	if !ok {
-		t.Fatalf("docs_search MCP tool was not registered; tools = %#v", tools)
-	}
-	if tool.Tool.Annotations.ReadOnlyHint == nil || !*tool.Tool.Annotations.ReadOnlyHint {
-		t.Fatalf("docs_search readOnlyHint = %v, want true", tool.Tool.Annotations.ReadOnlyHint)
-	}
-	if tool.Tool.Annotations.DestructiveHint == nil || *tool.Tool.Annotations.DestructiveHint {
-		t.Fatalf("docs_search destructiveHint = %v, want false", tool.Tool.Annotations.DestructiveHint)
+	for _, name := range []string{"docs_search", "sandbox_guide"} {
+		tool, ok := tools[name]
+		if !ok {
+			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)
+		}
+		if tool.Tool.Annotations.ReadOnlyHint == nil || !*tool.Tool.Annotations.ReadOnlyHint {
+			t.Fatalf("%s readOnlyHint = %v, want true", name, tool.Tool.Annotations.ReadOnlyHint)
+		}
+		if tool.Tool.Annotations.DestructiveHint == nil || *tool.Tool.Annotations.DestructiveHint {
+			t.Fatalf("%s destructiveHint = %v, want false", name, tool.Tool.Annotations.DestructiveHint)
+		}
 	}
 }
 
