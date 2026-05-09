@@ -12,7 +12,7 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because real launch packaging, product review, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
+The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because real launch packaging, product review, approved live operations, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
 
 Task 14 implemented the Streaming Agent Contract for `sync --agent` and real `tail --agent`. Agent stream lines now use the target envelope with event payloads under `data`, timestamps, and final summary or end events as envelope lines. Normal human output and normal `--json` stream output remain raw NDJSON for compatibility.
 
@@ -23,6 +23,8 @@ Safe token guidance is done for the current preview docs: stdin auth is document
 The first presentation polish slice is now partially implemented through `straddle-pp-cli about`. It is local-only, credential-free, and prints Straddle ASCII word art plus concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target envelope.
 
 The docs-search slice is implemented through `straddle-pp-cli docs search`. It separates product docs lookup from the existing synced-data `search` command. Product docs search uses the unauthenticated product docs MCP endpoint, command search uses the local generated capability index, and API or SDK sources return `search_docs` MCP guidance for now. `docs search --agent` uses the target envelope through the existing local JSON helper path.
+
+The ops-guide slice is partially implemented through `straddle-pp-cli ops guide [workflow]`. Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`. The command is local-only guidance: it lists docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
 The workflow also needs smaller commits. After each slice passes spec review, quality review, and verification, the controller should stage only intended files and make a small commit before starting the next implementation slice. The current baseline should be committed in logical chunks now: generated baseline first, then hand-authored docs, validation, plans, and audit updates.
 
@@ -37,8 +39,8 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.5 Ecosystem Absorb Gate | Artifact created, pending final phase-artifact review | Ecosystem absorb artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
-| Phase 3 Build workflow commands | Not done | The generated baseline exists, but absorbed features and new workflow commands have not been built. |
-| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. MCP count semantics are now resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 82 with 9 Cobra shell-out tools including `docs_search`, `sandbox_guide`, and `setup_check`. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
+| Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, and ops guide, but approved live workflow execution and full workflow engines have not been built. |
+| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. MCP count semantics are now resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 83 with 10 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, and `setup_check`. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
@@ -88,14 +90,14 @@ Result: no local build directories found, no credential-pattern matches found.
 | Include MCP from Printing Press | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; Go MCP build passed | Done for first slice |
 | CLI first | `packages/cli/README.md` states CLI first and MCP sibling from same command tree | Done for first slice |
 | Agent-friendly | Generated CLI includes agent-context. Provenance-backed generated list and read commands now use the target envelope. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, use the target envelope only when `--agent` is active. `agent-context --agent` also uses the target envelope. `sync --agent` and real `tail --agent` now wrap stream lines in the same target envelope while normal `--json` streams remain raw NDJSON. | Partial |
-| Documented | Spec, plan, generated README, generated SKILL, and package README exist. Install honesty, MCP smoke instructions, and sandbox-safe read-only walkthrough are now documented. | Partial, because later launch and workflow docs remain gaps |
+| Documented | Spec, plan, generated README, generated SKILL, and package README exist. Install honesty, MCP smoke instructions, sandbox-safe read-only walkthrough, docs search, and ops-guide guidance are now documented. | Partial, because later launch and live workflow docs remain gaps |
 | Tested | `npm run validate`, `go test -count=1 ./...`, CLI build, and MCP build passed | Done for first slice |
 | Featureful across setup | Generated baseline has setup-adjacent `auth`, `doctor`, `profile`; `setup check` now provides a local-only first-run readiness preflight that points to `auth set-token --stdin`, optional `doctor --json`, `docs search`, and `sandbox guide` without calling APIs, docs endpoints, MCP, webhooks, or production. | Partial, because publish and broader onboarding remain gaps |
 | Featureful across customers | Generated customer commands exist; sandbox-safe read-only customer exploration is documented | Partial, no curated write workflow examples yet |
 | Featureful across payments | Generated charges, payouts, paykeys, funding events, and promoted payments commands exist; sandbox-safe read-only payment exploration is documented | Partial, no curated write workflow yet |
-| Featureful across reconciliation | README lists reconciliation as follow-up gap | Not done |
-| Featureful across fraud monitoring | README lists fraud monitoring as follow-up gap | Not done |
-| Featureful across collections | README lists collections as follow-up gap | Not done |
+| Featureful across reconciliation | `ops guide reconciliation` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, matching engine, or production workflow |
+| Featureful across fraud monitoring | `ops guide fraud-monitoring` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, action workflow, or production workflow |
+| Featureful across collections | `ops guide collections` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, notices, retries, or production workflow |
 | Featureful across sandbox testing | Sandbox-safe help, config, local build, read-only walkthrough, and help-only `sandbox guide [scenario]` flow are documented. For this slice, production calls and live writes are out of scope. | Partial |
 | Featureful across docs/search integration | Generated `search` remains synced local data search. `docs search` now provides product docs lookup, local command search, and API or SDK `search_docs` guidance. | Partial |
 | Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
@@ -147,8 +149,9 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Normal `--json` stream output remains raw NDJSON for compatibility.
    - Real launch packaging remains open.
    - Product review remains open.
-   - Richer workflow commands remain open.
-   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 82 tools because it includes those 73 typed tools plus 9 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
+   - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, and collections.
+   - Richer live workflow commands remain open.
+   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 83 tools because it includes those 73 typed tools plus 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
    - Patch-layer cleanup is documented for generated-code `// PATCH:` markers, `.printing-press-patches.json`, root registration overwrite risk, and MCP workflow exposure.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:
@@ -157,6 +160,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Full skill manager.
    - Richer presentation polish beyond the local `about` command.
    - Full workflow engine for reconciliation, fraud monitoring, and collections.
+   - Live API reads, docs lookup, MCP execution, webhook posts, or production writes from `ops guide`.
 3. Run a fresh completion audit after the next slice. Treat uncertainty as incomplete.
 
 ## Do Not Claim

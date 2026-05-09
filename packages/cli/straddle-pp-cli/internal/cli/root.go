@@ -196,6 +196,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	// PATCH: setup-check adds a local-only first-run readiness preflight without
 	// calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
 	rootCmd.AddCommand(newSetupCmd(flags))
+	// PATCH: ops-guide adds local-only operational workflow guidance without
+	// calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
+	rootCmd.AddCommand(newOpsCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))

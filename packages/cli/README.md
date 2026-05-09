@@ -48,6 +48,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli sandbox guide [scenario]` is a local help-only sandbox testing guide. It absorbs the previous `/sandbox-test` scenario list without executing writes, calling Straddle APIs, or calling the docs endpoint. Run `docs search` first before any separately approved live sandbox execution to verify current simulation parameters.
 
+`straddle-pp-cli ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`. It lists docs lookup queries and CLI surfaces to inspect, but it does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+
 ## Streaming Agent Contract
 
 This contract is implemented for `sync --agent` and real `tail --agent`.
@@ -98,7 +100,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 82 because the MCP runtime also exposes 9 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 83 because the MCP runtime also exposes 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -268,6 +270,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
 - Sandbox testing now has the help-only `straddle-pp-cli sandbox guide [scenario]` terminal flow. Live writes remain out of scope.
+- Reconciliation, fraud monitoring, and collections now have the help-only `straddle-pp-cli ops guide [workflow]` terminal flow. Live execution, API reads, docs lookup, MCP execution, webhook posts, production writes, and full workflow engines remain out of scope.
 
 ## Later Polish
 
@@ -277,4 +280,4 @@ These gaps should stay visible, but they do not block the first public replaceme
 - MCP output exists from the generated command tree, but still needs product review.
 - Docs parity and examples need review beyond the launch-critical setup, customer, payment, sandbox, and docs-search paths.
 - Word art and presentation polish are partially done through `about`; richer product review remains open.
-- The reconciliation, fraud monitoring, and collections workflows need practical command review and staged follow-up plans.
+- The reconciliation, fraud monitoring, and collections workflows have local-only `ops guide` planning guidance, but still need practical command review, approved live-read paths, and staged follow-up plans before launch.

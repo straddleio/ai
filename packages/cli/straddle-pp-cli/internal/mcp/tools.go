@@ -1222,20 +1222,23 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 // PATCH: mcp-count-breakdown keeps generated endpoint count, local typed framework count, and runtime tools/list count separate.
 // PATCH: sandbox-guide adds one Cobra shell-out runtime tool for help-only sandbox guidance.
 // PATCH: setup-check adds one Cobra shell-out runtime tool for local setup readiness.
+// PATCH: ops-guide adds one Cobra shell-out runtime tool for local operational workflow guidance.
 const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 82
+	runtimeToolCount        = 83
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
 // PATCH: sandbox-guide records sandbox_guide as a read-only Cobra shell-out runtime tool.
 // PATCH: setup-check records setup_check as a read-only Cobra shell-out runtime tool.
+// PATCH: ops-guide records ops_guide as a read-only Cobra shell-out runtime tool.
 var runtimeShellOutTools = []string{
 	"analytics",
 	"docs_search",
 	"import",
+	"ops_guide",
 	"sandbox_guide",
 	"setup_check",
 	"sync",

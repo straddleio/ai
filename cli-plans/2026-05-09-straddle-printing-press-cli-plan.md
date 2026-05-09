@@ -467,6 +467,47 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Estimated scope:** Small.
 
+#### Task 16: Implement ops guide terminal flow
+
+**Description:** Implemented as a bounded patch-layer command. `ops guide [workflow]` is local-only operational planning guidance for reconciliation, fraud monitoring, and collections. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+
+**Acceptance criteria:**
+
+- [x] `ops guide [workflow]` exists under an `ops` command tree.
+- [x] Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`.
+- [x] The command lists supported workflows when no workflow is provided.
+- [x] Each supported workflow returns docs lookup queries and local next steps.
+- [x] Safety metadata states that the command is guidance-only and does not call APIs, docs endpoints, MCP, webhooks, or production.
+- [x] `ops guide` rejects `--deliver` before webhook delivery.
+- [x] `ops guide --agent` uses the target envelope through the existing local JSON helper path.
+- [x] MCP runtime exposure includes `ops_guide` as a read-only Cobra shell-out tool.
+
+**Verification:**
+
+- [x] Run focused ops-guide CLI tests for workflow list, named workflows, invalid workflow, agent envelope, and deliver rejection.
+- [x] Run focused MCP tests for `ops_guide` shell-out exposure, read-only metadata, and runtime count 83.
+- [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
+- [x] Run targeted docs text checks for `ops guide`, `ops_guide`, supported workflow names, and runtime count `83` / shell-out count `10`.
+
+**Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, and docs-search guidance.
+
+**Files likely touched:**
+
+- `packages/cli/straddle-pp-cli/internal/cli/ops.go`
+- `packages/cli/straddle-pp-cli/internal/cli/ops_test.go`
+- `packages/cli/straddle-pp-cli/internal/cli/root.go`
+- `packages/cli/straddle-pp-cli/internal/mcp/tools.go`
+- `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`
+- `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`
+- `packages/cli/README.md`
+- `packages/cli/straddle-pp-cli/README.md`
+- `packages/cli/straddle-pp-cli/SKILL.md`
+- `packages/cli/straddle-pp-cli/.printing-press-patches.json`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`
+
+**Estimated scope:** Small.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -485,7 +526,7 @@ After each slice passes spec review, quality review, and verification, the contr
 
 - Should the preview eventually replace the public binary name `straddle`, or stay `straddle-pp-cli` until launch?
 - Should keychain credential storage be a launch blocker?
-- Which workflow command should be the first hand-authored Printing Press polish slice after baseline generation?
+- Which approved live-read operational workflow should follow the local-only `ops guide` planning slice?
 
 ## Completion Audit Checklist
 

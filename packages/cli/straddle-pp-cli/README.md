@@ -830,7 +830,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 82 because the MCP runtime also exposes 9 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 83 because the MCP runtime also exposes 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 
@@ -860,6 +860,17 @@ straddle-pp-cli setup check --json
 ```
 
 Checks local setup readiness without calling Straddle APIs, docs endpoints, MCP, webhooks, or production. For an optional live sandbox auth and reachability check, first set an explicit sandbox base URL and credentials, then run `straddle-pp-cli doctor --json`.
+
+## Ops Guide
+
+```bash
+straddle-pp-cli ops guide --json
+straddle-pp-cli ops guide reconciliation --json
+straddle-pp-cli ops guide fraud-monitoring --agent
+straddle-pp-cli ops guide collections --json
+```
+
+`ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
 ## Configuration
 
