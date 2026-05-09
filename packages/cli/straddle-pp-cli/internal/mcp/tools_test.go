@@ -4,9 +4,104 @@
 package mcp
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+
+	mcplib "github.com/mark3labs/mcp-go/mcp"
 )
+
+func unsafeTokenGuidance() []string {
+	envAssignment := strings.Join([]string{"export", "STRADDLE_TOKEN"}, " ") + "="
+	return []string{
+		envAssignment + strings.Join([]string{"<", "your-key", ">"}, ""),
+		envAssignment + strings.Join([]string{"<", "your-token", ">"}, ""),
+		"straddle-pp-cli auth set-token " + strings.Join([]string{"<", "token", ">"}, ""),
+	}
+}
+
+func assertSafeTokenGuidance(t *testing.T, text string) {
+	t.Helper()
+
+	for _, unsafe := range unsafeTokenGuidance() {
+		if strings.Contains(text, unsafe) {
+			t.Fatalf("token guidance should not include %q in %q", unsafe, text)
+		}
+	}
+	if !strings.Contains(text, "straddle-pp-cli auth set-token --stdin") {
+		t.Fatalf("token guidance should prefer stdin auth setup, got %q", text)
+	}
+	if !strings.Contains(text, "secret manager") {
+		t.Fatalf("token guidance should mention secret manager env injection, got %q", text)
+	}
+}
+
+func toolResultText(t *testing.T, result *mcplib.CallToolResult) string {
+	t.Helper()
+
+	if result == nil {
+		t.Fatalf("tool result is nil")
+	}
+	if len(result.Content) != 1 {
+		t.Fatalf("tool result should have one content item, got %d", len(result.Content))
+	}
+	content, ok := result.Content[0].(mcplib.TextContent)
+	if !ok {
+		t.Fatalf("tool result content should be text, got %T", result.Content[0])
+	}
+	return content.Text
+}
+
+func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
+	tests := []struct {
+		name       string
+		statusCode int
+		body       string
+	}{
+		{
+			name:       "http 400 auth-shaped error",
+			statusCode: http.StatusBadRequest,
+			body:       `{"error":"missing api_key"}`,
+		},
+		{
+			name:       "http 401",
+			statusCode: http.StatusUnauthorized,
+			body:       `{"error":"unauthorized"}`,
+		},
+		{
+			name:       "http 403",
+			statusCode: http.StatusForbidden,
+			body:       `{"error":"forbidden"}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(tt.statusCode)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			t.Cleanup(server.Close)
+
+			t.Setenv("HOME", t.TempDir())
+			t.Setenv("STRADDLE_BASE_URL", server.URL)
+			t.Setenv("STRADDLE_TOKEN", "test-token")
+
+			handler := makeAPIHandler("GET", "/v1/customers", nil, nil)
+			result, err := handler(context.Background(), mcplib.CallToolRequest{})
+			if err != nil {
+				t.Fatalf("handler returned error: %v", err)
+			}
+			if !result.IsError {
+				t.Fatalf("handler result should be an MCP error")
+			}
+
+			assertSafeTokenGuidance(t, toolResultText(t, result))
+		})
+	}
+}
 
 // TestValidateReadOnlyQuery_AllowsSelectAndWITH pins the contract: the MCP
 // sql tool's allowlist accepts SELECT and WITH-prefix queries, including
@@ -65,7 +160,7 @@ func TestValidateReadOnlyQuery_RejectsBypassVectors(t *testing.T) {
 		";VACUUM INTO '/tmp/x.db'",
 		"; ; VACUUM INTO '/tmp/x.db'",
 		"/* a */ /* b */ INSERT INTO t VALUES (1)",
-		"/* outer /* not nested */ */ SELECT 1", // SQLite doesn't nest, so trailing "*/" closes; second SELECT remains. Reject — the gate must err on the side of caution when the leading shape is suspicious.
+		"/* outer /* not nested */ */ SELECT 1", // SQLite doesn't nest, so trailing "*/" closes; second SELECT remains. Reject, the gate must err on the side of caution when the leading shape is suspicious.
 		"-- only a comment",
 		"/* only a comment */",
 		"",

@@ -44,6 +44,19 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli covers human output, JSON output, agent envelope output, and credential-free local execution."
+    },
+    {
+      "id": "safe-token-guidance",
+      "summary": "Replace token-bearing auth guidance in doctor, CLI API errors, and MCP API errors with stdin-first or secret-manager guidance.",
+      "reason": "Generated auth hints should not recommend commands that put API tokens in shell history or process arguments.",
+      "files": [
+        "internal/cli/doctor.go",
+        "internal/cli/helpers.go",
+        "internal/cli/token_guidance_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli ./internal/mcp covers doctor, classifyAPIError, and MCP auth error guidance without token-bearing commands."
     }
   ]
 }

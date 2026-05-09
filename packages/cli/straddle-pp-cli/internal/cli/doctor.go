@@ -21,7 +21,7 @@ import (
 
 // looksLikeDoctorInterstitial reports whether the response body matches a known
 // bot-detection challenge page (Cloudflare, Akamai, Vercel, AWS WAF, DataDome,
-// PerimeterX). Only fires on the doctor probe — used to distinguish "transport
+// PerimeterX). Only fires on the doctor probe, used to distinguish "transport
 // reached the wall" from "transport failed entirely." Returns the vendor name
 // when matched, or empty string when no match.
 //
@@ -89,7 +89,8 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 				header := cfg.AuthHeader()
 				if header == "" {
 					report["auth"] = "not configured"
-					report["auth_hint"] = "export STRADDLE_TOKEN=<your-key>"
+					// PATCH: safe-token-guidance keeps generated doctor output from recommending token-bearing shell history.
+					report["auth_hint"] = "run 'straddle-pp-cli auth set-token --stdin', or have your shell or secret manager inject STRADDLE_TOKEN"
 				} else {
 					report["auth"] = "configured"
 					report["auth_source"] = cfg.AuthSource
@@ -139,22 +140,22 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 					var reachAPIErr *client.APIError
 					switch {
 					case reachErr == nil:
-						// 2xx response — clearly reachable. Still inspect the
+						// 2xx response, clearly reachable. Still inspect the
 						// body for a known interstitial; some bot walls return
 						// 200 with a JS challenge page.
 						if vendor := looksLikeDoctorInterstitial(reachBody); vendor != "" {
-							report["api"] = fmt.Sprintf("blocked by %s interstitial — the configured transport reached the wall. Try a different network, wait for the IP-level rate limit to clear, or check that the browser-chrome transport is bound correctly.", vendor)
+							report["api"] = fmt.Sprintf("blocked by %s interstitial, the configured transport reached the wall. Try a different network, wait for the IP-level rate limit to clear, or check that the browser-chrome transport is bound correctly.", vendor)
 						} else {
 							report["api"] = "reachable"
 						}
 					case errors.As(reachErr, &reachAPIErr):
 						// Non-2xx from the server. The network reached, the
-						// server responded — that's "reachable" for our
+						// server responded, that's "reachable" for our
 						// purposes. Inspect the response body for a known
 						// interstitial first; otherwise note the status.
 						status := reachAPIErr.StatusCode
 						if vendor := looksLikeDoctorInterstitial([]byte(reachAPIErr.Body)); vendor != "" {
-							report["api"] = fmt.Sprintf("blocked by %s interstitial (HTTP %d) — the configured transport reached the wall.", vendor, status)
+							report["api"] = fmt.Sprintf("blocked by %s interstitial (HTTP %d), the configured transport reached the wall.", vendor, status)
 						} else {
 							report["api"] = fmt.Sprintf("reachable (HTTP %d at /)", status)
 						}
@@ -168,7 +169,7 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 					// Step 2: Validate credentials with an authenticated probe.
 					authHeader := cfg.AuthHeader()
 					if authHeader == "" {
-						// No auth configured — skip credential validation
+						// No auth configured, skip credential validation
 					} else if reachErr != nil && !errors.As(reachErr, &reachAPIErr) {
 						report["credentials"] = "skipped (API unreachable)"
 					} else {
@@ -189,12 +190,12 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 								// is configured in the spec. Many APIs return 401/403 from a
 								// bare versioned root regardless of token validity (the path
 								// isn't routed but the gateway still demands credentials).
-								// Don't claim invalid without certainty — set verify_path to
+								// Don't claim invalid without certainty, set verify_path to
 								// a known-good authenticated GET (e.g. /me, /v1/account, /user)
 								// for a definitive verdict.
-								report["credentials"] = fmt.Sprintf("inconclusive (HTTP %d from base URL — set auth.verify_path in spec for a definitive probe)", authAPIErr.StatusCode)
+								report["credentials"] = fmt.Sprintf("inconclusive (HTTP %d from base URL, set auth.verify_path in spec for a definitive probe)", authAPIErr.StatusCode)
 							default:
-								// Non-auth HTTP error (404, 500, etc.) — don't blame credentials
+								// Non-auth HTTP error (404, 500, etc.), don't blame credentials
 								report["credentials"] = fmt.Sprintf("ok (HTTP %d from %s, but auth was accepted)", authAPIErr.StatusCode, verifyPath)
 							}
 						default:
@@ -242,12 +243,12 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 				case strings.HasPrefix(s, "ERROR"):
 					indicator = red("FAIL")
 				case strings.HasPrefix(s, "optional"):
-					// Optional-auth CLI with no key set — informational, not a failure.
+					// Optional-auth CLI with no key set, informational, not a failure.
 					indicator = yellow("INFO")
 				case strings.HasPrefix(s, "inconclusive"):
 					// The credential probe could not produce a definitive verdict
 					// (typically because the bare base URL returns 401/403 even for
-					// valid tokens). Surface as WARN, not FAIL — the user's actual
+					// valid tokens). Surface as WARN, not FAIL, the user's actual
 					// commands will reveal a real auth failure if one exists.
 					indicator = yellow("WARN")
 				case strings.Contains(s, "error") || strings.Contains(s, "not configured") || strings.Contains(s, "unreachable") || strings.Contains(s, "invalid") || strings.Contains(s, "missing"):
@@ -372,7 +373,7 @@ func collectCacheReport(ctx context.Context, staleAfterSpec string) map[string]a
 	rows, qerr := s.DB().Query(`SELECT resource_type, COALESCE(total_count, 0), last_synced_at FROM sync_state ORDER BY resource_type`)
 	if qerr != nil {
 		// sync_state may not exist on a fresh DB that has migrated but not
-		// yet had any sync runs — treat as unknown rather than error.
+		// yet had any sync runs, treat as unknown rather than error.
 		report["status"] = "unknown"
 		report["hint"] = "No sync state recorded; run 'straddle-pp-cli sync' to populate."
 		return report

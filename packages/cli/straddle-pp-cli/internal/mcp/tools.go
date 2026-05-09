@@ -586,7 +586,7 @@ func RegisterTools(s *server.MCPServer) {
 	)
 	s.AddTool(
 		mcplib.NewTool("paykeys_get",
-			mcplib.WithDescription("Retrieves the details of an existing paykey. Supply the unique paykey `id` and Straddle will return the corresponding paykey record , including the `paykey` token value and masked bank account details. Required: id. Returns the PaykeyV1ItemResponse."),
+			mcplib.WithDescription("Retrieves the details of an existing paykey. Supply the unique paykey `id` and Straddle will return the corresponding paykey record, including the `paykey` token value and masked bank account details. Required: id. Returns the PaykeyV1ItemResponse."),
 			mcplib.WithString("id", mcplib.Required(), mcplib.Description("Id")),
 			mcplib.WithReadOnlyHintAnnotation(true),
 			mcplib.WithDestructiveHintAnnotation(false),
@@ -889,7 +889,7 @@ func RegisterTools(s *server.MCPServer) {
 		),
 		makeAPIHandler("GET", "/v1/representatives/{representative_id}/unmask", []mcpParamBinding{{PublicName: "representative_id", WireName: "representative_id", Location: "path"}}, []string{"representative_id"}),
 	)
-	// Search tool — faster than iterating list endpoints for finding specific items
+	// Search tool, faster than iterating list endpoints for finding specific items
 	s.AddTool(
 		mcplib.NewTool("search",
 			mcplib.WithDescription("Full-text search across all synced data. Faster than paginating list endpoints. Requires sync first."),
@@ -900,7 +900,7 @@ func RegisterTools(s *server.MCPServer) {
 		),
 		handleSearch,
 	)
-	// SQL tool — ad-hoc analysis on synced data without API calls
+	// SQL tool, ad-hoc analysis on synced data without API calls
 	s.AddTool(
 		mcplib.NewTool("sql",
 			mcplib.WithDescription("Run read-only SQL against local database. Use for ad-hoc analysis, aggregations, and joins across synced resources. Requires sync first."),
@@ -911,7 +911,7 @@ func RegisterTools(s *server.MCPServer) {
 		handleSQL,
 	)
 
-	// Context tool — front-loaded domain knowledge for agents.
+	// Context tool, front-loaded domain knowledge for agents.
 	// Call this first to understand the API taxonomy, query patterns, and capabilities.
 	s.AddTool(
 		mcplib.NewTool("context",
@@ -922,7 +922,7 @@ func RegisterTools(s *server.MCPServer) {
 		handleContext,
 	)
 
-	// Runtime Cobra-tree mirror — exposes every user-facing command that is
+	// Runtime Cobra-tree mirror, exposes every user-facing command that is
 	// not already covered by a typed endpoint or framework MCP tool.
 	cobratree.RegisterAll(s, cli.RootCmd(), cobratree.SiblingCLIPath)
 }
@@ -931,6 +931,13 @@ type mcpParamBinding struct {
 	PublicName string
 	WireName   string
 	Location   string
+}
+
+// PATCH: safe-token-guidance centralizes MCP auth guidance on stdin or secret-manager token injection.
+func safeTokenGuidance() string {
+	return "Save a token with: straddle-pp-cli auth set-token --stdin" +
+		"\n      Or have your shell or secret manager inject STRADDLE_TOKEN." +
+		"\n      Run 'straddle-pp-cli doctor' to check auth status."
 }
 
 // makeAPIHandler creates a generic MCP tool handler for an API endpoint.
@@ -1020,19 +1027,16 @@ func makeAPIHandler(method, pathTemplate string, bindings []mcpParamBinding, pos
 				return mcplib.NewToolResultText("already exists (no-op)"), nil
 			case strings.Contains(msg, "HTTP 400") && cliutil.LooksLikeAuthError(msg):
 				return mcplib.NewToolResultError("authentication error: " + cliutil.SanitizeErrorBody(msg) +
-					"\nhint: the API rejected the request — this usually means auth is missing or invalid." +
-					"\n      Set your API key: export STRADDLE_TOKEN=<your-key>" +
-					"\n      Run 'straddle-pp-cli doctor' to check auth status."), nil
+					"\nhint: the API rejected the request, this usually means auth is missing or invalid." +
+					"\n      " + safeTokenGuidance()), nil
 			case strings.Contains(msg, "HTTP 401"):
 				return mcplib.NewToolResultError("authentication failed: " + cliutil.SanitizeErrorBody(msg) +
 					"\nhint: check your token." +
-					"\n      Set it with: export STRADDLE_TOKEN=<your-key>" +
-					"\n      Run 'straddle-pp-cli doctor' to check auth status."), nil
+					"\n      " + safeTokenGuidance()), nil
 			case strings.Contains(msg, "HTTP 403"):
 				return mcplib.NewToolResultError("permission denied: " + cliutil.SanitizeErrorBody(msg) +
 					"\nhint: your credentials are valid but lack access to this resource." +
-					"\n      Set it with: export STRADDLE_TOKEN=<your-key>" +
-					"\n      Run 'straddle-pp-cli doctor' to check auth status."), nil
+					"\n      " + safeTokenGuidance()), nil
 			case strings.Contains(msg, "HTTP 404"):
 				if method == "DELETE" {
 					return mcplib.NewToolResultText("already deleted (no-op)"), nil
@@ -1125,7 +1129,7 @@ func handleSearch(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.Call
 // leading whitespace, line comments, block comments, and semicolons that
 // SQLite itself ignores before parsing. A naive HasPrefix check on a
 // keyword blocklist is bypassable by prefixing the dangerous statement with
-// "/* x */" or "-- x\n" — TrimSpace strips outer whitespace but does not
+// "/* x */" or "-- x\n", TrimSpace strips outer whitespace but does not
 // understand SQL comment syntax. Combined with the empirical fact that
 // modernc.org/sqlite's mode=ro does NOT block VACUUM INTO (writes a snapshot
 // to a new file) or ATTACH DATABASE (opens a separate writable handle),

@@ -228,19 +228,22 @@ func classifyAPIError(err error, flags *rootFlags) error {
 		classified := apiErr(err)
 		writeAPIErrorEnvelope(flags, classified, ExitCode(classified))
 		return classified
+	// PATCH: safe-token-guidance keeps generated auth errors from printing token-bearing commands.
 	case strings.Contains(msg, "HTTP 400") && cliutil.LooksLikeAuthError(msg):
 		return authErr(fmt.Errorf("%w\nhint: the API rejected the request. This usually means auth is missing or invalid."+
-			"\n      Set your API key: export STRADDLE_TOKEN=<your-key>"+
+			"\n      Save a token with: straddle-pp-cli auth set-token --stdin"+
+			"\n      Or have your shell or secret manager inject STRADDLE_TOKEN."+
 			"\n      Run 'straddle-pp-cli doctor' to check auth status."+
 			"\n      Response: "+cliutil.SanitizeErrorBody(msg), err))
 	case strings.Contains(msg, "HTTP 401"):
-		return authErr(fmt.Errorf("%w\nhint: check your token. Set it with: straddle-pp-cli auth set-token <token>"+
-			"\n      or: export STRADDLE_TOKEN=<your-token>"+
+		return authErr(fmt.Errorf("%w\nhint: check your token. Save a token with: straddle-pp-cli auth set-token --stdin"+
+			"\n      Or have your shell or secret manager inject STRADDLE_TOKEN."+
 			"\n      Run 'straddle-pp-cli doctor' to check auth status.", err))
 	case strings.Contains(msg, "HTTP 403"):
 		return authErr(fmt.Errorf("%w\nhint: permission denied. Your credentials are valid but lack access to this resource."+
 			"\n      Check that your API key has the required permissions."+
-			"\n      Set it with: export STRADDLE_TOKEN=<your-key>"+
+			"\n      If you need a different token, use: straddle-pp-cli auth set-token --stdin"+
+			"\n      Or have your shell or secret manager inject STRADDLE_TOKEN."+
 			"\n      Run 'straddle-pp-cli doctor' to check auth status.", err))
 	case strings.Contains(msg, "HTTP 404"):
 		return notFoundErr(fmt.Errorf("%w\nhint: resource not found. Run the 'list' command to see available items", err))
