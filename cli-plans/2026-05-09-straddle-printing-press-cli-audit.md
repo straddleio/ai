@@ -12,9 +12,9 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The next slice has now been selected and planned: CLI contract and honesty. It is not implemented yet. The full objective is not achieved because token handling, honest agent JSON gap documentation, honest generated install docs, MCP smoke proof, and sandbox-safe workflow guidance remain planned work rather than shipped behavior.
+The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because final target-envelope implementation, real launch packaging, product review, richer workflow commands, and MCP count discrepancy resolution remain open.
 
-For the next slice, the conservative `--agent` path is selected. The current generated `{results, meta}` or raw JSON behavior must be documented as an agent JSON gap that is not launch-ready for the final target envelope. Full target-envelope implementation is deferred to a later focused implementation slice.
+For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. The current generated `{results, meta}` or raw JSON behavior is documented as an agent JSON gap that is not launch-ready for the final target envelope. Full target-envelope implementation is deferred to a later focused implementation slice.
 
 The workflow also needs smaller commits. After each slice passes spec review, quality review, and verification, the controller should stage only intended files and make a small commit before starting the next implementation slice. The current baseline should be committed in logical chunks now: generated baseline first, then hand-authored docs, validation, plans, and audit updates.
 
@@ -79,22 +79,22 @@ Result: no local build directories found, no credential-pattern matches found.
 | Ramp CLI/MCP/docs/ergonomics/agent friendliness/presentation/word art benchmark | `packages/cli/README.md` has Ramp benchmark checklist including installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art | Done as checklist, not fully implemented |
 | Include MCP from Printing Press | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; Go MCP build passed | Done for first slice |
 | CLI first | `packages/cli/README.md` states CLI first and MCP sibling from same command tree | Done for first slice |
-| Agent-friendly | Generated CLI includes agent-context. The next slice must document the current `{results, meta}` or raw JSON behavior as an agent JSON gap that is not launch-ready for the final target envelope. | Partial |
-| Documented | Spec, plan, generated README, generated SKILL, and package README exist | Partial, because later launch and workflow docs remain gaps |
+| Agent-friendly | Generated CLI includes agent-context. Current `--agent` expansion and the `{results, meta}` or raw JSON gap are now documented as not launch-ready for the final target envelope. | Partial |
+| Documented | Spec, plan, generated README, generated SKILL, and package README exist. Install honesty, MCP smoke instructions, and sandbox-safe read-only walkthrough are now documented. | Partial, because later launch and workflow docs remain gaps |
 | Tested | `npm run validate`, `go test -count=1 ./...`, CLI build, and MCP build passed | Done for first slice |
 | Featureful across setup | Generated baseline has setup-adjacent `auth`, `doctor`, `profile`; README lists setup workflow as launch-critical gap | Partial |
-| Featureful across customers | Generated customer commands exist | Partial, no curated workflow examples yet |
-| Featureful across payments | Generated charges, payouts, paykeys, funding events, and promoted payments commands exist | Partial, no curated payment workflow yet |
+| Featureful across customers | Generated customer commands exist; sandbox-safe read-only customer exploration is documented | Partial, no curated write workflow examples yet |
+| Featureful across payments | Generated charges, payouts, paykeys, funding events, and promoted payments commands exist; sandbox-safe read-only payment exploration is documented | Partial, no curated write workflow yet |
 | Featureful across reconciliation | README lists reconciliation as follow-up gap | Not done |
 | Featureful across fraud monitoring | README lists fraud monitoring as follow-up gap | Not done |
 | Featureful across collections | README lists collections as follow-up gap | Not done |
-| Featureful across sandbox testing | README lists sandbox testing as launch-critical gap | Not done |
+| Featureful across sandbox testing | Sandbox-safe help, config, local build, and read-only walkthrough is documented. For this slice, production calls are out of scope. | Partial |
 | Featureful across docs/search integration | Generated `search` command exists and README lists docs search as launch-critical gap | Partial |
 | Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
 | Master workflow exists and controls future loops | `cli-plans/2026-05-09-straddle-cli-full-workflow.md` defines Phase 0 through Phase 5, deliverables, review gates, loop rules, commit cadence, subagent roles, repo constraints, and completion audit rule | Done for planning |
 | Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
-| Next slice selected | Spec and plan now name Phase 4 as CLI contract and honesty, focused on safe token input, documenting the current agent JSON gap, honest generated docs, MCP smoke proof, sandbox-safe read-only walkthrough, and the patch layer | Planned, not implemented |
+| CLI contract and honesty slice | Safe token input is done. Agent JSON gap is documented. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. | Partial, because target envelope implementation and launch packaging remain open |
 
 ## Completed Gates
 
@@ -123,13 +123,18 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
 
 ## Missing Work Before Goal Completion
 
-1. Implement the selected next slice: CLI contract and honesty. First implementation part is partial. Safe token input is implemented and tested. Remaining planned work is:
-   - Document the current generated `{results, meta}` or raw JSON behavior as an agent JSON gap that is not launch-ready for the final target envelope.
-   - Defer full target-envelope implementation to a later focused implementation slice.
-   - Make generated README and SKILL install docs honest about local preview, future release, MCP registration, and public launch.
-   - Add MCP smoke instructions that prove `straddle-pp-mcp` starts and exposes generated tools from the generated command tree.
-   - Add a sandbox-safe setup plus read-only customer and payment walkthrough with no production calls.
-   - Keep the patch layer current using `// PATCH:` comments and `.printing-press-patches.json`.
+1. Finish the broader CLI contract and launch path. The current honesty docs slice is partial and does not complete the public CLI goal.
+   - Safe token input is done.
+   - Agent JSON gap is documented.
+   - Install honesty is documented.
+   - MCP smoke instructions are documented.
+   - Sandbox-safe read-only walkthrough is documented.
+   - Final target envelope implementation remains open.
+   - Real launch packaging remains open.
+   - Product review remains open.
+   - Richer workflow commands remain open.
+   - MCP count discrepancy resolution remains open. `.printing-press.json` metadata says 70, typed `mcplib.NewTool(` API registrations say 73, and runtime `tools/list` may include additional Cobra shell-out tools.
+   - Patch-layer review remains open if generated-tree source patches are added later; this docs-only slice did not add new source patches.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:
    - Publishing.

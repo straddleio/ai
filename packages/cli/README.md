@@ -10,6 +10,92 @@ Printing Press is required for this work. The actual generator is `mvanhorn/cli-
 
 The generated project includes the CLI first and an MCP sibling from the same Printing Press command tree. The preview binary is `straddle-pp-cli`. The generated MCP binary is `straddle-pp-mcp`.
 
+## Current Contract
+
+This generated CLI is a local preview, not a published public launch artifact. Printing Press remains the source for the generated tree. There is no current public `npx` install path, pre-built binary, public-library release link, Hermes install path, or MCP package bundle for this Straddle preview. Those belong to a future publish and packaging slice.
+
+Current local build and install paths:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
+/tmp/straddle-pp-cli --help
+
+# Optional local Go install into GOPATH/bin:
+go install ./cmd/straddle-pp-cli
+```
+
+Agent mode is useful but not launch-ready for the final target envelope from the spec. Today, `--agent` expands to `--json --compact --no-input --no-color --yes`. Many generated list and read commands emit:
+
+```json
+{
+  "results": "...",
+  "meta": "..."
+}
+```
+
+Some commands emit command-specific raw JSON instead. Target envelope implementation is deferred to a later implementation slice.
+
+## MCP Smoke
+
+`straddle-pp-mcp` is generated from the same Printing Press tree as `straddle-pp-cli` and currently runs over stdio. A credential-free runtime smoke can build the MCP binary and ask it for `tools/list` over JSON-RPC:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-mcp ./cmd/straddle-pp-mcp
+node -e 'const {spawn}=require("node:child_process"); const cp=spawn("/tmp/straddle-pp-mcp"); let buf=""; let timer=setTimeout(()=>{console.error("timed out"); cp.kill(); process.exit(1);},5000); function send(msg){cp.stdin.write(JSON.stringify(msg)+"\n");} cp.stdout.on("data", d=>{buf+=d; for(;;){const i=buf.indexOf("\n"); if(i<0) break; const line=buf.slice(0,i).trim(); buf=buf.slice(i+1); if(!line) continue; const msg=JSON.parse(line); if(msg.id===1){send({jsonrpc:"2.0",method:"notifications/initialized",params:{}}); send({jsonrpc:"2.0",id:2,method:"tools/list",params:{}});} if(msg.id===2){clearTimeout(timer); const tools=msg.result.tools||[]; console.log(JSON.stringify({tool_count:tools.length, first_tools:tools.slice(0,5).map(t=>t.name)})); cp.kill(); process.exit(0);}}}); send({jsonrpc:"2.0",id:1,method:"initialize",params:{protocolVersion:"2024-11-05",capabilities:{},clientInfo:{name:"straddle-ai-doc-smoke",version:"0"}}});'
+rm -f /tmp/straddle-pp-mcp
+```
+
+If the runtime smoke is too noisy for an environment, use this source count as a weaker fallback:
+
+```bash
+rg -o 'mcplib\.NewTool\(' internal/mcp/tools.go | wc -l
+```
+
+Known caveat: `.printing-press.json` metadata says 70 MCP tools while typed `mcplib.NewTool(` API registrations currently say 73. Runtime `tools/list` can include additional Cobra shell-out tools, so the count discrepancy remains open.
+
+## Sandbox-Safe Walkthrough
+
+Use sandbox configuration only. For this slice, production calls are out of scope, and write calls are out of scope. Do not include real tokens in docs, logs, shell history, or examples.
+
+Help-only and local-build checks:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
+/tmp/straddle-pp-cli --help
+/tmp/straddle-pp-cli customers list --help
+/tmp/straddle-pp-cli charges get --help
+```
+
+Config-only passing checks:
+
+```bash
+SANDBOX_CONFIG=/tmp/straddle-pp-cli-sandbox.toml
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --help --config "$SANDBOX_CONFIG"
+```
+
+`auth status` is not a passing check before credential setup. In a clean config, it is expected to report an unauthenticated state and exit non-zero, currently auth error exit 4. Use it only when you want to inspect that state:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli auth status --json --config "$SANDBOX_CONFIG" || true
+```
+
+Read-only exploration, only after a sandbox credential is supplied through the caller's secure secret flow:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli customers list --agent --page-size 5 --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli payments list --agent --page-size 5 --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli charges get <sandbox-charge-id> --agent --config "$SANDBOX_CONFIG"
+```
+
+Customer and payment exploration must stay read-only. Use `--dry-run --agent` first when checking request shape:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli customers list --dry-run --agent --config "$SANDBOX_CONFIG"
+```
+
 ## Current Slice
 
 Task 1 created the first generated baseline with these quality facts:
@@ -126,8 +212,9 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Installer and release packaging are not done.
 - Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
 - Agent JSON envelope may not match the target Straddle contract.
+- Current `--agent` behavior is documented as JSON, compact, no input, no color, and yes. Many generated list and read commands use `{ "results": ..., "meta": ... }`, while some commands still emit command-specific raw JSON. The final target envelope is deferred.
 - Command grammar needs review against real developer and agent workflows.
-- Setup, customers, and payments workflows need end-to-end examples and sandbox-safe verification.
+- Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
 - Sandbox testing and docs search need first-class terminal flows or clear guidance.
 
 ## Later Polish

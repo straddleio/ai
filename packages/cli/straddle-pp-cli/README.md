@@ -20,11 +20,20 @@ Straddle provides two separate environments to support your development workflow
 
 # Authentication
 
-Straddle uses Bearer Token authentication via JWT API keys. Include your secret API key in the `Authorization` header of every request:
+This local preview stores API credentials through CLI auth config or a secure caller-supplied environment variable. Do not put secret values in docs, checked-in config, shell history, argv, or logs.
+
+Use stdin when you need to write a sandbox token into the local CLI config:
 
 ```bash
-curl https://sandbox.straddle.com/v1/customers \
-  -H "Authorization: Bearer YOUR_SECRET_API_KEY"
+read -r -s STRADDLE_TOKEN_INPUT
+straddle-pp-cli auth set-token --stdin <<<"$STRADDLE_TOKEN_INPUT"
+unset STRADDLE_TOKEN_INPUT
+```
+
+For one-off shells, CI, and MCP launches, inject `STRADDLE_TOKEN` through the caller's secret manager or secure environment flow. Verify that a token is present without printing it:
+
+```bash
+test -n "$STRADDLE_TOKEN" && echo STRADDLE_TOKEN is set
 ```
 
 ### Generate an API Key
@@ -139,16 +148,14 @@ If the `Idempotency-Key` header is missing or does not meet the length requireme
 
 ### Example Usage
 
+Do not test idempotency with live write calls in this local preview slice. For docs and request-shape checks, generate the key locally and use command help or dry-run output before any future write-focused testing:
+
 ```bash
-curl -X POST https://sandbox.straddle.com/v1/charges \
--H "Authorization: Bearer YOUR_API_KEY" \
--H "Content-Type: application/json" \
--H "Idempotency-Key: unique-client-key-7890" \
--d '{
-  "amount": 100.00,
-  "currency": "USD"
-}'
+IDEMPOTENCY_KEY="preview-request-7890"
+straddle-pp-cli charges create --help
 ```
+
+Only use the generated key with a sandbox write call when a future implementation slice explicitly scopes that testing and a sandbox credential has been supplied through a secure secret flow.
 
 Idempotency is currently supported for **POST**, **PUT**, **PATCH** and **DELETE** requests only, and requires API key authentication. 
 
@@ -339,32 +346,20 @@ Platforms building on Embed can make API calls on behalf of their embedded accou
 
 When making server-side API calls, include the `Straddle-Account-Id` header with the embedded account's ID to execute requests on their behalf.
 
-#### Example: Creating a Charge
+#### Example: Read-Only Sandbox Check
 
-The following example demonstrates how to create a charge using your platform's secret API key and your user's account ID.
+For this local preview, keep embedded-account examples read-only. Store static sandbox headers in an untracked temporary config file, then use a read command. Supply the sandbox token separately through `auth set-token --stdin` or the caller's secure `STRADDLE_TOKEN` flow.
 
 ```bash
-curl --request POST \
-  --url https://sandbox.straddle.com/v1/charges \
-  --header 'Authorization: Bearer <your-secret-api-key>' \
-  --header 'Content-Type: application/json' \
-  --header 'Straddle-Account-Id: <uuid>' \
-  --data '{
-    "paykey": "<string>",
-    "description": "<string>",
-    "amount": 123,
-    "currency": "<string>",
-    "payment_date": "2023-12-25",
-    "consent_type": "internet",
-    "device": {
-      "ip_address": "<string>"
-    },
-    "external_id": "<string>",
-    "config": {
-      "balance_check": "required"
-    },
-    "metadata": {}
-  }'
+SANDBOX_CONFIG=/tmp/straddle-pp-cli-sandbox.toml
+cat > "$SANDBOX_CONFIG" <<'TOML'
+base_url = "https://sandbox.straddle.com"
+
+[headers]
+Straddle-Account-Id = "acct_sandbox_example"
+TOML
+
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli charges get <sandbox-charge-id> --agent --config "$SANDBOX_CONFIG"
 ```
 
 ### Client-side Requests
@@ -449,49 +444,29 @@ Here's an example of a validation error response:
 
 ## Install
 
-The recommended path installs both the `straddle-pp-cli` binary and the `pp-straddle` agent skill in one shot:
+This generated CLI is a local preview from Printing Press. It is not a published public launch artifact. There is no current public `npx` install path, pre-built binary, MCP package bundle, Hermes install path, or public-library release link for this Straddle preview. Those are future packaging surfaces after publish.
+
+Build the preview binary from this repo:
 
 ```bash
-npx -y @mvanhorn/printing-press install straddle
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
+/tmp/straddle-pp-cli --help
 ```
 
-For CLI only (no skill):
+Or install from the local module into `$GOPATH/bin`:
 
 ```bash
-npx -y @mvanhorn/printing-press install straddle --cli-only
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go install ./cmd/straddle-pp-cli
+straddle-pp-cli --help
 ```
 
+Printing Press remains the source for the generated CLI tree.
 
-### Without Node
+### Future Distribution
 
-The generated install path is category-agnostic until this CLI is published. If `npx` is not available before publish, install Node or use the category-specific Go fallback from the public-library entry after publish.
-
-### Pre-built binary
-
-Download a pre-built binary for your platform from the [latest release](https://github.com/mvanhorn/printing-press-library/releases/tag/straddle-current). On macOS, clear the Gatekeeper quarantine: `xattr -d com.apple.quarantine <binary>`. On Unix, mark it executable: `chmod +x <binary>`.
-
-<!-- pp-hermes-install-anchor -->
-## Install for Hermes
-
-From the Hermes CLI:
-
-```bash
-hermes skills install mvanhorn/printing-press-library/cli-skills/pp-straddle --force
-```
-
-Inside a Hermes chat session:
-
-```bash
-/skills install mvanhorn/printing-press-library/cli-skills/pp-straddle --force
-```
-
-## Install for OpenClaw
-
-Tell your OpenClaw agent (copy this):
-
-```
-Install the pp-straddle skill from https://github.com/mvanhorn/printing-press-library/tree/main/cli-skills/pp-straddle. The skill defines how its required CLI can be installed.
-```
+Public installer commands, release downloads, agent-skill distribution, and desktop MCP packaging are future work after the Straddle preview is published. Do not document them as available until that release exists.
 
 ## Quick Start
 
@@ -530,7 +505,50 @@ This checks your configuration and credentials.
 ### 4. Try Your First Command
 
 ```bash
-straddle-pp-cli accounts list
+straddle-pp-cli customers list --dry-run --agent
+```
+
+This first command is a request-shape check only. It does not send a request.
+
+## Sandbox-Safe Walkthrough
+
+Use sandbox configuration only. For this slice, production calls are out of scope, and write calls are out of scope. Do not include real tokens in docs, logs, shell history, or examples.
+
+Help-only and local-build checks:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
+/tmp/straddle-pp-cli --help
+/tmp/straddle-pp-cli customers list --help
+/tmp/straddle-pp-cli payments list --help
+```
+
+Config-only passing checks:
+
+```bash
+SANDBOX_CONFIG=/tmp/straddle-pp-cli-sandbox.toml
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --help --config "$SANDBOX_CONFIG"
+```
+
+`auth status` is not a passing check before credential setup. In a clean config, it is expected to report an unauthenticated state and exit non-zero, currently auth error exit 4. Use it only when you want to inspect that state:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli auth status --json --config "$SANDBOX_CONFIG" || true
+```
+
+Read-only customer and payment exploration, only after a sandbox credential is supplied through the caller's secure secret flow:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli customers list --agent --page-size 5 --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli payments list --agent --page-size 5 --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli charges get <sandbox-charge-id> --agent --config "$SANDBOX_CONFIG"
+```
+
+Customer and payment exploration must stay read-only. Use `--dry-run --agent` first when checking request shape:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli customers list --dry-run --agent --config "$SANDBOX_CONFIG"
 ```
 
 ## Usage
@@ -666,7 +684,7 @@ straddle-pp-cli accounts list --json --select id,name,status
 # Dry run - show the request without sending
 straddle-pp-cli accounts list --dry-run
 
-# Agent mode - JSON + compact + no prompts in one flag
+# Agent mode - JSON, compact, no prompts, no color, yes
 straddle-pp-cli accounts list --agent
 ```
 
@@ -686,51 +704,63 @@ This CLI is designed for AI agent consumption:
 
 Exit codes: `0` success, `2` usage error, `3` not found, `4` auth error, `5` API error, `7` rate limited, `10` config error.
 
-## Use with Claude Code
+### Current Agent JSON Contract
 
-Install the focused skill - it auto-installs the CLI on first invocation:
+Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Most generated list and read commands emit this shape:
 
-```bash
-npx skills add mvanhorn/printing-press-library/cli-skills/pp-straddle -g
+```json
+{
+  "results": "...",
+  "meta": "..."
+}
 ```
 
-Then invoke `/pp-straddle <query>` in Claude Code. The skill is the most efficient path - Claude Code drives the CLI directly without an MCP server in the middle.
+Some commands emit command-specific raw JSON instead. This is not launch-ready for the final target envelope from the spec. Target envelope implementation is deferred to a later implementation slice.
+
+## Use with Claude Code
+
+For this local preview, use the repo-local build command from [Install](#install), then invoke the binary directly. Public skill distribution is future work after publish.
 
 <details>
 <summary>Use as an MCP server in Claude Code (advanced)</summary>
 
-If you'd rather register this CLI as an MCP server in Claude Code, install the MCP binary first:
-
-
-Install the MCP binary from this CLI's published public-library entry or pre-built release.
-
-Then register it using your client's secure environment-variable flow. Do not put the token value in the command line.
+`straddle-pp-mcp` is generated from the same Printing Press tree and currently runs over stdio. Build the local MCP binary first:
 
 ```bash
-claude mcp add straddle straddle-pp-mcp
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-mcp ./cmd/straddle-pp-mcp
+```
+
+Then register it using your client's secure environment-variable flow. Do not put token values in the command line.
+
+```bash
+claude mcp add straddle /tmp/straddle-pp-mcp
 ```
 
 </details>
 
+## MCP Smoke
+
+`straddle-pp-mcp` is generated from the same Printing Press command tree as `straddle-pp-cli` and currently runs over stdio. A credential-free runtime smoke can build the MCP binary and ask it for `tools/list` over JSON-RPC:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go build -o /tmp/straddle-pp-mcp ./cmd/straddle-pp-mcp
+node -e 'const {spawn}=require("node:child_process"); const cp=spawn("/tmp/straddle-pp-mcp"); let buf=""; let timer=setTimeout(()=>{console.error("timed out"); cp.kill(); process.exit(1);},5000); function send(msg){cp.stdin.write(JSON.stringify(msg)+"\n");} cp.stdout.on("data", d=>{buf+=d; for(;;){const i=buf.indexOf("\n"); if(i<0) break; const line=buf.slice(0,i).trim(); buf=buf.slice(i+1); if(!line) continue; const msg=JSON.parse(line); if(msg.id===1){send({jsonrpc:"2.0",method:"notifications/initialized",params:{}}); send({jsonrpc:"2.0",id:2,method:"tools/list",params:{}});} if(msg.id===2){clearTimeout(timer); const tools=msg.result.tools||[]; console.log(JSON.stringify({tool_count:tools.length, first_tools:tools.slice(0,5).map(t=>t.name)})); cp.kill(); process.exit(0);}}}); send({jsonrpc:"2.0",id:1,method:"initialize",params:{protocolVersion:"2024-11-05",capabilities:{},clientInfo:{name:"straddle-ai-doc-smoke",version:"0"}}});'
+rm -f /tmp/straddle-pp-mcp
+```
+
+If the runtime smoke is too noisy for an environment, use this source count as a weaker fallback:
+
+```bash
+rg -o 'mcplib\.NewTool\(' internal/mcp/tools.go | wc -l
+```
+
+Known caveat: `.printing-press.json` metadata says 70 MCP tools while typed `mcplib.NewTool(` API registrations currently say 73. Runtime `tools/list` can include additional Cobra shell-out tools, so the count discrepancy remains open.
+
 ## Use with Claude Desktop
 
-This CLI ships an [MCPB](https://github.com/modelcontextprotocol/mcpb) bundle - Claude Desktop's standard format for one-click MCP extension installs (no JSON config required).
-
-To install:
-
-1. Download the `.mcpb` for your platform from the [latest release](https://github.com/mvanhorn/printing-press-library/releases/tag/straddle-current).
-2. Double-click the `.mcpb` file. Claude Desktop opens and walks you through the install.
-3. Fill in `STRADDLE_TOKEN` when Claude Desktop prompts you.
-
-Requires Claude Desktop 1.0.0 or later. Pre-built bundles ship for macOS Apple Silicon (`darwin-arm64`) and Windows (`amd64`, `arm64`); for other platforms, use the manual config below.
-
-<details>
-<summary>Manual JSON config (advanced)</summary>
-
-If you can't use the MCPB bundle (older Claude Desktop, unsupported platform), install the MCP binary and configure it manually.
-
-
-Install the MCP binary from this CLI's published public-library entry or pre-built release.
+For this local preview, configure the locally built `/tmp/straddle-pp-mcp` or another local build path manually. Desktop packaging is future work after publish.
 
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
@@ -738,16 +768,16 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 {
   "mcpServers": {
     "straddle": {
-      "command": "straddle-pp-mcp",
+      "command": "/tmp/straddle-pp-mcp",
       "env": {
-        "STRADDLE_TOKEN": "<your-key>"
+        "STRADDLE_BASE_URL": "https://sandbox.straddle.com"
       }
     }
   }
 }
 ```
 
-</details>
+Supply the sandbox token through your client's secure secret flow, not in checked-in config examples.
 
 ## Health Check
 
