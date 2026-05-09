@@ -639,6 +639,12 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 
+## Patch Layer
+
+This tree is generated, but this preview also has intentional local patches. Generated-code changes should carry a concise `// PATCH: <id>` marker near the changed behavior, and `.printing-press-patches.json` records each patch id, reason, files, and validation outcome.
+
+Root command registration is generated and can be overwritten. Workflow exposure must come through the generated command tree, or through a documented patch in `.printing-press-patches.json`. Do not build a separate MCP tree for workflow exposure.
+
 ## Sandbox-Safe Walkthrough
 
 Use sandbox configuration only. For this slice, production calls are out of scope, and write calls are out of scope. Do not include real tokens in docs, logs, shell history, or examples.

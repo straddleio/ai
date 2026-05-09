@@ -724,6 +724,12 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 
+## Patch Layer
+
+This tree is generated, but this preview also has intentional local patches. Every generated-code change should have a concise `// PATCH: <id>` marker near the changed behavior, and `.printing-press-patches.json` records the patch id, reason, files, and validation outcome.
+
+Root command registration is generated and can be overwritten. Add workflow exposure through the generated command tree, or document it as a patch in `.printing-press-patches.json`. Do not build a separate MCP tree for workflow exposure.
+
 ## Use with Claude Code
 
 For this local preview, use the repo-local build command from [Install](#install), then invoke the binary directly. Public skill distribution is future work after publish.

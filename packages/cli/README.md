@@ -42,6 +42,12 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 
+## Patch Layer
+
+Generated files may contain intentional local changes. Mark each generated-code change with a concise `// PATCH: <id>` comment and keep the patch catalog in `straddle-pp-cli/.printing-press-patches.json` current. That catalog is the reviewer map for what survives regeneration and why.
+
+Do not use root registration as the durable extension point, because generated root wiring can be overwritten. MCP workflow exposure must come from the generated command tree, or from a documented patch in `.printing-press-patches.json`, not from a separate hand-built MCP tree.
+
 ## MCP Smoke
 
 `straddle-pp-mcp` is generated from the same Printing Press tree as `straddle-pp-cli` and currently runs over stdio. A credential-free runtime smoke can build the MCP binary and ask it for `tools/list` over JSON-RPC:

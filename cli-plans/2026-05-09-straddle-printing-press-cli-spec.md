@@ -118,7 +118,7 @@ Target agent JSON contract for the CLI:
 }
 ```
 
-The current generated CLI may return `{results, meta}` or raw JSON for `--agent` output instead of this target envelope. For the CLI contract and honesty slice, document that current behavior as an agent JSON gap that is not launch-ready for the final target envelope. Do not implement the full target envelope in that slice. Defer target-envelope implementation to a later focused implementation slice.
+Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. `about --agent` also emits the target envelope for local preview status. Some command-specific raw JSON paths still do not use the target envelope, and those paths remain an agent JSON gap that is not launch-ready.
 
 ## Testing Strategy
 
@@ -214,8 +214,8 @@ Scope:
 
 - Add a safe token input path such as `auth set-token --stdin`, or an equivalent non-echo, non-argv credential path.
 - Document the supported auth paths clearly: environment variable, config file, and any new stdin token path.
-- Document the current generated `--agent` behavior as `{results, meta}` or raw JSON, and mark that agent JSON gap as not launch-ready for the final target envelope.
-- Defer full target-envelope implementation to a later focused implementation slice.
+- Document that provenance-backed generated list/read output and `about --agent` use the target envelope.
+- Document that command-specific raw JSON paths still do not use the target envelope and are not launch-ready.
 - Update generated README and SKILL install docs so they stop implying unavailable published artifacts. They must clearly separate local preview, future release, MCP registration, and public launch.
 - Add MCP smoke instructions that prove `straddle-pp-mcp` starts and exposes generated tools from the generated command tree.
 - Add one sandbox-safe walkthrough for setup plus read-only customer and payment exploration. The walkthrough must not make production calls.
@@ -237,7 +237,7 @@ Acceptance criteria:
 
 - The auth path accepts a token without echoing it in the terminal and without passing it through argv, or the chosen equivalent is documented with the same safety properties.
 - The README documents env, config, and stdin or equivalent auth paths without implying that secrets should be committed.
-- The `--agent` output contract is documented before code changes. The README and audit mark the current `{results, meta}` or raw JSON behavior as an agent JSON gap that is not launch-ready for the final target envelope.
+- The `--agent` output contract is documented. The README and audit state that provenance-backed generated list/read output and `about --agent` use the target envelope, while command-specific raw JSON paths remain an agent JSON gap that is not launch-ready.
 - Generated install docs separate local preview, future release, MCP registration, and public launch.
 - MCP smoke docs build or run `straddle-pp-mcp` from the generated project and verify that generated tools are exposed without a separate MCP tree.
 - The walkthrough uses sandbox-safe setup and read-only customer and payment exploration only.
@@ -249,7 +249,7 @@ Verification:
 - Run root validation with `npm run validate`.
 - Run generated Go tests and builds to `/tmp`.
 - Run a CLI auth help or dry-run check that proves the new token input path is discoverable without printing a token.
-- Verify the docs explicitly mark the agent JSON gap as not launch-ready for the final target envelope.
+- Verify the docs explicitly mark command-specific raw JSON paths as not launch-ready for the target envelope.
 - Run the MCP smoke command from the generated project and record the output that proves generated tools are exposed.
 - Review generated README and SKILL docs for local preview, future release, MCP registration, and public launch wording.
 - Run the sandbox-safe walkthrough without production credentials or production API calls.

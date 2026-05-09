@@ -12,7 +12,7 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because final target-envelope implementation, real launch packaging, product review, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
+The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because command-specific raw JSON paths, real launch packaging, product review, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
 
 For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. Provenance-backed generated list and read commands now use the target envelope from the spec. The target envelope has no provenance field, so the previous `meta` provenance object is intentionally not included in JSON output. Command-specific raw JSON output remains a separate launch gap.
 
@@ -138,7 +138,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Product review remains open.
    - Richer workflow commands remain open.
    - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` from the built `/tmp/straddle-pp-mcp` binary returned 79 because it includes those 73 typed tools plus 6 Cobra shell-out tools: `analytics`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
-   - Patch-layer review remains open for the new target-agent-envelope generated-tree source patch.
+   - Patch-layer cleanup is documented for generated-code `// PATCH:` markers, `.printing-press-patches.json`, root registration overwrite risk, and MCP workflow exposure.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:
    - Publishing.

@@ -9,6 +9,7 @@ import (
 )
 
 func TestWrapWithProvenanceUsesTargetEnvelopeForValidJSON(t *testing.T) {
+	// PATCH: target-agent-envelope verifies generated provenance-backed reads use the target agent envelope.
 	wrapped, err := wrapWithProvenance(json.RawMessage(`[{"id":"cus_123","status":"active"}]`), DataProvenance{Source: "live"})
 	if err != nil {
 		t.Fatalf("wrapWithProvenance returned error: %v", err)

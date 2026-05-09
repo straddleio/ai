@@ -216,19 +216,19 @@ After each slice passes spec review, quality review, and verification, the contr
 
 #### Task 8: Document the agent JSON gap
 
-**Description:** Document the current `--agent` output behavior before implementation. For this slice, treat generated `{results, meta}` or raw JSON as an agent JSON gap that is not launch-ready for the final target envelope. Do not implement the full target envelope in this slice. Defer target-envelope implementation to a later focused implementation slice.
+**Description:** Document the current `--agent` output behavior. Provenance-backed generated list and read commands now emit the target envelope, and `about --agent` emits the target envelope for local preview status. Command-specific raw JSON paths still do not use that envelope and remain an agent JSON gap that is not launch-ready.
 
 **Acceptance criteria:**
 
-- [ ] `packages/cli/README.md` explains the current generated `{results, meta}` or raw JSON behavior.
-- [ ] `packages/cli/README.md` states that this behavior is not launch-ready for the final target envelope.
-- [ ] The audit states that full target-envelope implementation is deferred to a later focused implementation slice.
+- [ ] `packages/cli/README.md` explains that provenance-backed generated list/read output uses the target envelope.
+- [ ] `packages/cli/README.md` explains that `about --agent` uses the target envelope.
+- [ ] `packages/cli/README.md` states that command-specific raw JSON paths remain not launch-ready for the target envelope.
 - [ ] No broad generated-code rewrite is made for the target envelope in this slice.
 
 **Verification:**
 
 - [ ] Run `npm run validate`.
-- [ ] Run `rg -n 'agent JSON|not launch-ready|target envelope|results, meta|raw JSON' packages/cli/README.md cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+- [ ] Run `rg -n 'agent JSON|not launch-ready|target envelope|raw JSON|about --agent' packages/cli/README.md cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
 - [ ] Run spec and quality review subagents.
 
 **Dependencies:** Tasks 1 through 7.
