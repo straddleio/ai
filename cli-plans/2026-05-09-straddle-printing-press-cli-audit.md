@@ -16,6 +16,8 @@ The selected CLI contract and honesty slice is now partially implemented. The fu
 
 For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. Provenance-backed generated list and read commands now use the target envelope from the spec. The target envelope has no provenance field, so the previous `meta` provenance object is intentionally not included in JSON output. Command-specific raw JSON output remains a separate launch gap.
 
+The first presentation polish slice is now partially implemented through `straddle-pp-cli about`. It is local-only, credential-free, and prints Straddle ASCII word art plus concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target envelope.
+
 The workflow also needs smaller commits. After each slice passes spec review, quality review, and verification, the controller should stage only intended files and make a small commit before starting the next implementation slice. The current baseline should be committed in logical chunks now: generated baseline first, then hand-authored docs, validation, plans, and audit updates.
 
 The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflow.md`. Future implementation loops must follow it before and during each slice. The workflow requires phase mapping, evidence reuse, subagent-driven execution, spec review, quality review, verification, audit updates, and an intended-files-only commit before the next slice starts.
@@ -76,7 +78,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Powered by OpenAPI from `/Users/js/clawd/straddle/sdks/straddle-docs` | `packages/cli/straddle-pp-cli/spec.json` identifies `Straddle API`; `.printing-press.json` records `spec_url` as `/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json` | Done for first slice |
 | Use Printing Press as generator/library foundation | Generated Go project has `.printing-press.json`, `cmd/straddle-pp-cli`, `cmd/straddle-pp-mcp`, `internal/mcp`; `packages/cli/README.md` explains `mvanhorn/cli-printing-press` is the generator and `printing-press-library` is catalog/examples/distribution reference | Done for first slice |
 | Stainless CLI only as behavior reference | `packages/cli/README.md` has `Stainless Reference` section and states not to copy Stainless architecture | Done for first slice |
-| Ramp CLI/MCP/docs/ergonomics/agent friendliness/presentation/word art benchmark | `packages/cli/README.md` has Ramp benchmark checklist including installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art | Done as checklist, not fully implemented |
+| Ramp CLI/MCP/docs/ergonomics/agent friendliness/presentation/word art benchmark | `packages/cli/README.md` has Ramp benchmark checklist including installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art. `about` now covers the first local presentation slice. | Partial |
 | Include MCP from Printing Press | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; Go MCP build passed | Done for first slice |
 | CLI first | `packages/cli/README.md` states CLI first and MCP sibling from same command tree | Done for first slice |
 | Agent-friendly | Generated CLI includes agent-context. Provenance-backed generated list and read commands now use the target envelope. Command-specific raw JSON paths remain outside that envelope. | Partial |
@@ -94,7 +96,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
 | Master workflow exists and controls future loops | `cli-plans/2026-05-09-straddle-cli-full-workflow.md` defines Phase 0 through Phase 5, deliverables, review gates, loop rules, commit cadence, subagent roles, repo constraints, and completion audit rule | Done for planning |
 | Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
-| CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. | Partial, because command-specific raw JSON paths and launch packaging remain open |
+| CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. `about --agent` uses the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. | Partial, because command-specific raw JSON paths and launch packaging remain open |
 
 ## Completed Gates
 
@@ -130,6 +132,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - MCP smoke instructions are documented.
    - Sandbox-safe read-only walkthrough is documented.
    - Provenance-backed generated list and read commands now use the target envelope.
+   - Local word art and preview status are partially done through `about`.
    - Command-specific raw JSON paths remain open.
    - Real launch packaging remains open.
    - Product review remains open.
@@ -141,7 +144,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Publishing.
    - OAuth.
    - Full skill manager.
-   - Word art.
+   - Richer presentation polish beyond the local `about` command.
    - Full workflow engine for reconciliation, fraud monitoring, and collections.
 3. Run a fresh completion audit after the next slice. Treat uncertainty as incomplete.
 

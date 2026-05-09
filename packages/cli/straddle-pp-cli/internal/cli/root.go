@@ -191,6 +191,9 @@ Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
 	rootCmd.AddCommand(newAnalyticsCmd(flags))
 	rootCmd.AddCommand(newWorkflowCmd(flags))
 	rootCmd.AddCommand(newAPICmd(flags))
+	// PATCH: about-word-art adds a local preview status command without
+	// modifying generated endpoint commands or touching Straddle APIs.
+	rootCmd.AddCommand(newAboutCmd(flags))
 	rootCmd.AddCommand(newAccountSettingsPromotedCmd(flags))
 	rootCmd.AddCommand(newFundingEventPaymentsPromotedCmd(flags))
 	rootCmd.AddCommand(newPaymentsPromotedCmd(flags))
@@ -198,6 +201,94 @@ Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
 	rootCmd.AddCommand(newVersionCliCmd())
 
 	return rootCmd
+}
+
+type aboutPayload struct {
+	Command           string   `json:"command"`
+	Name              string   `json:"name"`
+	Status            string   `json:"status"`
+	GeneratedBy       string   `json:"generated_by"`
+	OpenAPISource     string   `json:"openapi_source"`
+	MCPSibling        string   `json:"mcp_sibling"`
+	NextChecks        []string `json:"next_checks"`
+	RequiresAuth      bool     `json:"requires_auth"`
+	MakesAPICalls     bool     `json:"makes_api_calls"`
+	WritesProduction  bool     `json:"writes_production"`
+	SafetyDescription string   `json:"safety_description"`
+}
+
+func newAboutCmd(flags *rootFlags) *cobra.Command {
+	return &cobra.Command{
+		Use:   "about",
+		Short: "Show local preview status",
+		Long:  "Show local preview status for the generated Straddle CLI without calling Straddle APIs or requiring credentials.",
+		Annotations: map[string]string{
+			"mcp:read-only": "true",
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if flags.deliverSpec != "" {
+				return fmt.Errorf("about does not support --deliver; it only writes local status to stdout")
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			payload := buildAboutPayload()
+			if flags.agent {
+				raw, err := json.Marshal(payload)
+				if err != nil {
+					return err
+				}
+				wrapped, err := wrapWithProvenance(raw, DataProvenance{Source: "local"})
+				if err != nil {
+					return err
+				}
+				_, err = fmt.Fprintln(cmd.OutOrStdout(), string(wrapped))
+				return err
+			}
+			if flags.asJSON {
+				return flags.printJSON(cmd, payload)
+			}
+			return printAboutHuman(cmd, payload)
+		},
+	}
+}
+
+func buildAboutPayload() aboutPayload {
+	return aboutPayload{
+		Command:       "about",
+		Name:          "straddle-pp-cli",
+		Status:        "local preview",
+		GeneratedBy:   "Printing Press generated",
+		OpenAPISource: "/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json",
+		MCPSibling:    "straddle-pp-mcp",
+		NextChecks: []string{
+			"doctor",
+			"agent-context",
+			"which",
+		},
+		RequiresAuth:      false,
+		MakesAPICalls:     false,
+		WritesProduction:  false,
+		SafetyDescription: "Local presentation command only. It does not read credentials, call Straddle APIs, or write production data.",
+	}
+}
+
+func printAboutHuman(cmd *cobra.Command, payload aboutPayload) error {
+	w := cmd.OutOrStdout()
+	fmt.Fprintln(w, `  ____  _____ ____      _    ____  ____  _     _____`)
+	fmt.Fprintln(w, ` / ___||_   _|  _ \    / \  |  _ \|  _ \| |   | ____|`)
+	fmt.Fprintln(w, ` \___ \  | | | |_) |  / _ \ | | | | | | | |   |  _|`)
+	fmt.Fprintln(w, `  ___) | | | |  _ <  / ___ \| |_| | |_| | |___| |___`)
+	fmt.Fprintln(w, ` |____/  |_| |_| \_\/_/   \_\____/|____/|_____|_____|`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "STRADDLE CLI")
+	fmt.Fprintf(w, "Status: %s\n", payload.Status)
+	fmt.Fprintf(w, "Generator: %s\n", payload.GeneratedBy)
+	fmt.Fprintf(w, "OpenAPI source: %s\n", payload.OpenAPISource)
+	fmt.Fprintf(w, "MCP sibling: %s\n", payload.MCPSibling)
+	fmt.Fprintln(w, "Safety: local only, no credentials, no API calls, no production writes")
+	fmt.Fprintf(w, "Next checks: %s\n", strings.Join(payload.NextChecks, ", "))
+	return nil
 }
 
 func ExitCode(err error) int {

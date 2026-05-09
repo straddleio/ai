@@ -40,6 +40,8 @@ Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance
 
 The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
 
+`straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
+
 ## MCP Smoke
 
 `straddle-pp-mcp` is generated from the same Printing Press tree as `straddle-pp-cli` and currently runs over stdio. A credential-free runtime smoke can build the MCP binary and ask it for `tools/list` over JSON-RPC:
@@ -110,6 +112,8 @@ Task 1 created the first generated baseline with these quality facts:
 - `go test ./...` passed.
 
 The first auth contract slice added `straddle-pp-cli auth set-token --stdin` so config-file token setup no longer requires a token in argv. This is still not a public launch candidate. Reviewers still need to inspect command coverage, generation provenance, MCP shape, and the remaining workflow gaps.
+
+The first presentation slice added `straddle-pp-cli about` for local preview status, ASCII word art, OpenAPI source, MCP sibling, and next checks: `doctor`, `agent-context`, and `which`. JSON and agent output are structured.
 
 ## Auth Paths
 
@@ -216,6 +220,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Installer and release packaging are not done.
 - Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
+- `about --agent` uses the target Straddle envelope for local preview status.
 - Some command-specific raw JSON paths still do not use the target envelope.
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
@@ -228,5 +233,5 @@ These gaps should stay visible, but they do not block the first public replaceme
 - Skills and agent-facing guidance need parity work.
 - MCP output exists from the generated command tree, but still needs product review.
 - Docs parity and examples need review beyond the launch-critical setup, customer, payment, sandbox, and docs-search paths.
-- The word art and presentation polish are still open.
+- Word art and presentation polish are partially done through `about`; richer product review remains open.
 - The reconciliation, fraud monitoring, and collections workflows need practical command review and staged follow-up plans.

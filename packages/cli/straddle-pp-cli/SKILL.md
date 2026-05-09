@@ -574,6 +574,15 @@ straddle-pp-cli which "<capability in your own words>"
 
 `which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match - fall back to `--help` or use a narrower query.
 
+For local preview status and presentation, run:
+
+```bash
+straddle-pp-cli about
+straddle-pp-cli about --agent
+```
+
+`about` is local-only and credential-free. It prints Straddle ASCII presentation, OpenAPI source, MCP sibling, and next checks for humans. `about --agent` emits the target JSON envelope.
+
 ## Auth Setup
 
 Store your access token through stdin:
@@ -627,6 +636,8 @@ Current `--agent` output expands to `--json --compact --no-input --no-color --ye
 ```
 
 The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
+
+`about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -685,7 +696,7 @@ Write what *surprised* you, not a bug report. Short, specific, one line: that is
 
 ## Output Delivery
 
-Every command accepts `--deliver <sink>`. The output goes to the named sink in addition to (or instead of) stdout, so agents can route command results without hand-piping. Three sinks are supported:
+Most commands accept `--deliver <sink>`. The output goes to the named sink in addition to (or instead of) stdout, so agents can route command results without hand-piping. `about` is local-only and intentionally rejects `--deliver`. Three sinks are supported:
 
 | Sink | Effect |
 |------|--------|

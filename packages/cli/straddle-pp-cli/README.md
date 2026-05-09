@@ -497,10 +497,11 @@ Or set `STRADDLE_TOKEN` through your shell's secure secret flow.
 ### 3. Verify Setup
 
 ```bash
+straddle-pp-cli about
 straddle-pp-cli doctor
 ```
 
-This checks your configuration and credentials.
+`about` is local-only and credential-free. It prints Straddle ASCII presentation, preview status, OpenAPI source, MCP sibling, and next checks. `doctor` checks your configuration and credentials.
 
 ### 4. Try Your First Command
 
@@ -720,6 +721,8 @@ Current `--agent` output expands to `--json --compact --no-input --no-color --ye
 ```
 
 The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
+
+`about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 
 ## Use with Claude Code
 
