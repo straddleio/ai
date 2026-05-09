@@ -1,0 +1,147 @@
+# Completion Audit: Straddle Printing Press CLI
+
+## Objective Restated
+
+Build a new public Straddle CLI in `/Users/js/clawd/straddle/straddle-ai`.
+
+The CLI must be generated with Printing Press from Straddle's public OpenAPI spec, use the Stainless CLI only as a behavior reference, use Ramp only as a benchmark, include a generated MCP sibling, and become agent-friendly, documented, tested, and useful for practical Straddle workflows without overbuilding the first slice.
+
+## Current Verdict
+
+Not complete.
+
+The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
+
+The next slice has now been selected and planned: CLI contract and honesty. It is not implemented yet. The full objective is not achieved because token handling, honest agent JSON gap documentation, honest generated install docs, MCP smoke proof, and sandbox-safe workflow guidance remain planned work rather than shipped behavior.
+
+For the next slice, the conservative `--agent` path is selected. The current generated `{results, meta}` or raw JSON behavior must be documented as an agent JSON gap that is not launch-ready for the final target envelope. Full target-envelope implementation is deferred to a later focused implementation slice.
+
+The workflow also needs smaller commits. After each slice passes spec review, quality review, and verification, the controller should stage only intended files and make a small commit before starting the next implementation slice. The current baseline should be committed in logical chunks now: generated baseline first, then hand-authored docs, validation, plans, and audit updates.
+
+The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflow.md`. Future implementation loops must follow it before and during each slice. The workflow requires phase mapping, evidence reuse, subagent-driven execution, spec review, quality review, verification, audit updates, and an intended-files-only commit before the next slice starts.
+
+## Master Workflow Phase Status
+
+| Phase | Status | Evidence |
+|-------|--------|----------|
+| Phase 0 Resolve + Reuse | Partial | Current spec, plan, audit, README, generated baseline, and verification notes were reused. Safe token detection and final source resolution are still open gaps. |
+| Phase 1 Research Brief | Partial | API source, Printing Press, Ramp, Stainless, CLI, MCP, and first-slice verification are documented. Competitor research, data-layer notes, and product thesis are not complete enough for the full workflow. |
+| Phase 1.5 Ecosystem Absorb Gate | Not done | No complete catalog exists for every MCP, skill, CLI feature, manifest detail, absorbed feature, or novel suggestion. |
+| Phase 1.7 Browser-Sniff Gate | Not done | No browser capture, HAR import, or discovery provenance exists for this CLI workflow. |
+| Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
+| Phase 3 Build The GOAT | Not done | The generated baseline exists, but absorbed features and transcendence commands have not been built. |
+| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
+| Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
+
+## Evidence Snapshot
+
+Captured on `2026-05-09 00:35 MDT`.
+
+Root validation:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai
+npm run validate
+```
+
+Result: passed with `Summary: 0 errors`.
+
+Generated Go verification:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+gofmt -l .
+go test -count=1 ./...
+go build -o /tmp/pp-cli-audit ./cmd/straddle-pp-cli
+go build -o /tmp/pp-mcp-audit ./cmd/straddle-pp-mcp
+rm -f /tmp/pp-cli-audit /tmp/pp-mcp-audit
+```
+
+Result: `gofmt` clean, tests passed, CLI build passed, MCP build passed.
+
+Artifact checks:
+
+```bash
+find packages/cli/straddle-pp-cli -maxdepth 3 -type d \( -name build -o -name bin -o -name dist \) -print
+rg -n 'bearerToken|postman_environment|eyJ|type: secret|type":"secret|postman.co/workspace|postman.com' packages/cli/straddle-pp-cli || true
+```
+
+Result: no local build directories found, no credential-pattern matches found.
+
+## Prompt to Artifact Checklist
+
+| Requirement | Evidence | Status |
+|-------------|----------|--------|
+| New public Straddle CLI work lives in `/Users/js/clawd/straddle/straddle-ai` | Generated preview under `packages/cli/straddle-pp-cli`; docs under `packages/cli/README.md`; plan under `cli-plans/` | Partial |
+| Powered by OpenAPI from `/Users/js/clawd/straddle/sdks/straddle-docs` | `packages/cli/straddle-pp-cli/spec.json` identifies `Straddle API`; `.printing-press.json` records `spec_url` as `/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json` | Done for first slice |
+| Use Printing Press as generator/library foundation | Generated Go project has `.printing-press.json`, `cmd/straddle-pp-cli`, `cmd/straddle-pp-mcp`, `internal/mcp`; `packages/cli/README.md` explains `mvanhorn/cli-printing-press` is the generator and `printing-press-library` is catalog/examples/distribution reference | Done for first slice |
+| Stainless CLI only as behavior reference | `packages/cli/README.md` has `Stainless Reference` section and states not to copy Stainless architecture | Done for first slice |
+| Ramp CLI/MCP/docs/ergonomics/agent friendliness/presentation/word art benchmark | `packages/cli/README.md` has Ramp benchmark checklist including installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art | Done as checklist, not fully implemented |
+| Include MCP from Printing Press | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; Go MCP build passed | Done for first slice |
+| CLI first | `packages/cli/README.md` states CLI first and MCP sibling from same command tree | Done for first slice |
+| Agent-friendly | Generated CLI includes agent-context. The next slice must document the current `{results, meta}` or raw JSON behavior as an agent JSON gap that is not launch-ready for the final target envelope. | Partial |
+| Documented | Spec, plan, generated README, generated SKILL, and package README exist | Partial, because later launch and workflow docs remain gaps |
+| Tested | `npm run validate`, `go test -count=1 ./...`, CLI build, and MCP build passed | Done for first slice |
+| Featureful across setup | Generated baseline has setup-adjacent `auth`, `doctor`, `profile`; README lists setup workflow as launch-critical gap | Partial |
+| Featureful across customers | Generated customer commands exist | Partial, no curated workflow examples yet |
+| Featureful across payments | Generated charges, payouts, paykeys, funding events, and promoted payments commands exist | Partial, no curated payment workflow yet |
+| Featureful across reconciliation | README lists reconciliation as follow-up gap | Not done |
+| Featureful across fraud monitoring | README lists fraud monitoring as follow-up gap | Not done |
+| Featureful across collections | README lists collections as follow-up gap | Not done |
+| Featureful across sandbox testing | README lists sandbox testing as launch-critical gap | Not done |
+| Featureful across docs/search integration | Generated `search` command exists and README lists docs search as launch-critical gap | Partial |
+| Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
+| Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
+| Master workflow exists and controls future loops | `cli-plans/2026-05-09-straddle-cli-full-workflow.md` defines Phase 0 through Phase 5, deliverables, review gates, loop rules, commit cadence, subagent roles, repo constraints, and completion audit rule | Done for planning |
+| Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
+| Next slice selected | Spec and plan now name Phase 4 as CLI contract and honesty, focused on safe token input, documenting the current agent JSON gap, honest generated docs, MCP smoke proof, sandbox-safe read-only walkthrough, and the patch layer | Planned, not implemented |
+
+## Completed Gates
+
+- Task 1: Printing Press baseline.
+  - Spec review: approved.
+  - Quality review: approved after sanitizing generated artifacts and formatting Go.
+- Task 2: CLI package README.
+  - Spec review: approved.
+  - Quality review: approved.
+- Task 3: fast validation.
+  - Spec review: approved.
+  - Quality review: approved.
+- Task 4: generated Go verification.
+  - Spec review: approved.
+  - Quality review: approved using Agent Skills code review and Straddle review criteria where applicable.
+
+## Task 5 Review
+
+Task 5: comparison checklist and review-process update.
+
+Implementation completed. Spec review passed. The first quality review found two cleanup items: update the README verification commands so Go builds write to `/tmp` and remove those temp binaries, and update this audit so Task 5 is described with its current review state. Those items were fixed before this re-review.
+
+The next quality re-review found three stale wording items: the spec still used repo-local Go build commands, the plan still used repo-local Go build commands, and this audit still described already-applied README and audit cleanup as pending. This focused fix updated the spec and plan to match the README verification flow, and updated this audit to describe the current review history.
+
+Do not mark the broader goal complete from Task 5 alone. Later launch and workflow requirements remain open.
+
+## Missing Work Before Goal Completion
+
+1. Implement the selected next slice: CLI contract and honesty. It is planned, not done. The planned work is:
+   - Add `auth set-token --stdin` or an equivalent safe non-echo, non-argv token path.
+   - Document the current generated `{results, meta}` or raw JSON behavior as an agent JSON gap that is not launch-ready for the final target envelope.
+   - Defer full target-envelope implementation to a later focused implementation slice.
+   - Make generated README and SKILL install docs honest about local preview, future release, MCP registration, and public launch.
+   - Add MCP smoke instructions that prove `straddle-pp-mcp` starts and exposes generated tools from the generated command tree.
+   - Add a sandbox-safe setup plus read-only customer and payment walkthrough with no production calls.
+   - Document the patch layer using `// PATCH:` comments and `.printing-press-patches.json`.
+   - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
+2. Keep these broader goals out of the next slice unless explicitly re-scoped:
+   - Publishing.
+   - OAuth.
+   - Full skill manager.
+   - Word art.
+   - Full workflow engine for reconciliation, fraud monitoring, and collections.
+3. Run a fresh completion audit after the next slice. Treat uncertainty as incomplete.
+
+## Do Not Claim
+
+Do not claim the full goal is complete from the current state.
+
+The current state is a reviewed first-slice baseline plus validation, with Task 5 README, spec, plan, and audit wording fixes applied. The next slice is selected and planned, but not implemented. The broader public CLI objective remains active.
