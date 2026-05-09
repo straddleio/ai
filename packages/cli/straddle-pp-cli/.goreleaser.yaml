@@ -1,0 +1,51 @@
+version: 2
+project_name: straddle-pp-cli
+changelog:
+  disable: true
+builds:
+  - id: straddle-pp-cli
+    main: ./cmd/straddle-pp-cli
+    binary: straddle-pp-cli
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X straddle-pp-cli/internal/cli.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+  - id: straddle-pp-mcp
+    main: ./cmd/straddle-pp-mcp
+    binary: straddle-pp-mcp
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+checksum:
+  name_template: checksums.txt
+brews:
+  - name: straddle-pp-cli
+    repository:
+      owner: straddleio
+      name: homebrew-tap
+    homepage: "https://github.com/straddleio/straddle-pp-cli"
+    description: "[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/30656205-137b704d-b21a..."
+    install: |
+      bin.install "straddle-pp-cli"
+      bin.install "straddle-pp-mcp"

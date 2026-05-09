@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "straddle-pp-mcp",
+  "display_name": "Straddle",
+  "version": "4.2.0",
+  "description": "Straddle API surface as MCP tools.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/straddle-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/straddle-pp-mcp",
+      "args": [],
+      "env": {
+        "STRADDLE_TOKEN": "${user_config.straddle_token}"
+      }
+    }
+  },
+  "user_config": {
+    "straddle_token": {
+      "type": "string",
+      "title": "STRADDLE_TOKEN",
+      "description": "Sets STRADDLE_TOKEN for the Straddle MCP server.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}
