@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, and local-preview product review completed.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, and local-preview product review completed.
 
-Score: 6.8 of 10 for the current preview slice.
+Score: 7.1 of 10 for the current preview slice.
 
-The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, and a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, and credential-free local product review passed. The full public CLI goal is not complete. Public release, approved live smoke, public-launch product review, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, and a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed. The full public CLI goal is not complete. Public release, approved live smoke, public-launch product review, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -86,9 +86,9 @@ Product review completed for local preview
 
 Packaging readiness exists, public launch is not ready
 
-- Evidence: `packages/cli/straddle-pp-cli/Makefile` has `make package-readiness`, which builds `straddle-pp-cli` and the generated `straddle-pp-mcp` sibling into `dist/local/`, verifies both binaries exist, and runs a CLI help smoke. `.goreleaser.yaml` now has a Straddle CLI Homebrew description instead of stale Postman text, and the archive config explicitly includes both binaries.
+- Evidence: `packages/cli/straddle-pp-cli/Makefile` has `make package-readiness`, which builds `straddle-pp-cli` and the generated `straddle-pp-mcp` sibling into `dist/local/`, verifies both binaries exist, and runs a CLI help smoke. `.goreleaser.yaml` now uses `homebrew_casks` instead of deprecated `brews`, has a Straddle CLI Homebrew description instead of stale Postman text, and keeps both binaries in the future cask install intent. `go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish` built local snapshot archives for darwin, linux, and windows; inspected darwin and windows archives contained both binaries plus `LICENSE` and `README.md`.
 - Status: Partial.
-- Missing work: GoReleaser is still not installed locally, no release archives were published, no Homebrew tap was updated, no public installer or `npx` path exists, and there is still no desktop MCP package bundle.
+- Missing work: No release archives were published, no Homebrew tap was updated, no public installer or `npx` path exists, and there is still no desktop MCP package bundle.
 
 ## Dogfood Checklist
 
@@ -123,6 +123,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
   Status: Documented. Confirms generated endpoint tools plus typed framework tools plus Cobra shell-out tools.
 - Local packaging readiness: `make package-readiness` from `packages/cli/straddle-pp-cli`.
   Status: Documented. Builds and verifies both local preview binaries, including the MCP sibling, without GoReleaser or publishing.
+- Local GoReleaser archive validation: `make release-check` and `make release-snapshot` from `packages/cli/straddle-pp-cli`.
+  Status: Documented. Validates config and builds non-publishing local snapshot archives containing both local preview binaries.
 - Patch manifest validity: `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json` from repo root.
   Status: Documented. Required after every generated-code patch.
 
@@ -171,11 +173,16 @@ Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the gener
 |---------|--------|-----------------|
 | `command -v goreleaser || true` | Pass | No output, confirming GoReleaser is still not installed in this environment. |
 | `make package-readiness` from `packages/cli/straddle-pp-cli` | Pass | Built `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, verified both binaries are executable, ran `straddle-pp-cli --help`, and printed `local package ready: dist/local`. |
+| `make release-check` from `packages/cli/straddle-pp-cli` | Pass | Ran `go run github.com/goreleaser/goreleaser/v2@latest check`; 1 configuration file validated with no deprecation warning after the move to `homebrew_casks`. |
+| `make release-snapshot` from `packages/cli/straddle-pp-cli` | Pass | Ran `go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish`; built snapshot `0.0.0-SNAPSHOT-ebf6bfc`, created darwin, linux, and windows archives, calculated checksums, wrote local `dist/homebrew/Casks/straddle-pp-cli.rb`, skipped publish, and succeeded after 4s. |
+| `sed -n '1,220p' dist/homebrew/Casks/straddle-pp-cli.rb` | Pass | Local generated cask contains `binary "straddle-pp-cli"` and `binary "straddle-pp-mcp"`. |
+| `tar -tzf dist/straddle-pp-cli_0.0.0-SNAPSHOT-ebf6bfc_darwin_arm64.tar.gz` | Pass | Archive contained `LICENSE`, `README.md`, `straddle-pp-cli`, and `straddle-pp-mcp`. |
+| `zipinfo -1 dist/straddle-pp-cli_0.0.0-SNAPSHOT-ebf6bfc_windows_amd64.zip` | Pass | Archive contained `LICENSE`, `README.md`, `straddle-pp-cli.exe`, and `straddle-pp-mcp.exe`. |
 | `go test -count=1 ./...` from `packages/cli/straddle-pp-cli` | Pass | Passed all packages. Packages with tests reported `ok` for `internal/cli`, `internal/cliutil`, `internal/mcp`, `internal/mcp/cobratree`, and `internal/store`. |
 | `npm run validate` | Pass | `=== Summary: 0 errors ===`; generated CLI artifact checks still reported endpoint tool count 70, framework tool count 3, and typed tool total 73. |
 | `git diff --check` | Pass | No output. |
 | Targeted release-honesty text check | Pass | Docs still say local preview, future work, no current public installer, no `npx`, no published release artifacts, and no desktop MCP bundle. |
-| `make clean` from `packages/cli/straddle-pp-cli` | Pass | Removed local `bin/` and `dist/local/` build outputs. |
+| `make clean` from `packages/cli/straddle-pp-cli` | Pass | Removes local `bin/`, `build/`, and `dist/` build outputs. |
 
 ## Product Review Slice Results
 
@@ -251,6 +258,6 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 - Ready for docs slice review: yes.
 - Ready for local preview product review: yes.
 - Ready for public CLI launch: no.
-- Ready for product packaging: partial local proof only.
+- Ready for product packaging: partial local proof only, including non-publishing snapshot archive validation.
 - Ready for approved live smoke: no evidence yet.
-- Next narrow work: plan approved live smoke, or install or run GoReleaser in an environment where release archives can be checked without publishing.
+- Next narrow work: plan approved live smoke, complete public-release distribution decisions, and decide whether the generated cask needs signing, notarization, or extra Homebrew metadata before publishing.

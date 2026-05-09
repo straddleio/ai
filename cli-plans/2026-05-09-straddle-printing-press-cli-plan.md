@@ -522,7 +522,9 @@ After each slice passes spec review, quality review, and verification, the contr
 **Acceptance criteria:**
 
 - [x] GoReleaser metadata no longer contains stale Postman Homebrew text.
+- [x] GoReleaser Homebrew config uses `homebrew_casks` instead of deprecated `brews`.
 - [x] Release archives explicitly include both `straddle-pp-cli` and `straddle-pp-mcp`.
+- [x] Future Homebrew cask install intent explicitly includes both `straddle-pp-cli` and `straddle-pp-mcp`.
 - [x] A Makefile command builds both binaries into a local dist directory and verifies they exist.
 - [x] Docs describe the command as a local proof only, not public release availability.
 - [x] Docs keep public `npx`, pre-built binaries, public installer, Homebrew tap publishing, and desktop MCP packaging as future work.
@@ -530,10 +532,14 @@ After each slice passes spec review, quality review, and verification, the contr
 **Verification:**
 
 - [x] Run `make package-readiness` from `packages/cli/straddle-pp-cli`.
+- [x] Run `go run github.com/goreleaser/goreleaser/v2@latest check` from `packages/cli/straddle-pp-cli`.
+- [x] Run `go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish` from `packages/cli/straddle-pp-cli`.
+- [x] Inspect at least one tar archive and one Windows zip archive to confirm both `straddle-pp-cli` and `straddle-pp-mcp` are present.
 - [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
 - [x] Run `npm run validate`.
 - [x] Run `git diff --check`.
 - [x] Run targeted text checks proving docs still say local preview and future release, not public availability.
+- [x] Run `find packages/cli/straddle-pp-cli -maxdepth 4 -type d \( -name build -o -name bin -o -name dist \) -print` after cleanup and confirm no output.
 
 **Dependencies:** Existing generated CLI and MCP sibling.
 
@@ -545,10 +551,49 @@ After each slice passes spec review, quality review, and verification, the contr
 - `packages/cli/straddle-pp-cli/SKILL.md`
 - `packages/cli/README.md`
 - `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`
 
 **Estimated scope:** Small.
 
-#### Task 18: Create local-preview product review artifact
+#### Task 18: Validate release archive snapshot without publishing
+
+**Description:** Validate `.goreleaser.yaml` with GoReleaser v2 and run a local snapshot archive build that skips publishing. Confirm the generated archives include both the CLI and MCP sibling, then clean all generated output.
+
+**Acceptance criteria:**
+
+- [x] GoReleaser v2 config validation passes.
+- [x] Snapshot release runs with `--snapshot --clean --skip=publish`.
+- [x] No GitHub release, Homebrew tap write, upload, push, Straddle API call, or token use occurs.
+- [x] A darwin tar archive contains `straddle-pp-cli` and `straddle-pp-mcp`.
+- [x] A Windows zip archive contains `straddle-pp-cli.exe` and `straddle-pp-mcp.exe`.
+- [x] Generated `dist/` output is removed after inspection.
+- [x] The GoReleaser `brews` deprecation warning is resolved by moving to `homebrew_casks`.
+
+**Verification:**
+
+- [x] `go run github.com/goreleaser/goreleaser/v2@latest check` passed with no deprecation warning after moving to `homebrew_casks`.
+- [x] `go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish` passed and built snapshot `0.0.0-SNAPSHOT-ebf6bfc`.
+- [x] `tar -tzf dist/straddle-pp-cli_0.0.0-SNAPSHOT-ebf6bfc_darwin_arm64.tar.gz` showed `LICENSE`, `README.md`, `straddle-pp-cli`, and `straddle-pp-mcp`.
+- [x] `zipinfo -1 dist/straddle-pp-cli_0.0.0-SNAPSHOT-ebf6bfc_windows_amd64.zip` showed `LICENSE`, `README.md`, `straddle-pp-cli.exe`, and `straddle-pp-mcp.exe`.
+- [x] `sed -n '1,220p' dist/homebrew/Casks/straddle-pp-cli.rb` showed `binary "straddle-pp-cli"` and `binary "straddle-pp-mcp"`.
+
+**Dependencies:** Existing generated CLI, MCP sibling, and Go module network access for `go run github.com/goreleaser/goreleaser/v2@latest`.
+
+**Files likely touched:**
+
+- `packages/cli/straddle-pp-cli/Makefile`
+- `packages/cli/straddle-pp-cli/.goreleaser.yaml`
+- `packages/cli/straddle-pp-cli/README.md`
+- `packages/cli/straddle-pp-cli/SKILL.md`
+- `packages/cli/README.md`
+- `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`
+
+**Estimated scope:** Small.
+
+#### Task 19: Create local-preview product review artifact
 
 **Description:** Completed as a review/docs slice in `cli-plans/2026-05-09-straddle-cli-product-review.md`. It approves local preview only, rejects public launch, and covers CLI-first shape, MCP sibling, Printing Press/OpenAPI provenance, agent behavior, setup, customers, payments, reconciliation, fraud monitoring, collections, reporting, monitoring, sandbox testing, docs/search, Ramp/reference parity, safe token guidance, no production writes, and no live smoke without approval.
 

@@ -12,7 +12,7 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The selected CLI contract and honesty slice is now partially implemented. The local-preview product review is complete at `cli-plans/2026-05-09-straddle-cli-product-review.md` and approves local preview only. The full objective is not achieved because public launch packaging, public-launch product approval, approved live operations, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
+The selected CLI contract and honesty slice is now partially implemented. The local-preview product review is complete at `cli-plans/2026-05-09-straddle-cli-product-review.md` and approves local preview only. Local release archive validation now passes without publishing: GoReleaser v2 validates `.goreleaser.yaml`, the config uses `homebrew_casks` instead of deprecated `brews`, and a snapshot build created darwin, linux, and windows archives containing both `straddle-pp-cli` and `straddle-pp-mcp`. The full objective is not achieved because public launch packaging, public-launch product approval, approved live operations, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
 
 Task 14 implemented the Streaming Agent Contract for `sync --agent` and real `tail --agent`. Agent stream lines now use the target envelope with event payloads under `data`, timestamps, and final summary or end events as envelope lines. Normal human output and normal `--json` stream output remain raw NDJSON for compatibility.
 
@@ -40,7 +40,7 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
 | Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, and ops guide, but approved live workflow execution and full workflow engines have not been built. |
-| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, and local-preview product review exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 83 with 10 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, and `setup_check`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
+| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, local GoReleaser archive validation, and local-preview product review exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 83 with 10 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, and `setup_check`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
@@ -77,6 +77,19 @@ rg -n 'bearerToken|postman_environment|eyJ|type: secret|type":"secret|postman.co
 ```
 
 Result: no local build directories found, no credential-pattern matches found.
+
+Release archive validation:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+go run github.com/goreleaser/goreleaser/v2@latest check
+go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish
+tar -tzf dist/straddle-pp-cli_0.0.0-SNAPSHOT-ebf6bfc_darwin_arm64.tar.gz
+zipinfo -1 dist/straddle-pp-cli_0.0.0-SNAPSHOT-ebf6bfc_windows_amd64.zip
+make clean
+```
+
+Result: config validation passed with no deprecation warning after moving from `brews` to `homebrew_casks`. The non-publishing snapshot build succeeded, produced local darwin, linux, and windows archives, wrote a local cask at `dist/homebrew/Casks/straddle-pp-cli.rb`, and skipped publish. The inspected darwin archive contained `LICENSE`, `README.md`, `straddle-pp-cli`, and `straddle-pp-mcp`; the inspected Windows archive contained `LICENSE`, `README.md`, `straddle-pp-cli.exe`, and `straddle-pp-mcp.exe`. The inspected local cask contained `binary "straddle-pp-cli"` and `binary "straddle-pp-mcp"`. No archive was published, uploaded, pushed, or written to a Homebrew tap.
 
 ## Prompt to Artifact Checklist
 
@@ -150,7 +163,8 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Sandbox testing now has a help-only `sandbox guide [scenario]` command that absorbs the `/sandbox-test` scenario list without live API calls or docs endpoint calls.
    - The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`.
    - Normal `--json` stream output remains raw NDJSON for compatibility.
-   - Real launch packaging remains open.
+   - Local release archive validation is done without publishing, including archives that contain both CLI and MCP sibling binaries.
+   - Real public launch packaging remains open.
    - Local-preview product review is done.
    - Public-launch product approval remains open.
    - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring.

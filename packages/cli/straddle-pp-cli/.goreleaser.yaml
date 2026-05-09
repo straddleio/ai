@@ -42,13 +42,13 @@ archives:
         formats: [zip]
 checksum:
   name_template: checksums.txt
-brews:
+homebrew_casks:
   - name: straddle-pp-cli
     repository:
       owner: straddleio
       name: homebrew-tap
     homepage: "https://github.com/straddleio/ai/tree/main/packages/cli/straddle-pp-cli"
     description: "Generated Straddle API CLI with MCP stdio sibling"
-    install: |
-      bin.install "straddle-pp-cli"
-      bin.install "straddle-pp-mcp"
+    binaries:
+      - straddle-pp-cli
+      - straddle-pp-mcp

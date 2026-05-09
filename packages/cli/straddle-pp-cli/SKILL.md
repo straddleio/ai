@@ -35,6 +35,17 @@ make package-readiness
 
 This local check includes the CLI binary and the generated `straddle-pp-mcp` sibling. It does not publish archives, update a Homebrew tap, provide an `npx` package, or create a desktop MCP bundle.
 
+For local release archive validation, run GoReleaser in non-publishing snapshot mode:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+make release-check
+make release-snapshot
+make clean
+```
+
+`make release-check` validates `.goreleaser.yaml`. `make release-snapshot` builds local snapshot archives and a local Homebrew cask, then skips publish. The archives and cask include both `straddle-pp-cli` and `straddle-pp-mcp`; they are local `dist/` artifacts only. `make clean` removes the generated output after inspection.
+
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash

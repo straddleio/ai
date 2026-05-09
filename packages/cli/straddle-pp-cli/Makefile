@@ -1,6 +1,7 @@
 DIST_DIR ?= dist/local
+GORELEASER ?= go run github.com/goreleaser/goreleaser/v2@latest
 
-.PHONY: build test lint install clean build-mcp install-mcp build-all package-local package-readiness
+.PHONY: build test lint install clean build-mcp install-mcp build-all package-local package-readiness release-check release-snapshot
 
 build:
 	go build -o bin/straddle-pp-cli ./cmd/straddle-pp-cli
@@ -15,7 +16,7 @@ install:
 	go install ./cmd/straddle-pp-cli
 
 clean:
-	rm -rf bin/ dist/local/
+	rm -rf bin/ build/ dist/
 
 build-mcp:
 	go build -o bin/straddle-pp-mcp ./cmd/straddle-pp-mcp
@@ -36,3 +37,9 @@ package-local:
 	printf 'local package ready: %s\n' "$(DIST_DIR)"
 
 package-readiness: package-local
+
+release-check:
+	$(GORELEASER) check
+
+release-snapshot:
+	$(GORELEASER) release --snapshot --clean --skip=publish
