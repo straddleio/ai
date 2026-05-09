@@ -29,13 +29,12 @@ func TestOpsGuideNoArgJSONReturnsWorkflowsAndSafety(t *testing.T) {
 	if got.Command != "ops guide" {
 		t.Fatalf("command = %q, want ops guide", got.Command)
 	}
-	if len(got.AvailableWorkflows) != 3 {
-		t.Fatalf("workflow count = %d, want 3: %#v", len(got.AvailableWorkflows), got.AvailableWorkflows)
+	wantWorkflows := []string{"reconciliation", "fraud-monitoring", "collections", "reporting", "monitoring"}
+	if len(got.AvailableWorkflows) != len(wantWorkflows) {
+		t.Fatalf("workflow count = %d, want %d: %#v", len(got.AvailableWorkflows), len(wantWorkflows), got.AvailableWorkflows)
 	}
-	for _, want := range []string{"reconciliation", "fraud-monitoring", "collections"} {
-		if !containsOpsWorkflow(got.AvailableWorkflows, want) {
-			t.Fatalf("available workflows missing %q: %#v", want, got.AvailableWorkflows)
-		}
+	if gotNames := opsWorkflowNamesFromGuides(got.AvailableWorkflows); strings.Join(gotNames, ",") != strings.Join(wantWorkflows, ",") {
+		t.Fatalf("workflow names = %#v, want %#v", gotNames, wantWorkflows)
 	}
 	if !got.Safety.GuidanceOnly || !got.Safety.RequiresCurrentDocsLookup {
 		t.Fatalf("ops guide should be guidance-only and require docs lookup: %#v", got.Safety)
@@ -46,7 +45,7 @@ func TestOpsGuideNoArgJSONReturnsWorkflowsAndSafety(t *testing.T) {
 }
 
 func TestOpsGuideNamedWorkflowsIncludeDocsQueriesAndSteps(t *testing.T) {
-	for _, workflow := range []string{"reconciliation", "fraud-monitoring", "collections"} {
+	for _, workflow := range []string{"reconciliation", "fraud-monitoring", "collections", "reporting", "monitoring"} {
 		t.Run(workflow, func(t *testing.T) {
 			stdout, stderr, err := runCLIForDocsTest(t, "ops", "guide", workflow, "--json")
 			if err != nil {
@@ -159,11 +158,10 @@ func TestOpsGuideRejectsDeliverBeforeDelivery(t *testing.T) {
 	}
 }
 
-func containsOpsWorkflow(values []opsWorkflowGuide, want string) bool {
+func opsWorkflowNamesFromGuides(values []opsWorkflowGuide) []string {
+	names := make([]string, 0, len(values))
 	for _, value := range values {
-		if value.Name == want {
-			return true
-		}
+		names = append(names, value.Name)
 	}
-	return false
+	return names
 }

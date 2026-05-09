@@ -146,7 +146,7 @@ After each slice passes spec review, quality review, and verification, the contr
 - [ ] Ramp comparison covers installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art.
 - [ ] Stainless comparison covers existing Straddle resource coverage and useful flags.
 - [ ] Checklist separates launch blockers from later polish.
-- [ ] Practical Straddle workflow gaps are listed: setup, customers, payments, reconciliation, fraud monitoring, collections, sandbox testing, docs search.
+- [ ] Practical Straddle workflow gaps are listed: setup, customers, payments, reconciliation, fraud monitoring, collections, reporting, monitoring, sandbox testing, docs search.
 
 **Verification:**
 
@@ -469,12 +469,12 @@ After each slice passes spec review, quality review, and verification, the contr
 
 #### Task 16: Implement ops guide terminal flow
 
-**Description:** Implemented as a bounded patch-layer command. `ops guide [workflow]` is local-only operational planning guidance for reconciliation, fraud monitoring, and collections. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+**Description:** Implemented as a bounded patch-layer command. `ops guide [workflow]` is local-only operational planning guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
 **Acceptance criteria:**
 
 - [x] `ops guide [workflow]` exists under an `ops` command tree.
-- [x] Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`.
+- [x] Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`.
 - [x] The command lists supported workflows when no workflow is provided.
 - [x] Each supported workflow returns docs lookup queries and local next steps.
 - [x] Safety metadata states that the command is guidance-only and does not call APIs, docs endpoints, MCP, webhooks, or production.
@@ -484,7 +484,7 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Verification:**
 
-- [x] Run focused ops-guide CLI tests for workflow list, named workflows, invalid workflow, agent envelope, and deliver rejection.
+- [x] Run focused ops-guide CLI tests for workflow list, named workflow coverage including reporting and monitoring, invalid workflow, agent envelope, and deliver rejection.
 - [x] Run focused MCP tests for `ops_guide` shell-out exposure, read-only metadata, and runtime count 83.
 - [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
 - [x] Run targeted docs text checks for `ops guide`, `ops_guide`, supported workflow names, and runtime count `83` / shell-out count `10`.

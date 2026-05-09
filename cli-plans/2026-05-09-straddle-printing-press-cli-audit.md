@@ -24,7 +24,7 @@ The first presentation polish slice is now partially implemented through `stradd
 
 The docs-search slice is implemented through `straddle-pp-cli docs search`. It separates product docs lookup from the existing synced-data `search` command. Product docs search uses the unauthenticated product docs MCP endpoint, command search uses the local generated capability index, and API or SDK sources return `search_docs` MCP guidance for now. `docs search --agent` uses the target envelope through the existing local JSON helper path.
 
-The ops-guide slice is partially implemented through `straddle-pp-cli ops guide [workflow]`. Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`. The command is local-only guidance: it lists docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+The ops-guide slice is partially implemented through `straddle-pp-cli ops guide [workflow]`. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`. The command is local-only guidance: it lists docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
 The workflow also needs smaller commits. After each slice passes spec review, quality review, and verification, the controller should stage only intended files and make a small commit before starting the next implementation slice. The current baseline should be committed in logical chunks now: generated baseline first, then hand-authored docs, validation, plans, and audit updates.
 
@@ -98,6 +98,8 @@ Result: no local build directories found, no credential-pattern matches found.
 | Featureful across reconciliation | `ops guide reconciliation` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, matching engine, or production workflow |
 | Featureful across fraud monitoring | `ops guide fraud-monitoring` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, action workflow, or production workflow |
 | Featureful across collections | `ops guide collections` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, notices, retries, or production workflow |
+| Featureful across reporting | `ops guide reporting` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, live reports, exports, or production workflow |
+| Featureful across monitoring | `ops guide monitoring` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, polling, alerting, webhook delivery, or production workflow |
 | Featureful across sandbox testing | Sandbox-safe help, config, local build, read-only walkthrough, and help-only `sandbox guide [scenario]` flow are documented. For this slice, production calls and live writes are out of scope. | Partial |
 | Featureful across docs/search integration | Generated `search` remains synced local data search. `docs search` now provides product docs lookup, local command search, and API or SDK `search_docs` guidance. | Partial |
 | Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
@@ -149,7 +151,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Normal `--json` stream output remains raw NDJSON for compatibility.
    - Real launch packaging remains open.
    - Product review remains open.
-   - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, and collections.
+   - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring.
    - Richer live workflow commands remain open.
    - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 83 tools because it includes those 73 typed tools plus 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
    - Patch-layer cleanup is documented for generated-code `// PATCH:` markers, `.printing-press-patches.json`, root registration overwrite risk, and MCP workflow exposure.
@@ -159,7 +161,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - OAuth.
    - Full skill manager.
    - Richer presentation polish beyond the local `about` command.
-   - Full workflow engine for reconciliation, fraud monitoring, and collections.
+   - Full workflow engine for reconciliation, fraud monitoring, collections, reporting, and monitoring.
    - Live API reads, docs lookup, MCP execution, webhook posts, or production writes from `ops guide`.
 3. Run a fresh completion audit after the next slice. Treat uncertainty as incomplete.
 

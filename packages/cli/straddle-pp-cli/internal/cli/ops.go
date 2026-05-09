@@ -54,10 +54,12 @@ func newOpsGuideCmd(flags *rootFlags) *cobra.Command {
 		Short: "Show local-only ops workflow guidance",
 		Long: `Show local-only operational workflow guidance.
 
-This command prints guidance for reconciliation, fraud monitoring, and collections. It does not call Straddle APIs, does not call the docs endpoint, does not execute MCP tools, does not post webhooks, and does not write production data.`,
+This command prints guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring. It does not call Straddle APIs, does not call the docs endpoint, does not execute MCP tools, does not post webhooks, and does not write production data.`,
 		Example: `  straddle-pp-cli ops guide
   straddle-pp-cli ops guide reconciliation --json
-  straddle-pp-cli ops guide fraud-monitoring --agent`,
+  straddle-pp-cli ops guide fraud-monitoring --agent
+  straddle-pp-cli ops guide reporting --json
+  straddle-pp-cli ops guide monitoring --json`,
 		Annotations: map[string]string{
 			"mcp:read-only": "true",
 		},
@@ -208,6 +210,38 @@ func opsWorkflowGuides() []opsWorkflowGuide {
 				"Use `straddle-pp-cli charges list --help`, `straddle-pp-cli charges get --help`, and `straddle-pp-cli paykeys list --help` to inspect read-side command shape.",
 				"Use `straddle-pp-cli charges resubmit create --help` only to review request shape; do not run resubmission from this guide.",
 				"Coordinate notices, retries, and write actions through your approved collections policy and a separately approved execution path.",
+			},
+		},
+		{
+			Name:    "reporting",
+			Title:   "Reporting",
+			Summary: "Plan local reporting review for customers, payments, funding events, and generated report surfaces without running live reports.",
+			DocsQueries: []string{
+				"reporting payment status customer status funding events exports",
+				"reports total customers by status charges payouts funding events",
+			},
+			NextSteps: []string{
+				"Run `straddle-pp-cli setup check --json` to confirm local configuration before deciding whether a live read is separately approved.",
+				"Run `straddle-pp-cli docs search \"reporting payment status funding events\"` yourself before live reporting work to verify current report fields and status meanings.",
+				"Use `straddle-pp-cli customers list --help`, `straddle-pp-cli payments list --help`, and `straddle-pp-cli funding-events list --help` to inspect read-side filters for report inputs.",
+				"Use `straddle-pp-cli reports --help` only to inspect the generated report request shape; do not run the live report from this guide.",
+				"After a separately approved local sync, use `straddle-pp-cli analytics --help`, `straddle-pp-cli search --help`, and `straddle-pp-cli sql --help` to inspect local reporting options.",
+			},
+		},
+		{
+			Name:    "monitoring",
+			Title:   "Monitoring",
+			Summary: "Plan operational monitoring signals for payments, funding events, webhooks, and local synced data without polling production.",
+			DocsQueries: []string{
+				"monitoring payment statuses funding event webhooks errors",
+				"webhook event types charge payout funding event monitoring",
+			},
+			NextSteps: []string{
+				"Run `straddle-pp-cli setup check --json` to confirm local environment classification without contacting Straddle.",
+				"Run `straddle-pp-cli docs search \"webhook event types charge payout funding event\"` yourself before live monitoring work to verify current event names and retry behavior.",
+				"Use `straddle-pp-cli tail --json` to inspect tail-able resource names without polling a resource.",
+				"Use `straddle-pp-cli tail charges --help`, `straddle-pp-cli tail funding-events --help`, and `straddle-pp-cli sandbox guide webhooks --json` as guidance before any approved polling or sandbox event test.",
+				"After a separately approved local sync, use `straddle-pp-cli analytics --help` and `straddle-pp-cli sql --help` to inspect local count and grouping options for monitoring checks.",
 			},
 		},
 	}

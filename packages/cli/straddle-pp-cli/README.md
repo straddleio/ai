@@ -868,9 +868,11 @@ straddle-pp-cli ops guide --json
 straddle-pp-cli ops guide reconciliation --json
 straddle-pp-cli ops guide fraud-monitoring --agent
 straddle-pp-cli ops guide collections --json
+straddle-pp-cli ops guide reporting --json
+straddle-pp-cli ops guide monitoring --json
 ```
 
-`ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, and `collections`. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+`ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
 ## Configuration
 
