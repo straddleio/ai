@@ -25,7 +25,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 go install ./cmd/straddle-pp-cli
 ```
 
-Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec:
+Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. `agent-context --agent` also uses this target envelope, with the existing v3 agent context object under `data`:
 
 ```json
 {
@@ -38,7 +38,7 @@ Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance
 }
 ```
 
-The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
+The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Event-stream commands such as `sync` and `tail`, plus remaining command-specific raw JSON paths, are still open launch gaps.
 
 `straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 

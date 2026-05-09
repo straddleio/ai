@@ -622,7 +622,7 @@ Add `--agent` to any command. Expands to: `--json --compact --no-input --no-colo
 
 ### Response envelope
 
-Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec:
+Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. `agent-context --agent` also uses this target envelope, with the existing v3 agent context object under `data`:
 
 ```json
 {
@@ -635,7 +635,7 @@ Current `--agent` output expands to `--json --compact --no-input --no-color --ye
 }
 ```
 
-The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
+The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Event-stream commands such as `sync` and `tail`, plus remaining command-specific raw JSON paths, are still open launch gaps.
 
 `about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 

@@ -32,6 +32,21 @@
       "validated_outcome": "go test -count=1 ./internal/cli covers valid JSON payloads under data, non-JSON payloads as strings under data, empty warnings, null pagination, null trace_id, null error, and removal of results/meta."
     },
     {
+      "id": "agent-context-agent-envelope",
+      "summary": "Make agent-context --agent emit the target agent envelope while preserving the raw v3 agent-context schema for normal JSON output.",
+      "reason": "The generated agent-context command is a command-specific raw JSON path. Agents using --agent should receive the same target envelope shape as other covered command paths, with the existing agent context object under data.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/agent_context.go",
+        "internal/cli/agent_context_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md"
+      ],
+      "validated_outcome": "go test ./internal/cli -run 'TestAgentContextAgentUsesTargetEnvelope|TestWrapWithProvenance' and go test ./internal/cli passed; focused coverage proves schema_version 1.0, agent context under data, and no top-level results/meta."
+    },
+    {
       "id": "about-word-art",
       "summary": "Add a local-only about command with Straddle ASCII presentation and structured machine output.",
       "reason": "Ramp-parity presentation polish needs a small, useful local command that explains preview status without credentials, API calls, or production writes.",

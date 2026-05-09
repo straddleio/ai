@@ -5,7 +5,6 @@ package cli
 
 import (
 	"encoding/json"
-	"os"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -80,7 +79,7 @@ type agentContextFlag struct {
 	Default string `json:"default,omitempty"`
 }
 
-func newAgentContextCmd(rootCmd *cobra.Command) *cobra.Command {
+func newAgentContextCmd(flags *rootFlags, rootCmd *cobra.Command) *cobra.Command {
 	var pretty bool
 	cmd := &cobra.Command{
 		Use:         "agent-context",
@@ -91,7 +90,21 @@ agents can introspect this CLI at runtime without parsing --help or
 reading source. Schema is versioned via schema_version.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := buildAgentContext(rootCmd)
-			enc := json.NewEncoder(os.Stdout)
+			if flags != nil && flags.agent {
+				// PATCH: agent-context-agent-envelope keeps the default v3
+				// schema stable while making --agent use the target envelope.
+				raw, err := json.Marshal(ctx)
+				if err != nil {
+					return err
+				}
+				wrapped, err := wrapWithProvenance(raw, DataProvenance{Source: "local"})
+				if err != nil {
+					return err
+				}
+				_, err = cmd.OutOrStdout().Write(append(wrapped, '\n'))
+				return err
+			}
+			enc := json.NewEncoder(cmd.OutOrStdout())
 			if pretty {
 				enc.SetIndent("", "  ")
 			}
