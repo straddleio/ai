@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed.
 
 Score: 6 of 10 for the current preview slice.
 
-The scorecard now exists and the local documentation contract is clearer. The full public CLI goal is not complete. Packaging, release path, product review, approved live smoke, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, and MCP runtime smoke passed. The full public CLI goal is not complete. Packaging, release path, product review, approved live smoke, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -44,25 +44,25 @@ Safe token path exists and is documented
 
 Agent envelopes are documented and covered for current local commands
 
-- Evidence: README documents the target envelope for generated list/read commands, `printJSONFiltered` helpers, `agent-context`, `about`, `setup check`, `sync`, and real `tail`.
+- Evidence: README documents the target envelope for generated list/read commands, `printJSONFiltered` helpers, `agent-context`, `about`, `setup check`, `sync`, and real `tail`. Fresh local checks show `about --agent` and `setup check --agent` emit the target envelope. `customers list --dry-run --agent` exits 0 and includes the target envelope, but it also prints the dry-run request preview before the JSON envelope.
 - Status: Partial.
-- Missing work: Product review of final envelope contract and compatibility.
+- Missing work: Product review of final envelope contract and compatibility, including whether dry-run preview text is acceptable under `--agent`.
 
 Local dogfood commands exist for preview checks
 
-- Evidence: See dogfood checklist below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, agent envelopes, MCP smoke/count, and patch manifest validity.
+- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests.
 - Status: Partial.
-- Missing work: Fresh run of the full dogfood command set before launch.
+- Missing work: Public launch still needs packaging, product review, approved live smoke, and a decision on whether dry-run agent output may include a human request preview before the JSON envelope.
 
 MCP count semantics are resolved
 
-- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` currently returns 83 with 10 Cobra shell-out tools.
+- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` returned 83 on 2026-05-09 with 10 Cobra shell-out tools.
 - Status: Done for preview.
 - Missing work: Re-run runtime smoke after command tree changes.
 
 Patch manifest is valid and documented
 
-- Evidence: `.printing-press-patches.json` is documented as the patch catalog; `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json` is the validity check.
+- Evidence: `.printing-press-patches.json` is documented as the patch catalog; `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json` passed on 2026-05-09.
 - Status: Done for preview.
 - Missing work: Keep manifest current with every generated-code patch.
 
@@ -118,6 +118,35 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 - Patch manifest validity: `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json` from repo root.
   Status: Documented. Required after every generated-code patch.
 
+## Phase 4 Local Dogfood Results
+
+Run time: 2026-05-09 16:40 MDT.
+
+Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the generated project directory.
+
+| Command | Result | Observed output |
+|---------|--------|-----------------|
+| `npm run validate` | Pass | `=== Summary: 0 errors ===`; generated CLI artifact checks also reported endpoint tool count 70, framework tool count 3, and typed tool total 73. |
+| `git diff --check` | Pass | No output. |
+| `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json` | Pass | No output. |
+| `go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli` from `packages/cli/straddle-pp-cli` | Pass | No output. |
+| `go build -o /tmp/straddle-pp-mcp ./cmd/straddle-pp-mcp` from `packages/cli/straddle-pp-cli` | Pass | No output. |
+| `/tmp/straddle-pp-cli about` | Pass | Printed Straddle ASCII word art, `Status: local preview`, `Generator: Printing Press generated`, OpenAPI source `/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json`, MCP sibling `straddle-pp-mcp`, and safety text saying local only with no credentials, API calls, or production writes. |
+| `/tmp/straddle-pp-cli about --agent` | Pass | Emitted a JSON envelope with `schema_version: "1.0"`, `error: null`, `warnings: []`, and `data.command: "about"`. |
+| `/tmp/straddle-pp-cli setup check --json` | Pass | Reported config path `/Users/js/.config/straddle-pp-cli/config.toml`, `config.exists: false`, `environment.classification: "unset"`, `auth.configured: false`, `mcp.available: true`, `mcp.sibling_path: "/tmp/straddle-pp-mcp"`, and all safety booleans false for docs endpoint, Straddle API, MCP execution, webhook posting, and production writes. |
+| `/tmp/straddle-pp-cli setup check --agent` | Pass | Emitted the same setup data inside the target JSON envelope with `schema_version: "1.0"`, `error: null`, and `warnings: []`. |
+| `/tmp/straddle-pp-cli docs search payment --source commands --json` | Pass | Returned 5 command-search results. The first two were `funding-event-payments get` and `payments list`, each with score 5. |
+| `/tmp/straddle-pp-cli sandbox guide --json` | Pass | Returned guidance-only scenarios including `payment-lifecycle`, `payout-flow`, `failures`, `ach-returns`, `funding`, `bridge`, `embed-onboarding`, and `webhooks`; policy reported no API calls, no docs endpoint calls, and no production writes. |
+| `/tmp/straddle-pp-cli ops guide reconciliation --json` | Pass | Returned local-only reconciliation guidance with docs queries for funding events, charges, payouts, settlement, and reconciliation; safety reported no API calls, no docs endpoint calls, no MCP execution, no webhook posting, and no production writes. |
+| `/tmp/straddle-pp-cli customers list --dry-run --agent` | Pass with concern | Did not send a request. It printed `GET https://sandbox.straddle.com/v1/customers`, `?sort_order=asc`, `(dry run - no request sent)`, then a JSON envelope with `data.dry_run: true`, `schema_version: "1.0"`, `error: null`, and `warnings: []`. The dry-run request preview before the envelope should be reviewed before calling generated `--agent` output pure JSON. |
+| README JSON-RPC `tools/list` smoke against `/tmp/straddle-pp-mcp` | Pass | Returned `{"tool_count":83,"first_tools":["account-settings_get-settings","accounts_capability-requests_create","accounts_capability-requests_list","accounts_create","accounts_get"]}`. |
+| `go test -count=1 ./internal/cli -run 'Test.*About|Test.*Setup|Test.*Docs|Test.*Sandbox|Test.*Ops'` from `packages/cli/straddle-pp-cli` | Pass | `ok straddle-pp-cli/internal/cli 0.948s`. |
+| `go test -count=1 ./internal/mcp -run 'Test.*Tools|Test.*Count|Test.*Cobra'` from `packages/cli/straddle-pp-cli` | Pass | `ok straddle-pp-cli/internal/mcp 0.296s`. |
+| `go test -count=1 ./...` from `packages/cli/straddle-pp-cli` | Pass | Passed all packages. Packages with tests reported `ok` for `internal/cli`, `internal/cliutil`, `internal/mcp`, `internal/mcp/cobratree`, and `internal/store`; command, cache, client, config, and types packages reported no test files where applicable. |
+| `rm -f /tmp/straddle-pp-cli /tmp/straddle-pp-mcp` | Pass | Both temp binaries were removed. |
+
+No production API calls, live writes, token literals, or secret literals were used in this run.
+
 Cleanup:
 
 ```bash
@@ -157,8 +186,8 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 
 ## Launch Readiness Summary
 
-- Ready for docs slice review: yes.
+- Ready for docs slice review: yes, with the dry-run `--agent` output concern recorded.
 - Ready for public CLI launch: no.
 - Ready for product packaging: no.
 - Ready for approved live smoke: no evidence yet.
-- Next narrow work: run or refresh dogfood checks in an environment that can build Go and bind localhost, then update this scorecard with exact command results.
+- Next narrow work: review whether generated dry-run `--agent` commands should suppress human request preview text before the JSON envelope, then continue packaging or approved live-smoke planning.
