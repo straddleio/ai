@@ -32,6 +32,21 @@
       "validated_outcome": "go test -count=1 ./internal/cli covers valid JSON payloads under data, non-JSON payloads as strings under data, empty warnings, null pagination, null trace_id, null error, and removal of results/meta."
     },
     {
+      "id": "local-json-agent-envelope",
+      "summary": "Wrap printJSONFiltered local typed output in the target envelope only when --agent is active.",
+      "reason": "Normal --json output for command-specific local helpers should stay raw for compatibility, while --agent needs the same target envelope as other covered agent paths.",
+      "files": [
+        "internal/cli/helpers.go",
+        "internal/cli/helpers_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-spec.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestPrintJSONFiltered|TestWhichAgentUsesLocalAgentEnvelope' covers raw normal JSON, agent envelope output, select inside data, and which --agent."
+    },
+    {
       "id": "agent-context-agent-envelope",
       "summary": "Make agent-context --agent emit the target agent envelope while preserving the raw v3 agent-context schema for normal JSON output.",
       "reason": "The generated agent-context command is a command-specific raw JSON path. Agents using --agent should receive the same target envelope shape as other covered command paths, with the existing agent context object under data.",

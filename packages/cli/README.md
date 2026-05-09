@@ -25,7 +25,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 go install ./cmd/straddle-pp-cli
 ```
 
-Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. `agent-context --agent` also uses this target envelope, with the existing v3 agent context object under `data`:
+Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. Command-specific local helpers that use `printJSONFiltered`, including `which --agent`, also use this target envelope. `agent-context --agent` uses the same envelope, with the existing v3 agent context object under `data`:
 
 ```json
 {
@@ -38,7 +38,7 @@ Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance
 }
 ```
 
-The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Event-stream commands such as `sync` and `tail`, plus remaining command-specific raw JSON paths, are still open launch gaps.
+The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. `sync` and real `tail` event streams remain open launch gaps because their streaming output paths are separate from `printJSONFiltered`.
 
 `straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 
@@ -227,8 +227,9 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Installer and release packaging are not done.
 - Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
+- Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target Straddle envelope only for `--agent`; normal `--json` stays raw.
 - `about --agent` uses the target Straddle envelope for local preview status.
-- Some command-specific raw JSON paths still do not use the target envelope.
+- `sync` and real `tail` event streams still do not use the target envelope.
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
 - Sandbox testing and docs search need first-class terminal flows or clear guidance.

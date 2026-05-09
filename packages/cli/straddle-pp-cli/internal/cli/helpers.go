@@ -421,7 +421,29 @@ func printJSONFiltered(w io.Writer, v any, flags *rootFlags) error {
 	if err != nil {
 		return err
 	}
-	return printOutputWithFlags(w, json.RawMessage(raw), flags)
+	if flags == nil || !flags.agent {
+		return printOutputWithFlags(w, json.RawMessage(raw), flags)
+	}
+	if flags.quiet {
+		return nil
+	}
+	if flags.csv {
+		return printOutputWithFlags(w, json.RawMessage(raw), flags)
+	}
+
+	data := json.RawMessage(raw)
+	// PATCH: local-json-agent-envelope keeps local typed command output raw for
+	// normal --json while giving --agent the target envelope agents expect.
+	if flags.selectFields != "" {
+		data = filterFields(data, flags.selectFields)
+	} else if flags.compact {
+		data = compactFields(data)
+	}
+	wrapped, err := wrapWithProvenance(data, DataProvenance{Source: "local"})
+	if err != nil {
+		return err
+	}
+	return printOutput(w, wrapped, true)
 }
 
 // filterFields keeps only the specified fields (comma-separated) from JSON objects/arrays.

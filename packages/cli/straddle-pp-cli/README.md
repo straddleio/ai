@@ -707,7 +707,7 @@ Exit codes: `0` success, `2` usage error, `3` not found, `4` auth error, `5` API
 
 ### Current Agent JSON Contract
 
-Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. `agent-context --agent` also uses this target envelope, with the existing v3 agent context object under `data`:
+Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. Command-specific local helpers that use `printJSONFiltered`, including `which --agent`, also use this target envelope. `agent-context --agent` uses the same envelope, with the existing v3 agent context object under `data`:
 
 ```json
 {
@@ -720,7 +720,7 @@ Current `--agent` output expands to `--json --compact --no-input --no-color --ye
 }
 ```
 
-The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Event-stream commands such as `sync` and `tail`, plus remaining command-specific raw JSON paths, are still open launch gaps.
+The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. `sync` and real `tail` event streams remain open launch gaps because their streaming output paths are separate from `printJSONFiltered`.
 
 `about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 

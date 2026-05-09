@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 )
@@ -78,5 +79,142 @@ func TestWrapWithProvenanceEmbedsInvalidJSONAsString(t *testing.T) {
 	}
 	if envelope.Warnings == nil {
 		t.Fatalf("warnings should marshal as an empty array, not null")
+	}
+}
+
+func TestPrintJSONFilteredJSONPreservesRawOutputWithoutAgent(t *testing.T) {
+	var out bytes.Buffer
+	err := printJSONFiltered(&out, map[string]any{
+		"id":     "local_123",
+		"status": "ready",
+	}, &rootFlags{asJSON: true})
+	if err != nil {
+		t.Fatalf("printJSONFiltered returned error: %v", err)
+	}
+
+	var got map[string]any
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatalf("output is not valid JSON: %v\n%s", err, out.String())
+	}
+	if _, ok := got["schema_version"]; ok {
+		t.Fatalf("normal --json should not use agent envelope: %#v", got)
+	}
+	if got["id"] != "local_123" || got["status"] != "ready" {
+		t.Fatalf("normal --json should preserve raw payload: %#v", got)
+	}
+}
+
+func TestPrintJSONFilteredAgentWrapsLocalPayload(t *testing.T) {
+	var out bytes.Buffer
+	err := printJSONFiltered(&out, map[string]any{
+		"id":     "local_123",
+		"status": "ready",
+	}, &rootFlags{agent: true, asJSON: true})
+	if err != nil {
+		t.Fatalf("printJSONFiltered returned error: %v", err)
+	}
+
+	var got struct {
+		SchemaVersion string `json:"schema_version"`
+		Data          struct {
+			ID     string `json:"id"`
+			Status string `json:"status"`
+		} `json:"data"`
+		Warnings []string `json:"warnings"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatalf("agent output is not valid JSON: %v\n%s", err, out.String())
+	}
+	if got.SchemaVersion != "1.0" {
+		t.Fatalf("schema_version: want 1.0, got %q", got.SchemaVersion)
+	}
+	if got.Data.ID != "local_123" || got.Data.Status != "ready" {
+		t.Fatalf("agent data should hold original payload: %#v", got.Data)
+	}
+	if got.Warnings == nil {
+		t.Fatalf("warnings should marshal as an empty array, not null")
+	}
+}
+
+func TestPrintJSONFilteredAgentSelectFiltersDataNotEnvelope(t *testing.T) {
+	var out bytes.Buffer
+	err := printJSONFiltered(&out, map[string]any{
+		"id":          "local_123",
+		"description": "keep me",
+		"secret":      "hidden",
+	}, &rootFlags{agent: true, asJSON: true, compact: true, selectFields: "description"})
+	if err != nil {
+		t.Fatalf("printJSONFiltered returned error: %v", err)
+	}
+
+	var got struct {
+		SchemaVersion string            `json:"schema_version"`
+		Data          map[string]string `json:"data"`
+		TopLevelID    string            `json:"id"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatalf("agent output is not valid JSON: %v\n%s", err, out.String())
+	}
+	if got.SchemaVersion != "1.0" {
+		t.Fatalf("schema_version should remain on envelope, got %q", got.SchemaVersion)
+	}
+	if got.TopLevelID != "" {
+		t.Fatalf("--select should not move selected fields to the envelope: %#v", got)
+	}
+	if len(got.Data) != 1 || got.Data["description"] != "keep me" {
+		t.Fatalf("--select should filter inside data only: %#v", got.Data)
+	}
+}
+
+func TestWhichAgentUsesLocalAgentEnvelope(t *testing.T) {
+	cmd := RootCmd()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+	cmd.SetArgs([]string{"which", "--agent"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("which --agent returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("which --agent wrote stderr: %q", stderr.String())
+	}
+
+	var got struct {
+		SchemaVersion string `json:"schema_version"`
+		Data          struct {
+			Matches []any `json:"matches"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &got); err != nil {
+		t.Fatalf("which --agent emitted invalid JSON: %v\n%s", err, stdout.String())
+	}
+	if got.SchemaVersion != "1.0" {
+		t.Fatalf("schema_version: want 1.0, got %q", got.SchemaVersion)
+	}
+	if len(got.Data.Matches) == 0 {
+		t.Fatalf("which --agent should expose local matches under data: %#v", got.Data)
+	}
+}
+
+func TestPrintJSONFilteredAgentPreservesQuietAndCSV(t *testing.T) {
+	var quietOut bytes.Buffer
+	if err := printJSONFiltered(&quietOut, map[string]any{"id": "local_123"}, &rootFlags{agent: true, asJSON: true, quiet: true}); err != nil {
+		t.Fatalf("quiet printJSONFiltered returned error: %v", err)
+	}
+	if quietOut.Len() != 0 {
+		t.Fatalf("--quiet should suppress output, got %q", quietOut.String())
+	}
+
+	var csvOut bytes.Buffer
+	err := printJSONFiltered(&csvOut, []map[string]any{
+		{"id": "local_123", "status": "ready"},
+	}, &rootFlags{agent: true, asJSON: true, csv: true})
+	if err != nil {
+		t.Fatalf("csv printJSONFiltered returned error: %v", err)
+	}
+	if got := csvOut.String(); got != "id,status\nlocal_123,ready\n" {
+		t.Fatalf("--csv should preserve CSV output, got %q", got)
 	}
 }
