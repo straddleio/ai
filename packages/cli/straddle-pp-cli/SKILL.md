@@ -613,16 +613,20 @@ Add `--agent` to any command. Expands to: `--json --compact --no-input --no-colo
 
 ### Response envelope
 
-Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Most generated list and read commands emit this shape:
+Current `--agent` output expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec:
 
 ```json
 {
-  "results": "...",
-  "meta": "..."
+  "schema_version": "1.0",
+  "data": [],
+  "pagination": null,
+  "warnings": [],
+  "trace_id": null,
+  "error": null
 }
 ```
 
-Some commands emit command-specific raw JSON instead. This is not launch-ready for the final target envelope from the spec. Target envelope implementation is deferred to a later implementation slice.
+The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
 
 ## Sandbox-Safe Walkthrough
 

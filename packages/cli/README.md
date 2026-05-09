@@ -25,16 +25,20 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 go install ./cmd/straddle-pp-cli
 ```
 
-Agent mode is useful but not launch-ready for the final target envelope from the spec. Today, `--agent` expands to `--json --compact --no-input --no-color --yes`. Many generated list and read commands emit:
+Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec:
 
 ```json
 {
-  "results": "...",
-  "meta": "..."
+  "schema_version": "1.0",
+  "data": [],
+  "pagination": null,
+  "warnings": [],
+  "trace_id": null,
+  "error": null
 }
 ```
 
-Some commands emit command-specific raw JSON instead. Target envelope implementation is deferred to a later implementation slice.
+The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. Some commands still emit command-specific raw JSON instead, and that remains a separate launch gap.
 
 ## MCP Smoke
 
@@ -211,8 +215,8 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 
 - Installer and release packaging are not done.
 - Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
-- Agent JSON envelope may not match the target Straddle contract.
-- Current `--agent` behavior is documented as JSON, compact, no input, no color, and yes. Many generated list and read commands use `{ "results": ..., "meta": ... }`, while some commands still emit command-specific raw JSON. The final target envelope is deferred.
+- Provenance-backed generated list and read commands now use the target Straddle envelope.
+- Some command-specific raw JSON paths still do not use the target envelope.
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
 - Sandbox testing and docs search need first-class terminal flows or clear guidance.

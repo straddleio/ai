@@ -14,7 +14,7 @@ The first generated baseline is present and verified. Task 5 spec review passed.
 
 The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because final target-envelope implementation, real launch packaging, product review, richer workflow commands, and MCP count discrepancy resolution remain open.
 
-For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. The current generated `{results, meta}` or raw JSON behavior is documented as an agent JSON gap that is not launch-ready for the final target envelope. Full target-envelope implementation is deferred to a later focused implementation slice.
+For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. Provenance-backed generated list and read commands now use the target envelope from the spec. The target envelope has no provenance field, so the previous `meta` provenance object is intentionally not included in JSON output. Command-specific raw JSON output remains a separate launch gap.
 
 The workflow also needs smaller commits. After each slice passes spec review, quality review, and verification, the controller should stage only intended files and make a small commit before starting the next implementation slice. The current baseline should be committed in logical chunks now: generated baseline first, then hand-authored docs, validation, plans, and audit updates.
 
@@ -79,7 +79,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Ramp CLI/MCP/docs/ergonomics/agent friendliness/presentation/word art benchmark | `packages/cli/README.md` has Ramp benchmark checklist including installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art | Done as checklist, not fully implemented |
 | Include MCP from Printing Press | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; Go MCP build passed | Done for first slice |
 | CLI first | `packages/cli/README.md` states CLI first and MCP sibling from same command tree | Done for first slice |
-| Agent-friendly | Generated CLI includes agent-context. Current `--agent` expansion and the `{results, meta}` or raw JSON gap are now documented as not launch-ready for the final target envelope. | Partial |
+| Agent-friendly | Generated CLI includes agent-context. Provenance-backed generated list and read commands now use the target envelope. Command-specific raw JSON paths remain outside that envelope. | Partial |
 | Documented | Spec, plan, generated README, generated SKILL, and package README exist. Install honesty, MCP smoke instructions, and sandbox-safe read-only walkthrough are now documented. | Partial, because later launch and workflow docs remain gaps |
 | Tested | `npm run validate`, `go test -count=1 ./...`, CLI build, and MCP build passed | Done for first slice |
 | Featureful across setup | Generated baseline has setup-adjacent `auth`, `doctor`, `profile`; README lists setup workflow as launch-critical gap | Partial |
@@ -94,7 +94,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
 | Master workflow exists and controls future loops | `cli-plans/2026-05-09-straddle-cli-full-workflow.md` defines Phase 0 through Phase 5, deliverables, review gates, loop rules, commit cadence, subagent roles, repo constraints, and completion audit rule | Done for planning |
 | Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
-| CLI contract and honesty slice | Safe token input is done. Agent JSON gap is documented. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. | Partial, because target envelope implementation and launch packaging remain open |
+| CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. | Partial, because command-specific raw JSON paths and launch packaging remain open |
 
 ## Completed Gates
 
@@ -129,12 +129,13 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Install honesty is documented.
    - MCP smoke instructions are documented.
    - Sandbox-safe read-only walkthrough is documented.
-   - Final target envelope implementation remains open.
+   - Provenance-backed generated list and read commands now use the target envelope.
+   - Command-specific raw JSON paths remain open.
    - Real launch packaging remains open.
    - Product review remains open.
    - Richer workflow commands remain open.
    - MCP count discrepancy resolution remains open. `.printing-press.json` metadata says 70, typed `mcplib.NewTool(` API registrations say 73, and runtime `tools/list` may include additional Cobra shell-out tools.
-   - Patch-layer review remains open if generated-tree source patches are added later; this docs-only slice did not add new source patches.
+   - Patch-layer review remains open for the new target-agent-envelope generated-tree source patch.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:
    - Publishing.

@@ -135,7 +135,7 @@ type accessWarning struct {
 // rejected for access-policy reasons rather than for input validity. Matching
 // is case-insensitive and uses word boundaries so common substrings inside
 // unrelated tokens (e.g. "author", "pagination_token", "insufficient_funds")
-// do not produce false positives. The set deliberately excludes brand names —
+// do not produce false positives. The set deliberately excludes brand names,
 // vendor-specific phrasings should be addressed at the spec/profiler level,
 // not in this universal classifier.
 var accessDenialPatterns = []*regexp.Regexp{
@@ -152,7 +152,7 @@ var accessDenialPatterns = []*regexp.Regexp{
 
 // looksLikeAccessDenial reports whether body text describes an access-policy
 // rejection. Use it on response-body content (apiErr.Body), not on the full
-// error string — the request path can contain words like "auth" or "tokens"
+// error string, the request path can contain words like "auth" or "tokens"
 // that would produce false positives if the whole error message were scanned.
 func looksLikeAccessDenial(body string) bool {
 	lower := strings.ToLower(body)
@@ -229,7 +229,7 @@ func classifyAPIError(err error, flags *rootFlags) error {
 		writeAPIErrorEnvelope(flags, classified, ExitCode(classified))
 		return classified
 	case strings.Contains(msg, "HTTP 400") && cliutil.LooksLikeAuthError(msg):
-		return authErr(fmt.Errorf("%w\nhint: the API rejected the request — this usually means auth is missing or invalid."+
+		return authErr(fmt.Errorf("%w\nhint: the API rejected the request. This usually means auth is missing or invalid."+
 			"\n      Set your API key: export STRADDLE_TOKEN=<your-key>"+
 			"\n      Run 'straddle-pp-cli doctor' to check auth status."+
 			"\n      Response: "+cliutil.SanitizeErrorBody(msg), err))
@@ -493,7 +493,7 @@ func filterFieldsRec(data json.RawMessage, paths [][]string) json.RawMessage {
 }
 
 // matchSelectSegment returns the matching lowercase segment, or "" if no match.
-// Supports direct case-insensitive match and camelCase→kebab-case conversion.
+// Supports direct case-insensitive match and camelCase to kebab-case conversion.
 func matchSelectSegment(fieldName string, keepWhole map[string]bool, subPaths map[string][][]string) string {
 	lower := strings.ToLower(fieldName)
 	if keepWhole[lower] || subPaths[lower] != nil {
@@ -548,7 +548,7 @@ func printOutputWithFlags(w io.Writer, data json.RawMessage, flags *rootFlags) e
 // This extracts the inner data for output helpers (filterFields, compactFields,
 // printAutoTable) that expect arrays or flat objects.
 //
-// Only unwraps when a "status" field is present and indicates success — this
+// Only unwraps when a "status" field is present and indicates success. This
 // avoids false positives on APIs where "data" is a regular field (e.g., Stripe
 // returns {"data":[...],"has_more":true} where "data" is the list, not an
 // envelope wrapper).
@@ -581,7 +581,7 @@ func compactFields(data json.RawMessage) json.RawMessage {
 		return compactListFields(items)
 	}
 
-	// Single object — use blocklist
+	// Single object, use blocklist
 	var obj map[string]any
 	if err := json.Unmarshal(data, &obj); err == nil {
 		return compactObjectFields(obj)
@@ -774,9 +774,9 @@ func suggestFlag(unknown string, cmd *cobra.Command) string {
 
 // wantsHumanTable returns true when output should be a human-friendly table.
 // Smart default: terminal=table, pipe=JSON.
-// - Human in terminal: isTerminal()=true → table
-// - Claude Code/Codex bash tool: stdout piped → JSON
-// - --json/--csv/--compact/--agent: machine format → JSON
+// - Human in terminal: isTerminal()=true becomes table
+// - Claude Code/Codex bash tool: stdout piped becomes JSON
+// - --json/--csv/--compact/--agent: machine format becomes JSON
 func wantsHumanTable(w io.Writer, flags *rootFlags) bool {
 	if flags.asJSON || flags.csv || flags.compact || flags.quiet || flags.plain {
 		return false
@@ -847,7 +847,7 @@ func prioritizeAllHeaders(item map[string]any) []string {
 	return prioritizeFields(item, true)
 }
 
-// prioritizeFields orders fields by importance: identity → temporal → status → other.
+// prioritizeFields orders fields by importance: identity, temporal, status, other.
 // When includeComplex is true, arrays and objects are included (for card layout).
 //
 // Uses exact-or-suffix matching to avoid false positives: "name" matches "Name" and
@@ -855,16 +855,16 @@ func prioritizeAllHeaders(item map[string]any) []string {
 // indicates identity). The field is split on camelCase/snake_case boundaries and the
 // LAST segment is matched against patterns.
 func prioritizeFields(item map[string]any, includeComplex bool) []string {
-	// Priority tiers — matched against the last segment of the field name.
-	// "OrderDate" → last segment "date" → tier 1 (temporal).
-	// "BuildingName" → last segment "name" → tier 0... but we want to avoid this.
+	// Priority tiers, matched against the last segment of the field name.
+	// "OrderDate" maps last segment "date" to tier 1 (temporal).
+	// "BuildingName" maps last segment "name" to tier 0... but we want to avoid this.
 	// Solution: exact match on the full lowered name OR suffix segment match,
 	// with a penalty for compound names that have a non-identity prefix.
 	type pattern struct {
 		word string
 		tier int
 	}
-	// Exact matches (full field name, case-insensitive) — highest confidence
+	// Exact matches (full field name, case-insensitive), highest confidence
 	exactMatches := map[string]int{
 		"id": 0, "name": 0, "title": 0, "slug": 0, "key": 0,
 		"date": 1, "created": 1, "updated": 1, "createdat": 1, "updatedat": 1,
@@ -873,7 +873,7 @@ func prioritizeFields(item map[string]any, includeComplex bool) []string {
 		"cost": 3, "points": 3, "score": 3,
 		"type": 4, "kind": 4, "category": 4, "email": 4, "phone": 4, "url": 4,
 	}
-	// Suffix patterns — match when the field ends with this word (after splitting)
+	// Suffix patterns, match when the field ends with this word (after splitting)
 	suffixMatches := map[string]int{
 		"id": 0, "name": 0, "title": 0,
 		"date": 1, "time": 1,
@@ -953,8 +953,8 @@ func prioritizeFields(item map[string]any, includeComplex bool) []string {
 	return headers
 }
 
-// splitCamelCase splits "OrderDate" → ["order", "date"], "statusCode" → ["status", "code"],
-// "page_size" → ["page", "size"].
+// splitCamelCase splits "OrderDate" into ["order", "date"], "statusCode" into ["status", "code"],
+// and "page_size" into ["page", "size"].
 func splitCamelCase(s string) []string {
 	var segments []string
 	var current strings.Builder
@@ -981,7 +981,7 @@ func splitCamelCase(s string) []string {
 	return segments
 }
 
-// printAutoCards renders items as labeled cards — one block per item.
+// printAutoCards renders items as labeled cards, one block per item.
 // Used for complex responses with many fields or nested data.
 func printAutoCards(w io.Writer, items []map[string]any) error {
 	headers := prioritizeAllHeaders(items[0])
@@ -1004,7 +1004,7 @@ func printAutoCards(w io.Writer, items []map[string]any) error {
 		if len(headers) > 1 {
 			secondVal := formatCellValue(item[headers[1]])
 			if secondVal != "" {
-				fmt.Fprintf(w, "%s %s — %s\n", bold(strings.ToUpper(headers[0])), titleVal, secondVal)
+				fmt.Fprintf(w, "%s %s - %s\n", bold(strings.ToUpper(headers[0])), titleVal, secondVal)
 			} else {
 				fmt.Fprintf(w, "%s %s\n", bold(strings.ToUpper(headers[0])), titleVal)
 			}
@@ -1012,7 +1012,7 @@ func printAutoCards(w io.Writer, items []map[string]any) error {
 			fmt.Fprintf(w, "%s %s\n", bold(strings.ToUpper(headers[0])), titleVal)
 		}
 
-		// Remaining fields indented — skip empty, zero, and false values
+		// Remaining fields indented, skip empty, zero, and false values
 		for _, h := range headers[2:] {
 			v := formatCellValue(item[h])
 			if v == "" || v == "false" || v == "0" || v == "[]" || v == "null" {
@@ -1093,7 +1093,7 @@ func formatObjectArray(items []any) string {
 }
 
 // formatObjectSummary extracts the most useful fields from an object into a one-line summary.
-// Looks for: qty/count → name/title → size → price, in that order.
+// Looks for: qty/count, name/title, size, price, in that order.
 func formatObjectSummary(obj map[string]any) string {
 	var parts []string
 
@@ -1105,7 +1105,7 @@ func formatObjectSummary(obj map[string]any) string {
 		parts = append(parts, "1x")
 	}
 
-	// Name — check nested objects too (e.g., Side1.Name)
+	// Name, check nested objects too (e.g., Side1.Name)
 	name := findField(obj, "name", "title", "label", "description")
 	if name == "" {
 		// Check nested objects for name
@@ -1128,7 +1128,7 @@ func formatObjectSummary(obj map[string]any) string {
 		size = findField(obj, "catname", "cat_name", "category")
 	}
 	if size != "" {
-		parts = append(parts, "—")
+		parts = append(parts, "-")
 		parts = append(parts, size)
 	}
 
@@ -1181,9 +1181,9 @@ type DataProvenance struct {
 }
 
 // printProvenance writes a one-line provenance message to stderr for TTY users.
-// Suppressed when stdout is piped or redirected — the JSON response envelope
-// already carries meta.source, so the stderr line is redundant and becomes
-// noise in agent flows that merge stderr into stdout.
+// Suppressed when stdout is piped or redirected. Agent JSON output uses the
+// target envelope without provenance fields, so this human hint stays off the
+// machine-readable path.
 func printProvenance(cmd *cobra.Command, count int, prov DataProvenance) {
 	if !isTerminal(cmd.OutOrStdout()) {
 		return
@@ -1213,33 +1213,26 @@ func printProvenance(cmd *cobra.Command, count int, prov DataProvenance) {
 	fmt.Fprintf(cmd.ErrOrStderr(), "%s%d results (cached, synced %s)\n", prefix, count, age)
 }
 
-// wrapWithProvenance wraps response data in a provenance envelope:
-// {"results": ..., "meta": {...}}. When data is valid JSON, it embeds as
-// the parsed shape; when data is non-JSON (e.g., XML/RSS responses, plain
-// text), it embeds as a JSON string so json.Marshal doesn't choke on
-// "invalid character '<'" while still passing the raw payload through to
-// the consumer.
+// wrapWithProvenance wraps response data in the target agent envelope. When
+// data is valid JSON, it embeds as the parsed shape; when data is non-JSON
+// (e.g., XML/RSS responses, plain text), it embeds as a JSON string so
+// json.Marshal doesn't choke on "invalid character '<'" while still passing
+// the raw payload through to the consumer.
 func wrapWithProvenance(data json.RawMessage, prov DataProvenance) (json.RawMessage, error) {
-	meta := map[string]any{"source": prov.Source}
-	if prov.SyncedAt != nil {
-		meta["synced_at"] = prov.SyncedAt.UTC().Format(time.RFC3339)
-	}
-	if prov.Reason != "" {
-		meta["reason"] = prov.Reason
-	}
-	if prov.ResourceType != "" {
-		meta["resource_type"] = prov.ResourceType
-	}
-	if prov.Freshness != nil {
-		meta["freshness"] = prov.Freshness
-	}
-	var results any = json.RawMessage(data)
+	// PATCH: target-agent-envelope adapts generated provenance-backed reads
+	// to the public agent JSON contract without mass-editing command files.
+	_ = prov
+	var payload any = json.RawMessage(data)
 	if !json.Valid(data) {
-		results = string(data)
+		payload = string(data)
 	}
 	envelope := map[string]any{
-		"results": results,
-		"meta":    meta,
+		"schema_version": "1.0",
+		"data":           payload,
+		"pagination":     nil,
+		"warnings":       []string{},
+		"trace_id":       nil,
+		"error":          nil,
 	}
 	return json.Marshal(envelope)
 }

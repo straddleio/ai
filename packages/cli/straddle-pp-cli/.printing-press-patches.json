@@ -16,6 +16,20 @@
         "../README.md"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli covers stdin save, env-token non-persistence, empty stdin rejection, and stdin-first help/status guidance."
+    },
+    {
+      "id": "target-agent-envelope",
+      "summary": "Adapt provenance-backed generated read output from results/meta to the target agent envelope.",
+      "reason": "Generated read commands route JSON output through wrapWithProvenance. Updating that helper reduces the agent JSON launch blocker without mass-editing generated command files.",
+      "files": [
+        "internal/cli/helpers.go",
+        "internal/cli/helpers_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli covers valid JSON payloads under data, non-JSON payloads as strings under data, empty warnings, null pagination, null trace_id, null error, and removal of results/meta."
     }
   ]
 }
