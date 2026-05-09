@@ -44,9 +44,12 @@ func TestAboutPrintsHumanPreviewWithoutCredentials(t *testing.T) {
 		"Printing Press generated",
 		"OpenAPI source",
 		"MCP sibling",
-		"doctor",
-		"agent-context",
-		"which",
+		"straddle-pp-cli setup check --json",
+		"straddle-pp-cli agent-context --pretty",
+		"straddle-pp-cli which",
+		"optional live sandbox reachability",
+		"explicit sandbox base URL and credentials",
+		"straddle-pp-cli doctor --json",
 	}
 	for _, want := range required {
 		if !strings.Contains(stdout, want) {
@@ -97,8 +100,19 @@ func TestAboutJSONEmitsStableMachineObject(t *testing.T) {
 	if got.MCPSibling == "" {
 		t.Fatalf("mcp_sibling should be populated")
 	}
-	if len(got.NextChecks) < 3 {
-		t.Fatalf("next_checks should include doctor, agent-context, and which, got %#v", got.NextChecks)
+	if len(got.NextChecks) < 4 {
+		t.Fatalf("next_checks should include setup check, local discovery, and optional sandbox doctor guidance, got %#v", got.NextChecks)
+	}
+	if got.NextChecks[0] != "straddle-pp-cli setup check --json" {
+		t.Fatalf("first next check should be setup check, got %#v", got.NextChecks)
+	}
+	for _, nextCheck := range got.NextChecks {
+		if nextCheck == "doctor" {
+			t.Fatalf("next_checks must not include bare doctor, got %#v", got.NextChecks)
+		}
+	}
+	if !strings.Contains(strings.Join(got.NextChecks, "\n"), "optional live sandbox reachability after explicit sandbox base URL and credentials: straddle-pp-cli doctor --json") {
+		t.Fatalf("next_checks should sandbox-qualify optional doctor, got %#v", got.NextChecks)
 	}
 	if got.RequiresAuth || got.MakesAPICalls || got.WritesProduction {
 		t.Fatalf("about must be local read-only, got auth=%v api=%v writes=%v", got.RequiresAuth, got.MakesAPICalls, got.WritesProduction)
@@ -139,6 +153,14 @@ func TestAboutAgentUsesTargetEnvelope(t *testing.T) {
 	}
 	if got.Data.Command != "about" || got.Data.Status != "local preview" {
 		t.Fatalf("agent data mismatch: %#v", got.Data)
+	}
+	if len(got.Data.NextChecks) == 0 || got.Data.NextChecks[0] != "straddle-pp-cli setup check --json" {
+		t.Fatalf("agent next_checks should start with setup check, got %#v", got.Data.NextChecks)
+	}
+	for _, nextCheck := range got.Data.NextChecks {
+		if nextCheck == "doctor" {
+			t.Fatalf("agent next_checks must not include bare doctor, got %#v", got.Data.NextChecks)
+		}
 	}
 	if got.Data.RequiresAuth || got.Data.MakesAPICalls {
 		t.Fatalf("about --agent must be local and credential-free: %#v", got.Data)

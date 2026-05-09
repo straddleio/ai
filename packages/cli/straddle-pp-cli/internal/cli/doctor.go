@@ -68,9 +68,10 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: "Check CLI health",
-		Example: `  straddle-pp-cli doctor
-  straddle-pp-cli doctor --json
-  straddle-pp-cli doctor --fail-on warn`,
+		Long: "Check CLI health with live reachability.\n\n" +
+			"Start with 'straddle-pp-cli setup check --json' for local setup readiness. " +
+			"Use 'straddle-pp-cli doctor --json' only as optional live sandbox reachability after explicit sandbox base URL and credentials are configured.",
+		Example: "  straddle-pp-cli setup check --json",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			report := map[string]any{}
 
@@ -90,7 +91,7 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 				if header == "" {
 					report["auth"] = "not configured"
 					// PATCH: safe-token-guidance keeps generated doctor output from recommending token-bearing shell history.
-					report["auth_hint"] = "run 'straddle-pp-cli auth set-token --stdin', or have your shell or secret manager inject STRADDLE_TOKEN"
+					report["auth_hint"] = cliAuthReadinessGuidance()
 				} else {
 					report["auth"] = "configured"
 					report["auth_source"] = cfg.AuthSource

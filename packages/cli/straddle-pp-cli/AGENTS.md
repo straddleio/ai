@@ -7,9 +7,11 @@ This directory is a generated `straddle-pp-cli` printed CLI. It was produced by 
 Start by asking the generated CLI for current runtime truth:
 
 ```bash
-straddle-pp-cli doctor --json
+straddle-pp-cli setup check --json
 straddle-pp-cli agent-context --pretty
 ```
+
+Use `straddle-pp-cli doctor --json` only as an optional live sandbox reachability check, and only after the explicit sandbox base URL and sandbox credentials are configured. Do not start with `doctor --json` for local readiness.
 
 Use runtime discovery instead of relying on a copied command list:
 

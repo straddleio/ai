@@ -42,6 +42,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 
+`straddle-pp-cli setup check` is a local-only first-run readiness command. It reports config path, resolved base URL, sandbox/production/custom/unset classification, auth source, profile names, MCP sibling file presence, docs search readiness, sandbox guide readiness, and safe next steps. It does not call Straddle APIs, docs endpoints, MCP, webhooks, or production. `setup check --json` emits a stable machine object, and `setup check --agent` emits the target agent envelope.
+
 `straddle-pp-cli docs search <query>` is the docs lookup command. It defaults to unauthenticated product docs search through `https://docs.straddle.com/mcp`, supports `--endpoint` and `STRADDLE_DOCS_MCP_URL` only for loopback local tests, and keeps API or SDK reference guidance separate from the local synced-data `search` command. Use `--source commands` to search local generated command capabilities.
 
 `straddle-pp-cli sandbox guide [scenario]` is a local help-only sandbox testing guide. It absorbs the previous `/sandbox-test` scenario list without executing writes, calling Straddle APIs, or calling the docs endpoint. Run `docs search` first before any separately approved live sandbox execution to verify current simulation parameters.
@@ -96,7 +98,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 81 because the MCP runtime also exposes 8 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 82 because the MCP runtime also exposes 9 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -108,17 +110,18 @@ Help-only and local-build checks:
 cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
 go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli --help
+/tmp/straddle-pp-cli setup check --json
 /tmp/straddle-pp-cli customers list --help
 /tmp/straddle-pp-cli charges get --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
 ```
 
-Config-only passing checks:
+Local-first setup checks:
 
 ```bash
 SANDBOX_CONFIG=/tmp/straddle-pp-cli-sandbox.toml
-STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --help --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli setup check --json --config "$SANDBOX_CONFIG"
 ```
 
 `auth status` is not a passing check before credential setup. In a clean config, it is expected to report an unauthenticated state and exit non-zero, currently auth error exit 4. Use it only when you want to inspect that state:
@@ -150,9 +153,9 @@ Task 1 created the first generated baseline with these quality facts:
 - `gofmt` was clean.
 - `go test ./...` passed.
 
-The first auth contract slice added `straddle-pp-cli auth set-token --stdin` so config-file token setup no longer requires a token in argv. This is still not a public launch candidate. Reviewers still need to inspect command coverage, generation provenance, MCP shape, and the remaining workflow gaps.
+The first auth contract slice added `straddle-pp-cli auth set-token --stdin` for config-file token setup. This is still not a public launch candidate. Reviewers still need to inspect command coverage, generation provenance, MCP shape, and the remaining workflow gaps.
 
-The first presentation slice added `straddle-pp-cli about` for local preview status, ASCII word art, OpenAPI source, MCP sibling, and next checks: `doctor`, `agent-context`, and `which`. JSON and agent output are structured.
+The first presentation slice added `straddle-pp-cli about` for local preview status, ASCII word art, OpenAPI source, MCP sibling, and next checks: `setup check`, `agent-context`, and `which`. JSON and agent output are structured.
 
 ## Auth Paths
 
@@ -167,7 +170,7 @@ The preview supports three credential paths:
   ```
 - A custom config file with `--config /path/to/config.toml`, including `auth set-token --stdin --config /path/to/config.toml` and `auth status --config /path/to/config.toml`.
 
-Do not commit tokens. Do not print tokens in logs. Do not pass tokens in argv unless you are using the legacy compatibility path and have accepted the shell history and process-list risk.
+Do not commit tokens. Do not print tokens in logs. Do not pass tokens in argv.
 
 ## Regenerate
 

@@ -625,11 +625,11 @@ Supported auth paths:
 - Config-file auth through `auth set-token --stdin`.
 - Custom config paths through `--config /path/to/config.toml`, for example `auth set-token --stdin --config /path/to/config.toml`.
 
-The legacy positional token form still works for compatibility, but avoid it. Tokens must not be committed, printed in logs, or passed in argv.
-
 Or set `STRADDLE_TOKEN` as an environment variable.
 
-Run `straddle-pp-cli doctor` to verify setup.
+Run `straddle-pp-cli setup check` first to verify local setup readiness. It reports config path, resolved base URL, sandbox/production/custom/unset classification, auth source, profile names, MCP sibling file presence, docs search readiness, sandbox guide readiness, and safe next steps without calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
+
+Use `straddle-pp-cli doctor --json` only as an optional sandbox reachability check after explicit sandbox base URL and credential configuration.
 
 ## Docs Search
 
@@ -689,6 +689,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 
+`setup check --json` emits a stable local setup readiness object. `setup check --agent` emits the target envelope with that object under `data`.
+
 ## Patch Layer
 
 This tree is generated, but this preview also has intentional local patches. Generated-code changes should carry a concise `// PATCH: <id>` marker near the changed behavior, and `.printing-press-patches.json` records each patch id, reason, files, and validation outcome.
@@ -711,11 +713,17 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli sandbox guide --json
 ```
 
-Config-only passing checks:
+Local-first setup checks:
 
 ```bash
 SANDBOX_CONFIG=/tmp/straddle-pp-cli-sandbox.toml
-STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --help --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli setup check --json --config "$SANDBOX_CONFIG"
+```
+
+Optional sandbox reachability check, only after explicit sandbox base URL and credential configuration:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --json --config "$SANDBOX_CONFIG"
 ```
 
 `auth status` is not a passing check before credential setup. In a clean config, it is expected to report an unauthenticated state and exit non-zero, currently auth error exit 4. Use it only when you want to inspect that state:
@@ -821,7 +829,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 81 because the MCP runtime also exposes 8 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 82 because the MCP runtime also exposes 9 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

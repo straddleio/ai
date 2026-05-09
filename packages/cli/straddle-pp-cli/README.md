@@ -490,18 +490,18 @@ Supported auth paths:
 - Config-file auth through `auth set-token --stdin`.
 - Custom config paths through `--config /path/to/config.toml`, for example `auth set-token --stdin --config /path/to/config.toml`.
 
-The legacy positional token form still works for compatibility, but avoid it. Tokens must not be committed, printed in logs, or passed in argv.
-
 Or set `STRADDLE_TOKEN` through your shell's secure secret flow.
 
 ### 3. Verify Setup
 
 ```bash
 straddle-pp-cli about
-straddle-pp-cli doctor
+straddle-pp-cli setup check --json
 ```
 
-`about` is local-only and credential-free. It prints Straddle ASCII presentation, preview status, OpenAPI source, MCP sibling, and next checks. `doctor` checks your configuration and credentials.
+`about` is local-only and credential-free. It prints Straddle ASCII presentation, preview status, OpenAPI source, MCP sibling, and next checks. `setup check` is a local preflight that summarizes config path, resolved base URL, environment classification, auth source, saved profile names, MCP sibling file presence, docs search readiness, sandbox guide readiness, and safe next steps without calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
+
+Run `doctor --json` only when you want an optional live sandbox auth and reachability check after explicitly setting a sandbox base URL and credentials.
 
 ### 4. Try Your First Command
 
@@ -577,11 +577,17 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli sandbox guide --json
 ```
 
-Config-only passing checks:
+Local-first setup checks:
 
 ```bash
 SANDBOX_CONFIG=/tmp/straddle-pp-cli-sandbox.toml
-STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --help --config "$SANDBOX_CONFIG"
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli setup check --json --config "$SANDBOX_CONFIG"
+```
+
+Optional sandbox reachability check, only after explicit sandbox base URL and credential configuration:
+
+```bash
+STRADDLE_BASE_URL=https://sandbox.straddle.com /tmp/straddle-pp-cli doctor --json --config "$SANDBOX_CONFIG"
 ```
 
 `auth status` is not a passing check before credential setup. In a clean config, it is expected to report an unauthenticated state and exit non-zero, currently auth error exit 4. Use it only when you want to inspect that state:
@@ -776,6 +782,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `about --json` emits a stable local preview object. `about --agent` emits the target envelope with that object under `data`.
 
+`setup check --json` emits a stable local setup readiness object. `setup check --agent` emits the target envelope with that object under `data`.
+
 ## Patch Layer
 
 This tree is generated, but this preview also has intentional local patches. Every generated-code change should have a concise `// PATCH: <id>` marker near the changed behavior, and `.printing-press-patches.json` records the patch id, reason, files, and validation outcome.
@@ -822,7 +830,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 81 because the MCP runtime also exposes 8 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 82 because the MCP runtime also exposes 9 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 
@@ -848,10 +856,10 @@ Supply the sandbox token through your client's secure secret flow, not in checke
 ## Health Check
 
 ```bash
-straddle-pp-cli doctor
+straddle-pp-cli setup check --json
 ```
 
-Verifies configuration, credentials, and connectivity to the API.
+Checks local setup readiness without calling Straddle APIs, docs endpoints, MCP, webhooks, or production. For an optional live sandbox auth and reachability check, first set an explicit sandbox base URL and credentials, then run `straddle-pp-cli doctor --json`.
 
 ## Configuration
 
@@ -867,7 +875,7 @@ Environment variables:
 
 ## Troubleshooting
 **Authentication errors (exit code 4)**
-- Run `straddle-pp-cli doctor` to check credentials
+- Run `straddle-pp-cli setup check --json` to confirm the local auth source and resolved base URL
 - Verify the environment variable is present without printing it: `test -n "$STRADDLE_TOKEN" && echo STRADDLE_TOKEN is set`
 **Not found errors (exit code 3)**
 - Check the resource ID is correct

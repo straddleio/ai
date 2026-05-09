@@ -218,6 +218,15 @@ func writeAPIErrorEnvelope(flags *rootFlags, err error, code int) {
 	})
 }
 
+// PATCH: auth-readiness-guidance sends auth failures through local setup
+// readiness first, with live sandbox reachability explicitly optional.
+func authReadinessGuidance() string {
+	return "Run local setup readiness first: straddle-pp-cli setup check --json" +
+		"\n      Save a token with: straddle-pp-cli auth set-token --stdin" +
+		"\n      Or have your shell or secret manager inject STRADDLE_TOKEN." +
+		"\n      Optional live sandbox reachability: after setting an explicit sandbox base URL and credentials, run straddle-pp-cli doctor --json."
+}
+
 // classifyAPIError maps API errors to structured exit codes with actionable hints.
 func classifyAPIError(err error, flags *rootFlags) error {
 	msg := err.Error()
@@ -232,20 +241,14 @@ func classifyAPIError(err error, flags *rootFlags) error {
 	// PATCH: safe-token-guidance keeps generated auth errors from printing token-bearing commands.
 	case strings.Contains(msg, "HTTP 400") && cliutil.LooksLikeAuthError(msg):
 		return authErr(fmt.Errorf("%w\nhint: the API rejected the request. This usually means auth is missing or invalid."+
-			"\n      Save a token with: straddle-pp-cli auth set-token --stdin"+
-			"\n      Or have your shell or secret manager inject STRADDLE_TOKEN."+
-			"\n      Run 'straddle-pp-cli doctor' to check auth status."+
+			"\n      "+authReadinessGuidance()+
 			"\n      Response: "+cliutil.SanitizeErrorBody(msg), err))
 	case strings.Contains(msg, "HTTP 401"):
-		return authErr(fmt.Errorf("%w\nhint: check your token. Save a token with: straddle-pp-cli auth set-token --stdin"+
-			"\n      Or have your shell or secret manager inject STRADDLE_TOKEN."+
-			"\n      Run 'straddle-pp-cli doctor' to check auth status.", err))
+		return authErr(fmt.Errorf("%w\nhint: check your token.\n      "+authReadinessGuidance(), err))
 	case strings.Contains(msg, "HTTP 403"):
 		return authErr(fmt.Errorf("%w\nhint: permission denied. Your credentials are valid but lack access to this resource."+
 			"\n      Check that your API key has the required permissions."+
-			"\n      If you need a different token, use: straddle-pp-cli auth set-token --stdin"+
-			"\n      Or have your shell or secret manager inject STRADDLE_TOKEN."+
-			"\n      Run 'straddle-pp-cli doctor' to check auth status.", err))
+			"\n      "+authReadinessGuidance(), err))
 	case strings.Contains(msg, "HTTP 404"):
 		return notFoundErr(fmt.Errorf("%w\nhint: resource not found. Run the 'list' command to see available items", err))
 	case strings.Contains(msg, "HTTP 429"):

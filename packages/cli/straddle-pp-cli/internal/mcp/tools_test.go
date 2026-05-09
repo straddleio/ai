@@ -25,7 +25,7 @@ func unsafeTokenGuidance() []string {
 	}
 }
 
-func assertSafeTokenGuidance(t *testing.T, text string) {
+func assertRuntimeAuthGuidance(t *testing.T, text string) {
 	t.Helper()
 
 	for _, unsafe := range unsafeTokenGuidance() {
@@ -33,11 +33,19 @@ func assertSafeTokenGuidance(t *testing.T, text string) {
 			t.Fatalf("token guidance should not include %q in %q", unsafe, text)
 		}
 	}
+	if !strings.Contains(text, "straddle-pp-cli setup check --json") {
+		t.Fatalf("auth guidance should route to setup check first, got %q", text)
+	}
 	if !strings.Contains(text, "straddle-pp-cli auth set-token --stdin") {
 		t.Fatalf("token guidance should prefer stdin auth setup, got %q", text)
 	}
 	if !strings.Contains(text, "secret manager") {
 		t.Fatalf("token guidance should mention secret manager env injection, got %q", text)
+	}
+	if !strings.Contains(text, "Optional live sandbox reachability") ||
+		!strings.Contains(text, "explicit sandbox base URL and credentials") ||
+		!strings.Contains(text, "straddle-pp-cli doctor --json") {
+		t.Fatalf("doctor guidance should be optional and sandbox-scoped, got %q", text)
 	}
 }
 
@@ -101,13 +109,14 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 				t.Fatalf("handler result should be an MCP error")
 			}
 
-			assertSafeTokenGuidance(t, toolResultText(t, result))
+			assertRuntimeAuthGuidance(t, toolResultText(t, result))
 		})
 	}
 }
 
 // PATCH: mcp-count-breakdown verifies the context tool explains endpoint, typed, and runtime MCP counts separately.
 // PATCH: sandbox-guide verifies sandbox_guide is included in runtime shell-out metadata.
+// PATCH: setup-check verifies setup_check is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
 	if err != nil {
@@ -132,6 +141,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 		"docs_search",
 		"import",
 		"sandbox_guide",
+		"setup_check",
 		"sync",
 		"tail",
 		"workflow_archive",
@@ -147,8 +157,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 81 {
-		t.Fatalf("runtime_tool_count = %d, want 81", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 82 {
+		t.Fatalf("runtime_tool_count = %d, want 82", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -162,12 +172,13 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 }
 
 // PATCH: sandbox-guide verifies the help-only sandbox guide shell-out is read-only.
+// PATCH: setup-check verifies the local setup check shell-out is read-only.
 func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	mcpServer := server.NewMCPServer("test", "0.0.0")
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	for _, name := range []string{"docs_search", "sandbox_guide"} {
+	for _, name := range []string{"docs_search", "sandbox_guide", "setup_check"} {
 		tool, ok := tools[name]
 		if !ok {
 			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)

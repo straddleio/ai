@@ -305,6 +305,7 @@ After each slice passes spec review, quality review, and verification, the contr
 
 - [ ] The walkthrough starts with local preview setup.
 - [ ] The walkthrough uses sandbox-safe configuration.
+- [x] `setup check` exists as a local-only first-run readiness preflight and points to safe next commands.
 - [ ] Customer exploration is read-only.
 - [ ] Payment exploration is read-only.
 - [ ] The walkthrough states that production calls are out of scope for this slice.
@@ -316,6 +317,7 @@ After each slice passes spec review, quality review, and verification, the contr
 - [ ] Run `npm run validate`.
 - [ ] Dry-read every walkthrough command and classify it as local, help-only, config-only, or read-only sandbox.
 - [x] Run focused sandbox and MCP tests for the help-only command.
+- [x] Run focused setup tests for local-only JSON, environment classification, agent envelope, and deliver rejection.
 - [ ] Run spec and quality review subagents.
 
 **Dependencies:** Tasks 7 through 10.

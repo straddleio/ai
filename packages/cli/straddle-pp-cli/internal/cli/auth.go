@@ -26,6 +26,15 @@ func newAuthCmd(flags *rootFlags) *cobra.Command {
 	return cmd
 }
 
+// PATCH: auth-readiness-guidance sends auth failures through local setup
+// readiness first, with live sandbox reachability explicitly optional.
+func cliAuthReadinessGuidance() string {
+	return "Run local setup readiness first: straddle-pp-cli setup check --json" +
+		"\n      Save a token with: straddle-pp-cli auth set-token --stdin" +
+		"\n      Or have your shell or secret manager inject STRADDLE_TOKEN." +
+		"\n      Optional live sandbox reachability: after setting an explicit sandbox base URL and credentials, run straddle-pp-cli doctor --json."
+}
+
 func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 	return &cobra.Command{
 		Use:     "status",
@@ -49,6 +58,9 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 					"source":        cfg.AuthSource,
 					"config":        cfg.Path,
 				}
+				if !authed {
+					out["auth_hint"] = cliAuthReadinessGuidance()
+				}
 				if printErr := printJSONFiltered(w, out, flags); printErr != nil {
 					return printErr
 				}
@@ -60,10 +72,16 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 			if !authed {
 				fmt.Fprintln(w, red("Not authenticated"))
 				fmt.Fprintln(w, "")
-				fmt.Fprintln(w, "Set your token:")
-				fmt.Fprintln(w, "  Set STRADDLE_TOKEN from your shell's secure secret flow")
+				fmt.Fprintln(w, "Start with local setup readiness:")
+				fmt.Fprintln(w, "  straddle-pp-cli setup check --json")
+				fmt.Fprintln(w, "")
+				fmt.Fprintln(w, "Then configure credentials safely:")
 				// PATCH: Prefer stdin token setup in unauthenticated guidance so tokens do not pass through argv.
 				fmt.Fprintln(w, "  read -r -s STRADDLE_TOKEN_INPUT; straddle-pp-cli auth set-token --stdin <<<\"$STRADDLE_TOKEN_INPUT\"; unset STRADDLE_TOKEN_INPUT")
+				fmt.Fprintln(w, "  Or have your shell or secret manager inject STRADDLE_TOKEN.")
+				fmt.Fprintln(w, "")
+				fmt.Fprintln(w, "Optional live sandbox reachability:")
+				fmt.Fprintln(w, "  After setting an explicit sandbox base URL and credentials, run straddle-pp-cli doctor --json.")
 				return authErr(fmt.Errorf("no credentials configured"))
 			}
 
@@ -79,17 +97,16 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 	// PATCH: Add stdin token setup while keeping legacy positional token compatibility.
 	var fromStdin bool
 	cmd := &cobra.Command{
-		Use:   "set-token [token]",
+		Use:   "set-token --stdin",
 		Short: "Save an API token to the config file",
 		Long: "Save an API token to the config file.\n\n" +
-			"Preferred safe path: pass the token on stdin with --stdin so it does not appear in shell history or process argv.\n" +
-			"Legacy positional token input is still accepted for compatibility, but avoid passing tokens in argv.",
+			"Pass the token on stdin with --stdin so it does not appear in shell history or process lists.",
 		Example: "  read -r -s STRADDLE_TOKEN_INPUT\n" +
 			"  straddle-pp-cli auth set-token --stdin <<<\"$STRADDLE_TOKEN_INPUT\"\n" +
 			"  unset STRADDLE_TOKEN_INPUT",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if fromStdin && len(args) > 0 {
-				return fmt.Errorf("use either --stdin or a positional token, not both")
+				return fmt.Errorf("do not provide both --stdin and a token argument")
 			}
 			if fromStdin {
 				return nil
@@ -145,7 +162,7 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&fromStdin, "stdin", false, "Read the token from stdin instead of argv")
+	cmd.Flags().BoolVar(&fromStdin, "stdin", false, "Read the token from stdin")
 	return cmd
 }
 

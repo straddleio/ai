@@ -933,11 +933,13 @@ type mcpParamBinding struct {
 	Location   string
 }
 
-// PATCH: safe-token-guidance centralizes MCP auth guidance on stdin or secret-manager token injection.
+// PATCH: safe-token-guidance centralizes MCP auth guidance on setup readiness,
+// stdin token setup, and optional live sandbox reachability.
 func safeTokenGuidance() string {
-	return "Save a token with: straddle-pp-cli auth set-token --stdin" +
+	return "Run local setup readiness first: straddle-pp-cli setup check --json" +
+		"\n      Save a token with: straddle-pp-cli auth set-token --stdin" +
 		"\n      Or have your shell or secret manager inject STRADDLE_TOKEN." +
-		"\n      Run 'straddle-pp-cli doctor' to check auth status."
+		"\n      Optional live sandbox reachability: after setting an explicit sandbox base URL and credentials, run straddle-pp-cli doctor --json."
 }
 
 // makeAPIHandler creates a generic MCP tool handler for an API endpoint.
@@ -1219,20 +1221,23 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 
 // PATCH: mcp-count-breakdown keeps generated endpoint count, local typed framework count, and runtime tools/list count separate.
 // PATCH: sandbox-guide adds one Cobra shell-out runtime tool for help-only sandbox guidance.
+// PATCH: setup-check adds one Cobra shell-out runtime tool for local setup readiness.
 const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 81
+	runtimeToolCount        = 82
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
 // PATCH: sandbox-guide records sandbox_guide as a read-only Cobra shell-out runtime tool.
+// PATCH: setup-check records setup_check as a read-only Cobra shell-out runtime tool.
 var runtimeShellOutTools = []string{
 	"analytics",
 	"docs_search",
 	"import",
 	"sandbox_guide",
+	"setup_check",
 	"sync",
 	"tail",
 	"workflow_archive",

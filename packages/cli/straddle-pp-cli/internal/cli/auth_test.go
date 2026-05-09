@@ -28,6 +28,34 @@ func runCLIForAuthTest(t *testing.T, stdin string, args ...string) (string, stri
 	return stdout.String(), stderr.String(), err
 }
 
+func assertCLIAuthReadinessGuidance(t *testing.T, text string) {
+	t.Helper()
+
+	unsafe := []string{
+		"export STRADDLE_TOKEN=<your-key>",
+		"export STRADDLE_TOKEN=<your-token>",
+		strings.Join([]string{"straddle-pp-cli auth set-token", "<token>"}, " "),
+	}
+	for _, wantAbsent := range unsafe {
+		if strings.Contains(text, wantAbsent) {
+			t.Fatalf("auth guidance should not include %q in %q", wantAbsent, text)
+		}
+	}
+	required := []string{
+		"straddle-pp-cli setup check --json",
+		"straddle-pp-cli auth set-token --stdin",
+		"secret manager",
+		"Optional live sandbox reachability",
+		"explicit sandbox base URL and credentials",
+		"straddle-pp-cli doctor --json",
+	}
+	for _, want := range required {
+		if !strings.Contains(text, want) {
+			t.Fatalf("auth guidance missing %q in %q", want, text)
+		}
+	}
+}
+
 func TestAuthSetTokenReadsTokenFromStdin(t *testing.T) {
 	t.Setenv("STRADDLE_TOKEN", "")
 	configPath := filepath.Join(t.TempDir(), "config.toml")
@@ -113,8 +141,8 @@ func TestAuthHelpAndStatusPreferStdinGuidance(t *testing.T) {
 	if !strings.Contains(helpText, "--stdin") {
 		t.Fatalf("help should mention --stdin, got %q", helpText)
 	}
-	if !strings.Contains(helpText, "argv") {
-		t.Fatalf("help should warn against argv tokens, got %q", helpText)
+	if strings.Contains(helpText, "[token]") || strings.Contains(helpText, "argv") || strings.Contains(helpText, "positional") {
+		t.Fatalf("help should not present token arguments as an active path, got %q", helpText)
 	}
 	if strings.Contains(helpText, token) {
 		t.Fatalf("help output leaked token text")
@@ -125,8 +153,19 @@ func TestAuthHelpAndStatusPreferStdinGuidance(t *testing.T) {
 		t.Fatalf("expected unauthenticated status to fail")
 	}
 	statusText := statusOut + statusErr + err.Error()
+	if !strings.Contains(statusText, "straddle-pp-cli setup check --json") {
+		t.Fatalf("status guidance should route to setup check first, got %q", statusText)
+	}
 	if !strings.Contains(statusText, "auth set-token --stdin") {
 		t.Fatalf("status guidance should prefer --stdin, got %q", statusText)
+	}
+	if !strings.Contains(statusText, "secret manager") {
+		t.Fatalf("status guidance should mention secret manager env injection, got %q", statusText)
+	}
+	if !strings.Contains(statusText, "Optional live sandbox reachability") ||
+		!strings.Contains(statusText, "explicit sandbox base URL and credentials") ||
+		!strings.Contains(statusText, "straddle-pp-cli doctor --json") {
+		t.Fatalf("status guidance should sandbox-qualify optional doctor, got %q", statusText)
 	}
 	if strings.Contains(statusText, "set-token <"+"token"+">") {
 		t.Fatalf("status guidance should not recommend argv token form, got %q", statusText)
@@ -134,4 +173,16 @@ func TestAuthHelpAndStatusPreferStdinGuidance(t *testing.T) {
 	if strings.Contains(statusText, token) {
 		t.Fatalf("status output leaked token text")
 	}
+}
+
+func TestAuthStatusJSONUnauthenticatedRoutesThroughSetupCheck(t *testing.T) {
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "missing.toml")
+
+	stdout, stderr, err := runCLIForAuthTest(t, "", "auth", "status", "--json", "--config", configPath)
+	if err == nil {
+		t.Fatalf("expected unauthenticated status JSON to fail")
+	}
+	statusText := stdout + stderr + err.Error()
+	assertCLIAuthReadinessGuidance(t, statusText)
 }

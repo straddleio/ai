@@ -42,10 +42,10 @@ The workflow requires exact paths for existing spec, plan, audit, generated CLI,
 - The generated config records `auth_type` as `bearer_token`.
 - The configured environment variable is `STRADDLE_TOKEN`.
 - The MCP bundle manifest marks `straddle_token` as sensitive and required.
-- The current generated auth command stores a token through `straddle-pp-cli auth set-token <token>`, which passes the token through argv. The next slice already calls for a safer stdin or equivalent path.
+- Earlier research flagged positional token input as unsafe because it can put secrets in argv. That wording is now stale: the safe path has been implemented through `auth set-token --stdin`, and MCP or shell setup should inject `STRADDLE_TOKEN` through a secure secret flow.
 - No secret value was read, printed, requested, or used.
 
-Evidence: `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/.printing-press.json:18`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/.printing-press.json:19`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/manifest.json:23`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/manifest.json:27`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/internal/cli/auth.go:77`, and `/Users/js/clawd/straddle/straddle-ai/cli-plans/2026-05-09-straddle-printing-press-cli-spec.md:215`.
+Evidence: `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/.printing-press.json:18`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/.printing-press.json:19`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/manifest.json:23`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/manifest.json:27`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/internal/cli/auth.go:85`, `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli/internal/mcp/tools.go:938`, and `/Users/js/clawd/straddle/straddle-ai/cli-plans/2026-05-09-straddle-printing-press-cli-spec.md:215`.
 
 ### Reused artifacts
 
@@ -93,8 +93,8 @@ The Straddle CLI should turn the public OpenAPI surface into a terminal product 
 
 ### Launch-blocker list
 
-- Safe token input is not done. Current generated docs and command shape still expose an argv token path.
-- Auth docs are not final across environment variable, config file, and safer stdin or equivalent input.
+- Safe token input is implemented for the local preview through `auth set-token --stdin` and secure `STRADDLE_TOKEN` injection. Remaining launch review should keep generated docs, MCP guidance, and config-file behavior aligned with those safe paths.
+- Auth docs are not final across environment variable, config file, stdin input, and secret-manager injection.
 - Agent JSON output is not launch-ready for the target envelope.
 - Generated README and SKILL install docs still imply unavailable published artifacts in some places.
 - MCP smoke proof is not yet documented for the generated `straddle-pp-mcp` binary.

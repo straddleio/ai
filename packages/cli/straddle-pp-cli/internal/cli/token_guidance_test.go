@@ -22,7 +22,7 @@ func unsafeTokenGuidance() []string {
 	}
 }
 
-func assertSafeTokenGuidance(t *testing.T, text string) {
+func assertNoUnsafeArgvTokenGuidance(t *testing.T, text string) {
 	t.Helper()
 
 	for _, unsafe := range unsafeTokenGuidance() {
@@ -30,11 +30,25 @@ func assertSafeTokenGuidance(t *testing.T, text string) {
 			t.Fatalf("token guidance should not include %q in %q", unsafe, text)
 		}
 	}
+}
+
+func assertRuntimeAuthGuidance(t *testing.T, text string) {
+	t.Helper()
+
+	assertNoUnsafeArgvTokenGuidance(t, text)
+	if !strings.Contains(text, "straddle-pp-cli setup check --json") {
+		t.Fatalf("auth guidance should route to setup check first, got %q", text)
+	}
 	if !strings.Contains(text, "straddle-pp-cli auth set-token --stdin") {
 		t.Fatalf("token guidance should prefer stdin auth setup, got %q", text)
 	}
 	if !strings.Contains(text, "secret manager") {
 		t.Fatalf("token guidance should mention secret manager env injection, got %q", text)
+	}
+	if !strings.Contains(text, "Optional live sandbox reachability") ||
+		!strings.Contains(text, "explicit sandbox base URL and credentials") ||
+		!strings.Contains(text, "straddle-pp-cli doctor --json") {
+		t.Fatalf("doctor guidance should be optional and sandbox-scoped, got %q", text)
 	}
 }
 
@@ -59,7 +73,7 @@ func TestDoctorJSONUnauthenticatedAuthHintUsesSafeTokenGuidance(t *testing.T) {
 	if !ok || hint == "" {
 		t.Fatalf("doctor JSON should include auth_hint, got %#v", report["auth_hint"])
 	}
-	assertSafeTokenGuidance(t, hint)
+	assertNoUnsafeArgvTokenGuidance(t, hint)
 }
 
 func TestClassifyAPIErrorAuthHintsUseSafeTokenGuidance(t *testing.T) {
@@ -102,7 +116,7 @@ func TestClassifyAPIErrorAuthHintsUseSafeTokenGuidance(t *testing.T) {
 			if err == nil {
 				t.Fatalf("classifyAPIError returned nil")
 			}
-			assertSafeTokenGuidance(t, err.Error())
+			assertRuntimeAuthGuidance(t, err.Error())
 		})
 	}
 }

@@ -87,7 +87,8 @@ func newRootCmd(flags *rootFlags) *cobra.Command {
 		Long: `Manage straddle resources via the straddle API.
 
 Add --agent to any command for JSON output + non-interactive mode.
-Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
+Run 'straddle-pp-cli setup check --json' for local setup readiness.
+Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability after explicit sandbox configuration.`,
 		SilenceUsage: true,
 		Version:      version,
 	}
@@ -127,7 +128,7 @@ Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
 				cmd.SetOut(io.MultiWriter(os.Stdout, flags.deliverBuf))
 			}
 		}
-		if flags.profileName != "" {
+		if flags.profileName != "" && !isSetupCheckCommand(cmd) {
 			profile, err := GetProfile(flags.profileName)
 			if err != nil {
 				return err
@@ -192,6 +193,9 @@ Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
 	// PATCH: sandbox-guide adds help-only sandbox scenario guidance without
 	// calling Straddle APIs, docs endpoints, or production.
 	rootCmd.AddCommand(newSandboxCmd(flags))
+	// PATCH: setup-check adds a local-only first-run readiness preflight without
+	// calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
+	rootCmd.AddCommand(newSetupCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))
@@ -207,6 +211,11 @@ Run 'straddle-pp-cli doctor' to verify auth and connectivity.`,
 	rootCmd.AddCommand(newVersionCliCmd())
 
 	return rootCmd
+}
+
+// PATCH: setup-check stays local-only even when --profile is present.
+func isSetupCheckCommand(cmd *cobra.Command) bool {
+	return cmd != nil && cmd.CommandPath() == cmd.Root().Name()+" setup check"
 }
 
 type aboutPayload struct {
@@ -268,9 +277,10 @@ func buildAboutPayload() aboutPayload {
 		OpenAPISource: "/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json",
 		MCPSibling:    "straddle-pp-mcp",
 		NextChecks: []string{
-			"doctor",
-			"agent-context",
-			"which",
+			"straddle-pp-cli setup check --json",
+			"straddle-pp-cli agent-context --pretty",
+			"straddle-pp-cli which \"<capability>\" --json",
+			"optional live sandbox reachability after explicit sandbox base URL and credentials: straddle-pp-cli doctor --json",
 		},
 		RequiresAuth:      false,
 		MakesAPICalls:     false,

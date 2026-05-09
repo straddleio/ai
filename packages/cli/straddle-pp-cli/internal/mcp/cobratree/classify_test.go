@@ -27,7 +27,16 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 		Run: func(*cobra.Command, []string) {},
 	}
 	sandbox.AddCommand(sandboxGuide)
-	root.AddCommand(topLevelSearch, docs, sandbox)
+	setup := &cobra.Command{Use: "setup"}
+	setupCheck := &cobra.Command{
+		Use: "check",
+		Annotations: map[string]string{
+			ReadOnlyAnnotation: "true",
+		},
+		Run: func(*cobra.Command, []string) {},
+	}
+	setup.AddCommand(setupCheck)
+	root.AddCommand(topLevelSearch, docs, sandbox, setup)
 
 	if got := classify(topLevelSearch); got != commandFramework {
 		t.Fatalf("top-level search classified as %v, want commandFramework", got)
@@ -48,5 +57,8 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["sandbox_guide"]; !ok {
 		t.Fatalf("sandbox_guide shell-out tool was not registered; tools = %#v", tools)
+	}
+	if _, ok := tools["setup_check"]; !ok {
+		t.Fatalf("setup_check shell-out tool was not registered; tools = %#v", tools)
 	}
 }
