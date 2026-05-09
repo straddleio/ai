@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { ROOT, SKILLS_DIR, SYNC_TARGETS, SKIP } = require('./shared');
+const { validateCli } = require('./validate-cli');
 
 let errors = 0;
 
@@ -249,6 +250,17 @@ function checkRefs(dir) {
 
 checkRefs(SKILLS_DIR);
 pass(`Checked ${refsChecked} references across skill files`);
+
+// Check 8: Generated CLI artifacts
+
+console.log('\n=== Generated CLI artifacts ===');
+const cliResult = validateCli();
+for (const msg of cliResult.passes) {
+  pass(msg);
+}
+for (const msg of cliResult.errors) {
+  fail(msg);
+}
 
 // --- Summary ---
 
