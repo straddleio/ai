@@ -358,22 +358,29 @@ After each slice passes spec review, quality review, and verification, the contr
 
 #### Task 13: Run Phase 4 review gates and audit update
 
-**Description:** After Tasks 7 through 12, run the required review gates and update the completion audit. The audit must say what was implemented, what remains incomplete, and what proves each claim.
+**Description:** After Tasks 7 through 12, run the required review gates and update the completion audit. The audit must say what was implemented, what remains incomplete, and what proves each claim. The Phase 4 scorecard lives at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md` and is the single place that combines dogfood checks, verification commands, caveats, and launch readiness status.
 
 **Acceptance criteria:**
 
 - [ ] A spec review subagent returns no blocking findings.
 - [ ] A quality review subagent returns no blocking findings.
-- [ ] The audit records the Phase 4 outcome and does not claim full public launch completion.
-- [ ] The audit keeps later workflow engine work out of this slice.
-- [ ] Final status shows only intended changes.
+- [x] The audit records the Phase 4 outcome and does not claim full public launch completion.
+- [x] The audit keeps later workflow engine work out of this slice.
+- [x] The scorecard records dogfood checks for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, agent envelopes, MCP smoke/count, and patch manifest validity.
+- [x] The scorecard records the sandbox caveat for broad Go and MCP tests that need localhost bind.
+- [x] Final status shows only intended changes.
 
 **Verification:**
 
-- [ ] Run `npm run validate`.
-- [ ] Run the generated Go verification commands needed by touched files.
-- [ ] Run the text check for banned punctuation, banned terms, and emoji.
-- [ ] Run `git status --short`.
+- [x] Run `npm run validate`.
+- [x] Run `git diff --check`.
+- [x] Run the scorecard text check:
+  ```bash
+  rg -n '2026-05-09-straddle-cli-shipcheck-scorecard|about|setup check|docs search --source commands|sandbox guide|ops guide|agent envelope|MCP smoke|patch manifest|localhost bind|Partial' cli-plans packages/cli/README.md
+  ```
+- [x] Run the generated Go verification commands needed by touched files, or record why they were not needed for docs-only changes. Current slice touched planning docs only, so generated Go verification was not needed.
+- [x] Run the text check for banned punctuation, banned terms, and emoji.
+- [x] Run `git status --short`.
 
 **Dependencies:** Tasks 7 through 12.
 
