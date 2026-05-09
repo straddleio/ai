@@ -123,14 +123,13 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
 
 ## Missing Work Before Goal Completion
 
-1. Implement the selected next slice: CLI contract and honesty. It is planned, not done. The planned work is:
-   - Add `auth set-token --stdin` or an equivalent safe non-echo, non-argv token path.
+1. Implement the selected next slice: CLI contract and honesty. First implementation part is partial. Safe token input is implemented and tested. Remaining planned work is:
    - Document the current generated `{results, meta}` or raw JSON behavior as an agent JSON gap that is not launch-ready for the final target envelope.
    - Defer full target-envelope implementation to a later focused implementation slice.
    - Make generated README and SKILL install docs honest about local preview, future release, MCP registration, and public launch.
    - Add MCP smoke instructions that prove `straddle-pp-mcp` starts and exposes generated tools from the generated command tree.
    - Add a sandbox-safe setup plus read-only customer and payment walkthrough with no production calls.
-   - Document the patch layer using `// PATCH:` comments and `.printing-press-patches.json`.
+   - Keep the patch layer current using `// PATCH:` comments and `.printing-press-patches.json`.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:
    - Publishing.

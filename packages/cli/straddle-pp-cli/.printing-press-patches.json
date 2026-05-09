@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "applied_at": "2026-05-09",
+  "base_run_id": "2026-05-09T05:44:02.46878Z",
+  "base_printing_press_version": "4.2.0",
+  "patches": [
+    {
+      "id": "safe-token-stdin",
+      "summary": "Add safe stdin token setup, env-token persistence protection, and stdin-first guidance for auth set-token.",
+      "reason": "The generated argv-only token setup can expose tokens through shell history and process lists. The preview needs a safer config-file path while preserving legacy argv compatibility, and stdin saves must not persist an env token imported during config load.",
+      "files": [
+        "internal/cli/auth.go",
+        "internal/cli/auth_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli covers stdin save, env-token non-persistence, empty stdin rejection, and stdin-first help/status guidance."
+    }
+  ]
+}

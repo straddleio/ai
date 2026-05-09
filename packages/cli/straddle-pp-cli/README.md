@@ -390,7 +390,7 @@ Here is a summary of the HTTP status and error codes that Straddle may return:
 | **409** | Conflict | The request conflicts with another request (e.g., using the same idempotency key). |
 | **422** | Unprocessable Entity | The request was well-formed but could not be processed due to semantic errors. |
 | **429** | Too Many Requests | Too many requests have been made in a short period of time. Implement exponential backoff and retry later. |
-| **500, 502, 503, 504** | Server Errors | Server errors—something went wrong on Straddle's end. These errors are rare. |
+| **500, 502, 503, 504** | Server Errors | Server errors - something went wrong on Straddle's end. These errors are rare. |
 
 | Error Type | Description |
 | ---------- | ----------- |
@@ -501,17 +501,23 @@ See [Install](#install) above.
 
 ### 2. Set Up Credentials
 
-Get your access token from your API provider's developer portal, then store it:
+Get your access token from your API provider's developer portal, then store it through stdin:
 
 ```bash
-straddle-pp-cli auth set-token YOUR_TOKEN_HERE
+read -r -s STRADDLE_TOKEN_INPUT
+straddle-pp-cli auth set-token --stdin <<<"$STRADDLE_TOKEN_INPUT"
+unset STRADDLE_TOKEN_INPUT
 ```
 
-Or set it via environment variable:
+Supported auth paths:
 
-```bash
-export STRADDLE_TOKEN="your-token-here"
-```
+- `STRADDLE_TOKEN` for shells, CI, and MCP launches that inject credentials through the environment.
+- Config-file auth through `auth set-token --stdin`.
+- Custom config paths through `--config /path/to/config.toml`, for example `auth set-token --stdin --config /path/to/config.toml`.
+
+The legacy positional token form still works for compatibility, but avoid it. Tokens must not be committed, printed in logs, or passed in argv.
+
+Or set `STRADDLE_TOKEN` through your shell's secure secret flow.
 
 ### 3. Verify Setup
 
@@ -657,10 +663,10 @@ straddle-pp-cli accounts list --json
 # Filter to specific fields
 straddle-pp-cli accounts list --json --select id,name,status
 
-# Dry run — show the request without sending
+# Dry run - show the request without sending
 straddle-pp-cli accounts list --dry-run
 
-# Agent mode — JSON + compact + no prompts in one flag
+# Agent mode - JSON + compact + no prompts in one flag
 straddle-pp-cli accounts list --agent
 ```
 
@@ -682,13 +688,13 @@ Exit codes: `0` success, `2` usage error, `3` not found, `4` auth error, `5` API
 
 ## Use with Claude Code
 
-Install the focused skill — it auto-installs the CLI on first invocation:
+Install the focused skill - it auto-installs the CLI on first invocation:
 
 ```bash
 npx skills add mvanhorn/printing-press-library/cli-skills/pp-straddle -g
 ```
 
-Then invoke `/pp-straddle <query>` in Claude Code. The skill is the most efficient path — Claude Code drives the CLI directly without an MCP server in the middle.
+Then invoke `/pp-straddle <query>` in Claude Code. The skill is the most efficient path - Claude Code drives the CLI directly without an MCP server in the middle.
 
 <details>
 <summary>Use as an MCP server in Claude Code (advanced)</summary>
@@ -698,17 +704,17 @@ If you'd rather register this CLI as an MCP server in Claude Code, install the M
 
 Install the MCP binary from this CLI's published public-library entry or pre-built release.
 
-Then register it:
+Then register it using your client's secure environment-variable flow. Do not put the token value in the command line.
 
 ```bash
-claude mcp add straddle straddle-pp-mcp -e STRADDLE_TOKEN=<your-token>
+claude mcp add straddle straddle-pp-mcp
 ```
 
 </details>
 
 ## Use with Claude Desktop
 
-This CLI ships an [MCPB](https://github.com/modelcontextprotocol/mcpb) bundle — Claude Desktop's standard format for one-click MCP extension installs (no JSON config required).
+This CLI ships an [MCPB](https://github.com/modelcontextprotocol/mcpb) bundle - Claude Desktop's standard format for one-click MCP extension installs (no JSON config required).
 
 To install:
 
@@ -766,7 +772,7 @@ Environment variables:
 ## Troubleshooting
 **Authentication errors (exit code 4)**
 - Run `straddle-pp-cli doctor` to check credentials
-- Verify the environment variable is set: `echo $STRADDLE_TOKEN`
+- Verify the environment variable is present without printing it: `test -n "$STRADDLE_TOKEN" && echo STRADDLE_TOKEN is set`
 **Not found errors (exit code 3)**
 - Check the resource ID is correct
 - Run the `list` command to see available items

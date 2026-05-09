@@ -5,7 +5,9 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"straddle-pp-cli/internal/config"
@@ -59,8 +61,9 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 				fmt.Fprintln(w, red("Not authenticated"))
 				fmt.Fprintln(w, "")
 				fmt.Fprintln(w, "Set your token:")
-				fmt.Fprintln(w, "  export STRADDLE_TOKEN=\"your-token-here\"")
-				fmt.Fprintf(w, "  straddle-pp-cli auth set-token <token>\n")
+				fmt.Fprintln(w, "  Set STRADDLE_TOKEN from your shell's secure secret flow")
+				// PATCH: Prefer stdin token setup in unauthenticated guidance so tokens do not pass through argv.
+				fmt.Fprintln(w, "  read -r -s STRADDLE_TOKEN_INPUT; straddle-pp-cli auth set-token --stdin <<<\"$STRADDLE_TOKEN_INPUT\"; unset STRADDLE_TOKEN_INPUT")
 				return authErr(fmt.Errorf("no credentials configured"))
 			}
 
@@ -73,15 +76,50 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 }
 
 func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
-	return &cobra.Command{
-		Use:     "set-token <token>",
-		Short:   "Save an API token to the config file",
-		Example: "  straddle-pp-cli auth set-token YOUR_TOKEN_HERE",
-		Args:    cobra.ExactArgs(1),
+	// PATCH: Add stdin token setup while keeping legacy positional token compatibility.
+	var fromStdin bool
+	cmd := &cobra.Command{
+		Use:   "set-token [token]",
+		Short: "Save an API token to the config file",
+		Long: "Save an API token to the config file.\n\n" +
+			"Preferred safe path: pass the token on stdin with --stdin so it does not appear in shell history or process argv.\n" +
+			"Legacy positional token input is still accepted for compatibility, but avoid passing tokens in argv.",
+		Example: "  read -r -s STRADDLE_TOKEN_INPUT\n" +
+			"  straddle-pp-cli auth set-token --stdin <<<\"$STRADDLE_TOKEN_INPUT\"\n" +
+			"  unset STRADDLE_TOKEN_INPUT",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if fromStdin && len(args) > 0 {
+				return fmt.Errorf("use either --stdin or a positional token, not both")
+			}
+			if fromStdin {
+				return nil
+			}
+			if len(args) != 1 {
+				return fmt.Errorf("token required: use --stdin for safe input")
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load(flags.configPath)
 			if err != nil {
 				return configErr(err)
+			}
+			token := ""
+			if fromStdin {
+				// PATCH: Read token from stdin so scripts can avoid exposing credentials through argv.
+				data, err := io.ReadAll(cmd.InOrStdin())
+				if err != nil {
+					return configErr(fmt.Errorf("reading token from stdin: %w", err))
+				}
+				token = strings.TrimSpace(string(data))
+				if token == "" {
+					return configErr(fmt.Errorf("token read from stdin is empty"))
+				}
+			} else {
+				token = strings.TrimSpace(args[0])
+				if token == "" {
+					return configErr(fmt.Errorf("token is empty"))
+				}
 			}
 
 			// Clear any legacy auth_header so AuthHeader() falls through to
@@ -91,7 +129,8 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 			// log line): a masked-tail variant could leak token bytes through
 			// scripted dogfood that captures stderr.
 			cfg.AuthHeaderVal = ""
-			if err := cfg.SaveTokens("", "", args[0], "", cfg.TokenExpiry); err != nil {
+			cfg.StraddleToken = ""
+			if err := cfg.SaveTokens("", "", token, "", cfg.TokenExpiry); err != nil {
 				return configErr(fmt.Errorf("saving token: %w", err))
 			}
 
@@ -106,6 +145,8 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&fromStdin, "stdin", false, "Read the token from stdin instead of argv")
+	return cmd
 }
 
 func newAuthLogoutCmd(flags *rootFlags) *cobra.Command {

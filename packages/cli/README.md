@@ -19,7 +19,22 @@ Task 1 created the first generated baseline with these quality facts:
 - `gofmt` was clean.
 - `go test ./...` passed.
 
-This is not a public launch candidate yet. It is a first slice for reviewers to inspect command coverage, generation provenance, MCP shape, and the remaining workflow gaps.
+The first auth contract slice added `straddle-pp-cli auth set-token --stdin` so config-file token setup no longer requires a token in argv. This is still not a public launch candidate. Reviewers still need to inspect command coverage, generation provenance, MCP shape, and the remaining workflow gaps.
+
+## Auth Paths
+
+The preview supports three credential paths:
+
+- `STRADDLE_TOKEN` for shells, CI, and MCP launches that inject credentials through the environment.
+- Config-file auth through safe stdin input:
+  ```bash
+  read -r -s STRADDLE_TOKEN_INPUT
+  straddle-pp-cli auth set-token --stdin <<<"$STRADDLE_TOKEN_INPUT"
+  unset STRADDLE_TOKEN_INPUT
+  ```
+- A custom config file with `--config /path/to/config.toml`, including `auth set-token --stdin --config /path/to/config.toml` and `auth status --config /path/to/config.toml`.
+
+Do not commit tokens. Do not print tokens in logs. Do not pass tokens in argv unless you are using the legacy compatibility path and have accepted the shell history and process-list risk.
 
 ## Regenerate
 
@@ -109,7 +124,7 @@ Do not copy Stainless architecture into this package.
 The generated baseline is not ready to replace the public CLI until these gaps are closed:
 
 - Installer and release packaging are not done.
-- Auth setup and token handling are not final.
+- Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
 - Agent JSON envelope may not match the target Straddle contract.
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples and sandbox-safe verification.
