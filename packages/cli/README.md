@@ -42,6 +42,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 
+`straddle-pp-cli docs search <query>` is the docs lookup command. It defaults to unauthenticated product docs search through `https://docs.straddle.com/mcp`, supports `--endpoint` and `STRADDLE_DOCS_MCP_URL` only for loopback local tests, and keeps API or SDK reference guidance separate from the local synced-data `search` command. Use `--source commands` to search local generated command capabilities.
+
 ## Streaming Agent Contract
 
 This contract is implemented for `sync --agent` and real `tail --agent`.
@@ -92,7 +94,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. A runtime `tools/list` smoke from the built `/tmp/straddle-pp-mcp` binary returned 79 tools because the MCP runtime also exposes 6 Cobra shell-out tools: `analytics`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 80 because the MCP runtime also exposes 7 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -258,7 +260,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - `sync --agent` and real `tail --agent` event streams now emit the target envelope while normal `--json` streams remain raw NDJSON.
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
-- Sandbox testing and docs search need first-class terminal flows or clear guidance.
+- Sandbox testing still needs a first-class terminal flow. Docs search now has `straddle-pp-cli docs search`, separate from local synced-data `search`.
 
 ## Later Polish
 

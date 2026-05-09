@@ -77,10 +77,18 @@ func classify(cmd *cobra.Command) commandKind {
 	if endpointID(cmd) != "" {
 		return commandEndpoint
 	}
-	if frameworkCommands[cmd.Name()] {
+	if isTopLevelCommand(cmd) && frameworkCommands[cmd.Name()] {
 		return commandFramework
 	}
 	return commandNovel
+}
+
+func isTopLevelCommand(cmd *cobra.Command) bool {
+	if cmd == nil {
+		return false
+	}
+	parent := cmd.Parent()
+	return parent == nil || parent.Parent() == nil
 }
 
 func endpointID(cmd *cobra.Command) string {

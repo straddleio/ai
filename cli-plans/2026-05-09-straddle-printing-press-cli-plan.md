@@ -423,6 +423,45 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Estimated scope:** Small to medium.
 
+#### Task 15: Implement docs search terminal flow
+
+**Description:** Implemented as a bounded patch-layer command. `docs search <query>` is separate from the existing local synced-data `search` command. Product docs search is the default and uses the unauthenticated product docs MCP endpoint. Command search is local through the generated capability index. API and SDK sources return structured guidance for the `search_docs` MCP source instead of pretending local data search covers reference docs.
+
+**Acceptance criteria:**
+
+- [x] `docs search <query>` exists under a `docs` command tree.
+- [x] Root registration has a `// PATCH:` comment and generated endpoint commands are untouched.
+- [x] `--source product|commands|api|sdk` is supported, defaulting to `product`.
+- [x] Product docs search accepts `--endpoint` and `STRADDLE_DOCS_MCP_URL` only for loopback local tests and does not require Straddle API auth.
+- [x] `--source commands` uses `whichIndex` and `rankWhich`.
+- [x] `--source api` and `--source sdk` return guidance for the `search_docs` MCP source.
+- [x] `--limit`, `--dry-run`, `--json`, and `--agent` are covered.
+- [x] `--agent` output uses the target envelope through the existing local JSON helper path.
+
+**Verification:**
+
+- [x] Run `go test -count=1 ./internal/cli -run 'Test.*Docs'`.
+- [x] Run `go test -count=1 ./internal/cli -run 'Test.*Docs|Test.*Search|Test.*Which'`.
+- [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
+- [x] Run `npm run validate`.
+
+**Dependencies:** Product docs skill behavior and existing `which` capability index.
+
+**Files likely touched:**
+
+- `packages/cli/straddle-pp-cli/internal/cli/docs.go`
+- `packages/cli/straddle-pp-cli/internal/cli/docs_test.go`
+- `packages/cli/straddle-pp-cli/internal/cli/root.go`
+- `packages/cli/README.md`
+- `packages/cli/straddle-pp-cli/README.md`
+- `packages/cli/straddle-pp-cli/SKILL.md`
+- `packages/cli/straddle-pp-cli/.printing-press-patches.json`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-spec.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`
+
+**Estimated scope:** Small.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

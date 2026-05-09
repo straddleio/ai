@@ -121,6 +121,27 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-spec.md"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'Test.*(Sync|Tail).*Agent|Test.*Stream|Test.*Redact' covers sync agent envelopes, warning events, tail data envelopes, final tail_end, sensitive key redaction, and raw non-agent tail JSON streams."
+    },
+    {
+      "id": "docs-search",
+      "summary": "Add docs search as a first-class terminal flow separate from synced local data search.",
+      "reason": "Product docs, API reference docs, SDK docs, generated command capabilities, and synced local data are different sources. The generated search command already means local synced data search, so docs lookup needs its own command tree.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/docs.go",
+        "internal/cli/docs_test.go",
+        "internal/mcp/cobratree/classify.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-spec.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'Test.*Docs' covers product docs MCP search with httptest, loopback-only endpoint overrides, bounded responses and parsed fields, commands source JSON, API guidance JSON, dry-run metadata without a server call, docs search --agent target envelope output, and docs search rejecting --deliver before webhook delivery. go test -count=1 ./internal/mcp ./internal/mcp/cobratree covers docs_search MCP shell-out exposure, docs_search readOnlyHint, top-level search staying typed-only, and runtime count 80."
     }
   ]
 }

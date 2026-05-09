@@ -47,7 +47,7 @@ Absorbed implications:
 - The existing hosted MCP configs are plugin integration surfaces, not the generated Printing Press MCP binary.
 - The generated MCP manifest already expects a sensitive `STRADDLE_TOKEN` user config and launches `bin/straddle-pp-mcp`.
 - The next implementation slice should not create a second MCP command tree. It should extend or document the generated CLI and generated MCP relationship.
-- MCP count evidence is now resolved. `packages/cli/straddle-pp-cli/.printing-press.json:15` records 70 generated endpoint tools, `packages/cli/straddle-pp-cli/internal/mcp/tools.go` has 73 typed tools after adding `search`, `sql`, and `context`, and runtime `tools/list` exposes 79 tools after six Cobra shell-out tools are registered. Phase 4 now validates this source count invariant.
+- MCP count evidence is now resolved. `packages/cli/straddle-pp-cli/.printing-press.json:15` records 70 generated endpoint tools, `packages/cli/straddle-pp-cli/internal/mcp/tools.go` has 73 typed tools after adding `search`, `sql`, and `context`, and runtime `tools/list` exposes 80 tools after seven Cobra shell-out tools are registered, including `docs_search`. Phase 4 now validates this source count invariant.
 
 ## Canonical Skills
 
@@ -204,7 +204,7 @@ These are suggestions only. They are not required implementation unless a future
 - Generated CLI has `which`, but no command that maps slash-command scenarios to CLI commands.
 - Generated CLI has `agent-context`, but generated MCP context and CLI context need an explicit docs contract for users.
 - Generated CLI has `doctor`, and generated MCP smoke guidance now documents how to build `/tmp/straddle-pp-mcp`, run `tools/list`, and remove the temporary binary afterward.
-- Generated CLI metadata and typed MCP registrations now have explicit count semantics: generated metadata says 70 endpoint tools, typed registration count is 73 after 3 framework typed tools, and runtime `tools/list` count is 79 after Cobra shell-out tools.
+- Generated CLI metadata and typed MCP registrations now have explicit count semantics: generated metadata says 70 endpoint tools, typed registration count is 73 after 3 framework typed tools, and runtime `tools/list` count is 80 after Cobra shell-out tools.
 - Generated CLI has sandbox-capable API roots, but no help-only sandbox scenario command that avoids live writes.
 - Generated CLI has `auth set-token`, while the generated MCP manifest expects `STRADDLE_TOKEN`; docs need to reconcile config file auth and env auth.
 - Generated CLI has promoted `payments`, `reports`, `account-settings`, and `funding-event-payments`, but no plain map showing which are OpenAPI endpoint mirrors versus custom workflow commands.

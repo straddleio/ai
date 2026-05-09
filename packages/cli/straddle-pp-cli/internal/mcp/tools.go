@@ -1222,12 +1222,13 @@ const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 79
+	runtimeToolCount        = 80
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
 var runtimeShellOutTools = []string{
 	"analytics",
+	"docs_search",
 	"import",
 	"sync",
 	"tail",

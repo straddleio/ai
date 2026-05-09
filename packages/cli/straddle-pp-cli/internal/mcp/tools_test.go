@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	mcplib "github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 )
 
 func unsafeTokenGuidance() []string {
@@ -127,6 +128,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 
 	wantShellOutTools := []string{
 		"analytics",
+		"docs_search",
 		"import",
 		"sync",
 		"tail",
@@ -143,8 +145,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 79 {
-		t.Fatalf("runtime_tool_count = %d, want 79", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 80 {
+		t.Fatalf("runtime_tool_count = %d, want 80", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -154,6 +156,23 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	}
 	if !strings.Contains(got.ToolCountMeaning, "runtime_tool_count") {
 		t.Fatalf("tool_count_meaning should explain runtime count, got %q", got.ToolCountMeaning)
+	}
+}
+
+func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
+	mcpServer := server.NewMCPServer("test", "0.0.0")
+	RegisterTools(mcpServer)
+
+	tools := mcpServer.ListTools()
+	tool, ok := tools["docs_search"]
+	if !ok {
+		t.Fatalf("docs_search MCP tool was not registered; tools = %#v", tools)
+	}
+	if tool.Tool.Annotations.ReadOnlyHint == nil || !*tool.Tool.Annotations.ReadOnlyHint {
+		t.Fatalf("docs_search readOnlyHint = %v, want true", tool.Tool.Annotations.ReadOnlyHint)
+	}
+	if tool.Tool.Annotations.DestructiveHint == nil || *tool.Tool.Annotations.DestructiveHint {
+		t.Fatalf("docs_search destructiveHint = %v, want false", tool.Tool.Annotations.DestructiveHint)
 	}
 }
 

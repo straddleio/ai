@@ -118,7 +118,7 @@ Target agent JSON contract for the CLI:
 }
 ```
 
-Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also emit this target envelope only when `--agent` is active; normal `--json` output stays raw. `agent-context --agent` emits the target envelope with the existing v3 agent context object under `data`. `about --agent` also emits the target envelope for local preview status. Task 14 now wraps `sync --agent` and real `tail --agent` stream lines in the same target envelope. The broader public CLI launch is still incomplete.
+Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent` and `docs search --agent`, also emit this target envelope only when `--agent` is active; normal `--json` output stays raw. `agent-context --agent` emits the target envelope with the existing v3 agent context object under `data`. `about --agent` also emits the target envelope for local preview status. Task 14 now wraps `sync --agent` and real `tail --agent` stream lines in the same target envelope. The broader public CLI launch is still incomplete.
 
 ## Streaming Agent Contract
 
@@ -241,7 +241,8 @@ Scope:
 - Add a safe token input path such as `auth set-token --stdin`, or an equivalent non-echo, non-argv credential path.
 - Document the supported auth paths clearly: environment variable, config file, and any new stdin token path.
 - Document that provenance-backed generated list/read output, `printJSONFiltered` command-specific local output under `--agent`, and `about --agent` use the target envelope.
-- Document that normal `printJSONFiltered --json` output stays raw, and that `sync` and real `tail` event streams still do not use the target envelope.
+- Add `docs search <query>` as a patch-layer terminal flow separate from local synced-data `search`. It must default to unauthenticated product docs search, support `--source product|commands|api|sdk`, and route API or SDK reference users to the `search_docs` MCP source for now.
+- Document that normal `printJSONFiltered --json` output stays raw, and that `sync --agent` and real `tail --agent` event streams use the target envelope.
 - Update generated README and SKILL install docs so they stop implying unavailable published artifacts. They must clearly separate local preview, future release, MCP registration, and public launch.
 - Add MCP smoke instructions that prove `straddle-pp-mcp` starts and exposes generated tools from the generated command tree.
 - Add one sandbox-safe walkthrough for setup plus read-only customer and payment exploration. The walkthrough must not make production calls.
@@ -264,6 +265,7 @@ Acceptance criteria:
 - The auth path accepts a token without echoing it in the terminal and without passing it through argv, or the chosen equivalent is documented with the same safety properties.
 - The README documents env, config, and stdin or equivalent auth paths without implying that secrets should be committed.
 - The `--agent` output contract is documented. The README and audit state that provenance-backed generated list/read output, `printJSONFiltered` command-specific local output under `--agent`, `about --agent`, `sync --agent`, and real `tail --agent` stream lines use the target envelope. The full public CLI launch remains incomplete.
+- `docs search <query>` is first-class and distinct from synced-data `search`. Product docs search uses the product docs MCP endpoint without Straddle API auth, command search is local, and API or SDK sources return `search_docs` guidance.
 - Generated install docs separate local preview, future release, MCP registration, and public launch.
 - MCP smoke docs build or run `straddle-pp-mcp` from the generated project and verify that generated tools are exposed without a separate MCP tree.
 - The walkthrough uses sandbox-safe setup and read-only customer and payment exploration only.
