@@ -72,6 +72,32 @@ For one-off shells, CI, and MCP launches, inject `STRADDLE_TOKEN` through the ca
 test -n "$STRADDLE_TOKEN" && echo STRADDLE_TOKEN is set
 ```
 
+## Streaming Agent Contract
+
+This is the proposed next implementation contract for `sync --agent` and real `tail --agent`. It is not implemented yet.
+
+`sync` and real `tail` are NDJSON streams, not single response objects. Normal human output and normal `--json` streaming behavior must remain backward compatible until a deliberate breaking change is approved.
+
+Future agent stream lines should write one JSON object per line to stdout. Each line should use the same top-level keys as the target envelope, with `data` holding the event-specific payload:
+
+```json
+{
+  "schema_version": "1.0",
+  "data": {
+    "event": "sync_start",
+    "timestamp": "2026-05-09T00:00:00Z"
+  },
+  "pagination": null,
+  "warnings": [],
+  "trace_id": null,
+  "error": null
+}
+```
+
+Each stream line needs a stable event name in `data.event`, an ISO timestamp in `data.timestamp` when the source has one, and no secrets or token-shaped values. Existing events such as `sync_start`, `sync_warning`, `sync_summary`, and real tail data events should live under `data`.
+
+Terminal and status chatter belongs on stderr in human mode. Agent stream data belongs on stdout. Once implemented, `sync_summary` and final tail shutdown or end events should be final envelope lines, not out-of-band text.
+
 ### Generate an API Key
 
 Generate an API key from the Straddle Dashboard:

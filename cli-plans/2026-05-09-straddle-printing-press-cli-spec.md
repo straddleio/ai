@@ -118,7 +118,33 @@ Target agent JSON contract for the CLI:
 }
 ```
 
-Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also emit this target envelope only when `--agent` is active; normal `--json` output stays raw. `about --agent` also emits the target envelope for local preview status. `sync` and real `tail` event streams remain open because their streaming output paths are separate from `printJSONFiltered`.
+Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also emit this target envelope only when `--agent` is active; normal `--json` output stays raw. `agent-context --agent` emits the target envelope with the existing v3 agent context object under `data`. `about --agent` also emits the target envelope for local preview status. `sync` and real `tail` event streams remain open because their streaming output paths are separate from `printJSONFiltered`.
+
+## Streaming Agent Contract
+
+This contract is proposed for the next implementation slice. It is not implemented yet.
+
+`sync` and real `tail` are NDJSON streams, not single response objects. Normal human output and normal `--json` streaming behavior must remain backward compatible until a deliberate breaking change is approved.
+
+Future `sync --agent` and `tail --agent` stream lines should write one JSON object per line to stdout. Each line should use the same top-level envelope keys as the target agent envelope:
+
+```json
+{
+  "schema_version": "1.0",
+  "data": {
+    "event": "sync_start",
+    "timestamp": "2026-05-09T00:00:00Z"
+  },
+  "pagination": null,
+  "warnings": [],
+  "trace_id": null,
+  "error": null
+}
+```
+
+The `data` object holds the event-specific payload. Every agent stream line needs a stable event name in `data.event`, an ISO timestamp in `data.timestamp` when the source has one, and no secrets or token-shaped values. Existing events such as `sync_start`, `sync_warning`, `sync_summary`, and real tail data events should map into that `data` payload instead of changing the top-level envelope.
+
+Terminal and status chatter belongs on stderr in human mode. Agent stream data belongs on stdout. Once implemented, `sync_summary` and final tail shutdown or end events should be final envelope lines, not out-of-band text.
 
 ## Testing Strategy
 
@@ -206,9 +232,9 @@ Not included unless Printing Press generates it by default:
 - Full custom workflow commands for reconciliation, fraud monitoring, collections, and sandbox scenarios.
 - Manual generated-code overhaul.
 
-## Next Slice: CLI contract and honesty
+## Completed Slice: CLI contract and honesty
 
-The next implementation slice is selected but not implemented yet. It should reduce launch-blocking ambiguity without trying to build the full workflow engine.
+This slice reduced launch-blocking ambiguity without trying to build the full workflow engine. It is still not the full public launch.
 
 Scope:
 

@@ -214,21 +214,22 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Estimated scope:** Small.
 
-#### Task 8: Document the agent JSON gap
+#### Task 8: Document the agent JSON stream gap
 
-**Description:** Document the current `--agent` output behavior. Provenance-backed generated list and read commands now emit the target envelope, and `about --agent` emits the target envelope for local preview status. Command-specific raw JSON paths still do not use that envelope and remain an agent JSON gap that is not launch-ready.
+**Description:** Document the current `--agent` output behavior. Provenance-backed generated list and read commands now emit the target envelope, `printJSONFiltered` local helpers emit the target envelope under `--agent`, `agent-context --agent` emits the target envelope, and `about --agent` emits the target envelope for local preview status. `sync --agent` and real `tail --agent` streams still emit raw NDJSON today and remain an agent JSON gap that is not launch-ready.
 
 **Acceptance criteria:**
 
 - [ ] `packages/cli/README.md` explains that provenance-backed generated list/read output uses the target envelope.
+- [ ] `packages/cli/README.md` explains that `printJSONFiltered` local helpers and `agent-context --agent` use the target envelope under `--agent`.
 - [ ] `packages/cli/README.md` explains that `about --agent` uses the target envelope.
-- [ ] `packages/cli/README.md` states that command-specific raw JSON paths remain not launch-ready for the target envelope.
+- [ ] `packages/cli/README.md` states that `sync --agent` and real `tail --agent` streams remain not launch-ready for the target envelope.
 - [ ] No broad generated-code rewrite is made for the target envelope in this slice.
 
 **Verification:**
 
 - [ ] Run `npm run validate`.
-- [ ] Run `rg -n 'agent JSON|not launch-ready|target envelope|raw JSON|about --agent' packages/cli/README.md cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+- [ ] Run `rg -n 'agent JSON|not launch-ready|target envelope|raw NDJSON|about --agent|sync --agent|tail --agent' packages/cli/README.md cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
 - [ ] Run spec and quality review subagents.
 
 **Dependencies:** Tasks 1 through 7.
@@ -376,6 +377,51 @@ After each slice passes spec review, quality review, and verification, the contr
 - `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`
 
 **Estimated scope:** Small.
+
+#### Task 14: Implement stream agent envelopes
+
+**Description:** After this docs/spec slice is reviewed, implement the proposed Streaming Agent Contract for `sync --agent` and real `tail --agent`. Keep normal human output and normal `--json` streaming behavior backward compatible. Do not change command semantics beyond wrapping agent stream lines in the target envelope.
+
+**Acceptance criteria:**
+
+- [ ] `sync --agent` writes one JSON object per line to stdout using the target envelope keys: `schema_version`, `data`, `pagination`, `warnings`, `trace_id`, and `error`.
+- [ ] Real `tail --agent` writes one JSON object per line to stdout using the same target envelope keys.
+- [ ] Each agent stream line has a stable event name in `data.event`.
+- [ ] Each agent stream line includes an ISO timestamp in `data.timestamp` when the source event has one.
+- [ ] Stream payloads do not include secrets or token-shaped values.
+- [ ] Human status chatter stays on stderr, and agent stream data stays on stdout.
+- [ ] Existing `sync_start`, `sync_warning`, `sync_summary`, and real tail data events map into the `data` payload.
+- [ ] `sync_summary` and final tail shutdown or end events are final envelope lines, not out-of-band text.
+- [ ] Normal human output and normal `--json` stream behavior remain backward compatible unless a deliberate breaking change is approved.
+
+**Verification:**
+
+- [ ] Run `npm run validate`.
+- [ ] Run `go test ./...` from `packages/cli/straddle-pp-cli`.
+- [ ] Build the CLI to `/tmp`:
+  ```bash
+  cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+  go build -o /tmp/pp-cli-stream-verify ./cmd/straddle-pp-cli
+  ```
+- [ ] Run a unit test or local fake-server `sync --agent` check that proves every stdout line parses as JSON and has the target envelope keys. Do not use the real Straddle API for this verification unless live smoke has been explicitly approved.
+- [ ] Run a unit test or local fake-server `tail --agent` check that proves every stdout line parses as JSON and has the target envelope keys. Do not use the real Straddle API for this verification unless live smoke has been explicitly approved.
+- [ ] Terminate the `tail --agent` fixture with a context cancellation or signal and assert that the final shutdown or end event is emitted as an envelope line.
+- [ ] Confirm human/status output is on stderr and agent data is on stdout.
+- [ ] Run:
+  ```bash
+  rg -n 'sync --agent|tail --agent|sync_summary|Streaming Agent Contract|target envelope' cli-plans packages/cli/README.md packages/cli/straddle-pp-cli/README.md packages/cli/straddle-pp-cli/SKILL.md
+  ```
+- [ ] Remove `/tmp/pp-cli-stream-verify`.
+
+**Dependencies:** This docs/spec slice.
+
+**Files likely touched:**
+
+- `packages/cli/straddle-pp-cli/**`
+- `packages/cli/README.md`
+- `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`
+
+**Estimated scope:** Small to medium.
 
 ## Risks and Mitigations
 

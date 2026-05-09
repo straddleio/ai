@@ -42,6 +42,32 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 
+## Streaming Agent Contract
+
+This is the proposed next implementation contract for `sync --agent` and real `tail --agent`. It is not implemented yet.
+
+`sync` and real `tail` are NDJSON streams, not single response objects. Normal human output and normal `--json` streaming behavior must remain backward compatible until a deliberate breaking change is approved.
+
+Future agent stream lines should write one JSON object per line to stdout. Each line should use the same top-level keys as the target envelope, with `data` holding the event-specific payload:
+
+```json
+{
+  "schema_version": "1.0",
+  "data": {
+    "event": "sync_start",
+    "timestamp": "2026-05-09T00:00:00Z"
+  },
+  "pagination": null,
+  "warnings": [],
+  "trace_id": null,
+  "error": null
+}
+```
+
+Each stream line needs a stable event name in `data.event`, an ISO timestamp in `data.timestamp` when the source has one, and no secrets or token-shaped values. Existing events such as `sync_start`, `sync_warning`, `sync_summary`, and real tail data events should live under `data`.
+
+Terminal and status chatter belongs on stderr in human mode. Agent stream data belongs on stdout. Once implemented, `sync_summary` and final tail shutdown or end events should be final envelope lines, not out-of-band text.
+
 ## Patch Layer
 
 Generated files may contain intentional local changes. Mark each generated-code change with a concise `// PATCH: <id>` comment and keep the patch catalog in `straddle-pp-cli/.printing-press-patches.json` current. That catalog is the reviewer map for what survives regeneration and why.
@@ -229,7 +255,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
 - Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target Straddle envelope only for `--agent`; normal `--json` stays raw.
 - `about --agent` uses the target Straddle envelope for local preview status.
-- `sync` and real `tail` event streams still do not use the target envelope.
+- `sync --agent` and real `tail --agent` event streams still emit raw NDJSON today, so event streams are not launch-ready for the target envelope.
 - Command grammar needs review against real developer and agent workflows.
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
 - Sandbox testing and docs search need first-class terminal flows or clear guidance.
