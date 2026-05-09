@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial, with fresh Phase 4 local dogfood completed.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed and a local packaging readiness proof added.
 
-Score: 6 of 10 for the current preview slice.
+Score: 6.5 of 10 for the current preview slice.
 
-The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, and MCP runtime smoke passed. The full public CLI goal is not complete. Packaging, release path, product review, approved live smoke, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT and a packaging readiness slice from 2026-05-09. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, and local package readiness passed. The full public CLI goal is not complete. Public release, product review, approved live smoke, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -78,11 +78,11 @@ Operational workflows are useful but safe
 - Status: Partial.
 - Missing work: Live reads, docs lookup execution, MCP execution, webhook delivery, and workflow engines are not built.
 
-Packaging and public launch are ready
+Packaging readiness exists, public launch is not ready
 
-- Evidence: No evidence yet.
-- Status: Not done.
-- Missing work: Installer, release packaging, public binary name, product approval, and launch docs.
+- Evidence: `packages/cli/straddle-pp-cli/Makefile` has `make package-readiness`, which builds `straddle-pp-cli` and the generated `straddle-pp-mcp` sibling into `dist/local/`, verifies both binaries exist, and runs a CLI help smoke. `.goreleaser.yaml` now has a Straddle CLI Homebrew description instead of stale Postman text, and the archive config explicitly includes both binaries.
+- Status: Partial.
+- Missing work: GoReleaser is still not installed locally, no release archives were published, no Homebrew tap was updated, no public installer or `npx` path exists, and there is still no desktop MCP package bundle.
 
 ## Dogfood Checklist
 
@@ -115,6 +115,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
   Status: Built and documented. Normal `--json` streaming remains raw NDJSON.
 - MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 83.
   Status: Documented. Confirms generated endpoint tools plus typed framework tools plus Cobra shell-out tools.
+- Local packaging readiness: `make package-readiness` from `packages/cli/straddle-pp-cli`.
+  Status: Documented. Builds and verifies both local preview binaries, including the MCP sibling, without GoReleaser or publishing.
 - Patch manifest validity: `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json` from repo root.
   Status: Documented. Required after every generated-code patch.
 
@@ -153,6 +155,22 @@ Cleanup:
 rm -f /tmp/straddle-pp-cli /tmp/straddle-pp-mcp
 ```
 
+## Packaging Readiness Slice Results
+
+Run time: 2026-05-09.
+
+Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the generated project directory.
+
+| Command | Result | Observed output |
+|---------|--------|-----------------|
+| `command -v goreleaser || true` | Pass | No output, confirming GoReleaser is still not installed in this environment. |
+| `make package-readiness` from `packages/cli/straddle-pp-cli` | Pass | Built `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, verified both binaries are executable, ran `straddle-pp-cli --help`, and printed `local package ready: dist/local`. |
+| `go test -count=1 ./...` from `packages/cli/straddle-pp-cli` | Pass | Passed all packages. Packages with tests reported `ok` for `internal/cli`, `internal/cliutil`, `internal/mcp`, `internal/mcp/cobratree`, and `internal/store`. |
+| `npm run validate` | Pass | `=== Summary: 0 errors ===`; generated CLI artifact checks still reported endpoint tool count 70, framework tool count 3, and typed tool total 73. |
+| `git diff --check` | Pass | No output. |
+| Targeted release-honesty text check | Pass | Docs still say local preview, future work, no current public installer, no `npx`, no published release artifacts, and no desktop MCP bundle. |
+| `make clean` from `packages/cli/straddle-pp-cli` | Pass | Removed local `bin/` and `dist/local/` build outputs. |
+
 ## Verification Commands
 
 Cheap checks for this documentation slice:
@@ -162,6 +180,18 @@ cd /Users/js/clawd/straddle/straddle-ai
 npm run validate
 git diff --check
 rg -n '2026-05-09-straddle-cli-shipcheck-scorecard|about|setup check|docs search --source commands|sandbox guide|ops guide|agent envelope|MCP smoke|patch manifest|localhost bind|Partial' cli-plans packages/cli/README.md
+```
+
+Packaging readiness checks:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+make package-readiness
+go test -count=1 ./...
+cd /Users/js/clawd/straddle/straddle-ai
+npm run validate
+git diff --check
+rg -n 'local preview|future release|future work|not a published public launch artifact|no current public|make package-readiness|straddle-pp-mcp' packages/cli/README.md packages/cli/straddle-pp-cli/README.md packages/cli/straddle-pp-cli/SKILL.md cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md
 ```
 
 Focused generated-project checks when command behavior or generated docs change:
@@ -188,6 +218,6 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 
 - Ready for docs slice review: yes.
 - Ready for public CLI launch: no.
-- Ready for product packaging: no.
+- Ready for product packaging: partial local proof only.
 - Ready for approved live smoke: no evidence yet.
-- Next narrow work: continue packaging or approved live-smoke planning.
+- Next narrow work: install or run GoReleaser in an environment where release archives can be checked without publishing, or plan approved live smoke.

@@ -25,6 +25,15 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 go install ./cmd/straddle-pp-cli
 ```
 
+Local packaging readiness, without requiring GoReleaser:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+make package-readiness
+```
+
+This builds `straddle-pp-cli` and the generated `straddle-pp-mcp` sibling into `dist/local/`, verifies both binaries exist, and runs a CLI help smoke. It is a local proof only. It does not publish release artifacts, upload archives, update a Homebrew tap, create an `npx` package, or produce a desktop MCP bundle.
+
 Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. Command-specific local helpers that use `printJSONFiltered`, including `which --agent`, also use this target envelope. `agent-context --agent` uses the same envelope, with the existing v3 agent context object under `data`:
 
 ```json
@@ -261,7 +270,7 @@ Do not copy Stainless architecture into this package.
 
 The generated baseline is not ready to replace the public CLI until these gaps are closed:
 
-- Installer and release packaging are not done.
+- Installer and public release packaging are not done. A local `make package-readiness` proof now builds both preview binaries, including the MCP sibling, but it does not publish anything.
 - Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
 - Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target Straddle envelope only for `--agent`; normal `--json` stays raw.

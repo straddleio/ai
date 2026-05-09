@@ -32,7 +32,10 @@ builds:
       - windows_amd64
       - windows_arm64
 archives:
-  - formats: [tar.gz]
+  - ids:
+      - straddle-pp-cli
+      - straddle-pp-mcp
+    formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
@@ -44,8 +47,8 @@ brews:
     repository:
       owner: straddleio
       name: homebrew-tap
-    homepage: "https://github.com/straddleio/straddle-pp-cli"
-    description: "[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/30656205-137b704d-b21a..."
+    homepage: "https://github.com/straddleio/ai/tree/main/packages/cli/straddle-pp-cli"
+    description: "Generated Straddle API CLI with MCP stdio sibling"
     install: |
       bin.install "straddle-pp-cli"
       bin.install "straddle-pp-mcp"

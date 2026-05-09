@@ -515,6 +515,39 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Estimated scope:** Small.
 
+#### Task 17: Add local packaging readiness proof
+
+**Description:** Reduce the packaging blocker without claiming a public launch. Fix stale release metadata, keep the generated MCP sibling in release packaging, and add a local command that builds both preview binaries without requiring GoReleaser.
+
+**Acceptance criteria:**
+
+- [x] GoReleaser metadata no longer contains stale Postman Homebrew text.
+- [x] Release archives explicitly include both `straddle-pp-cli` and `straddle-pp-mcp`.
+- [x] A Makefile command builds both binaries into a local dist directory and verifies they exist.
+- [x] Docs describe the command as a local proof only, not public release availability.
+- [x] Docs keep public `npx`, pre-built binaries, public installer, Homebrew tap publishing, and desktop MCP packaging as future work.
+
+**Verification:**
+
+- [x] Run `make package-readiness` from `packages/cli/straddle-pp-cli`.
+- [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
+- [x] Run `npm run validate`.
+- [x] Run `git diff --check`.
+- [x] Run targeted text checks proving docs still say local preview and future release, not public availability.
+
+**Dependencies:** Existing generated CLI and MCP sibling.
+
+**Files likely touched:**
+
+- `packages/cli/straddle-pp-cli/.goreleaser.yaml`
+- `packages/cli/straddle-pp-cli/Makefile`
+- `packages/cli/straddle-pp-cli/README.md`
+- `packages/cli/straddle-pp-cli/SKILL.md`
+- `packages/cli/README.md`
+- `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`
+
+**Estimated scope:** Small.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

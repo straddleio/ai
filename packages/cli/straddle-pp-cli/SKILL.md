@@ -26,6 +26,15 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli --help
 ```
 
+For local packaging readiness, build both preview binaries into `dist/local/` and verify they exist:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
+make package-readiness
+```
+
+This local check includes the CLI binary and the generated `straddle-pp-mcp` sibling. It does not publish archives, update a Homebrew tap, provide an `npx` package, or create a desktop MCP bundle.
+
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash
