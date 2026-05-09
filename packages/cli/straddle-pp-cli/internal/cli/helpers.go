@@ -47,7 +47,7 @@ func colorEnabled() bool {
 	return isTerminal(os.Stdout)
 }
 
-func isTerminal(w io.Writer) bool {
+var isTerminalWriter = func(w io.Writer) bool {
 	if f, ok := w.(*os.File); ok {
 		fi, err := f.Stat()
 		if err != nil {
@@ -56,6 +56,10 @@ func isTerminal(w io.Writer) bool {
 		return (fi.Mode() & os.ModeCharDevice) != 0
 	}
 	return false
+}
+
+func isTerminal(w io.Writer) bool {
+	return isTerminalWriter(w)
 }
 
 func bold(s string) string {
@@ -1214,6 +1218,9 @@ type DataProvenance struct {
 // target envelope without provenance fields, so this human hint stays off the
 // machine-readable path.
 func printProvenance(cmd *cobra.Command, count int, prov DataProvenance) {
+	if commandBoolFlag(cmd, "agent") {
+		return
+	}
 	if !isTerminal(cmd.OutOrStdout()) {
 		return
 	}
@@ -1240,6 +1247,22 @@ func printProvenance(cmd *cobra.Command, count int, prov DataProvenance) {
 		prefix = "API unreachable. "
 	}
 	fmt.Fprintf(cmd.ErrOrStderr(), "%s%d results (cached, synced %s)\n", prefix, count, age)
+}
+
+func commandBoolFlag(cmd *cobra.Command, name string) bool {
+	if cmd == nil {
+		return false
+	}
+	for _, flags := range []*pflag.FlagSet{cmd.Flags(), cmd.InheritedFlags(), cmd.Root().PersistentFlags()} {
+		if flags == nil {
+			continue
+		}
+		flag := flags.Lookup(name)
+		if flag != nil && flag.Value.String() == "true" {
+			return true
+		}
+	}
+	return false
 }
 
 // wrapWithProvenance wraps response data in the target agent envelope. When

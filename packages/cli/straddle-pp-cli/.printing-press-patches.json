@@ -47,6 +47,19 @@
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestPrintJSONFiltered|TestWhichAgentUsesLocalAgentEnvelope' covers raw normal JSON, agent envelope output, select inside data, and which --agent."
     },
     {
+      "id": "dry-run-agent-output",
+      "summary": "Suppress generated endpoint dry-run request previews when --agent is active.",
+      "reason": "Generated endpoint dry-runs return a JSON result that the CLI wraps in the target agent envelope. Human request preview text must not appear around that machine-readable agent output, while non-agent dry-run previews remain available.",
+      "files": [
+        "internal/client/client.go",
+        "internal/cli/helpers.go",
+        "internal/cli/root.go",
+        "internal/cli/dry_run_agent_test.go",
+        "../../../cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestPrintProvenance(SuppressesAgentModeWhenTerminal|KeepsNonAgentTerminalOutput)|TestCustomersListDryRun(AgentSuppressesHumanPreview|WithoutAgentKeepsHumanPreview)' covers quiet agent dry-run output, suppressed agent provenance under terminal conditions, and preserved non-agent previews/provenance."
+    },
+    {
       "id": "agent-context-agent-envelope",
       "summary": "Make agent-context --agent emit the target agent envelope while preserving the raw v3 agent-context schema for normal JSON output.",
       "reason": "The generated agent-context command is a command-specific raw JSON path. Agents using --agent should receive the same target envelope shape as other covered command paths, with the existing agent context object under data.",

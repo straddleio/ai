@@ -44,15 +44,15 @@ Safe token path exists and is documented
 
 Agent envelopes are documented and covered for current local commands
 
-- Evidence: README documents the target envelope for generated list/read commands, `printJSONFiltered` helpers, `agent-context`, `about`, `setup check`, `sync`, and real `tail`. Fresh local checks show `about --agent` and `setup check --agent` emit the target envelope. `customers list --dry-run --agent` exits 0 and includes the target envelope, but it also prints the dry-run request preview before the JSON envelope.
+- Evidence: README documents the target envelope for generated list/read commands, `printJSONFiltered` helpers, `agent-context`, `about`, `setup check`, `sync`, and real `tail`. Fresh local checks show `about --agent` and `setup check --agent` emit the target envelope. `customers list --dry-run --agent` exits 0 and now emits only the target JSON envelope on stdout, with `data.dry_run: true` and no human request preview text.
 - Status: Partial.
-- Missing work: Product review of final envelope contract and compatibility, including whether dry-run preview text is acceptable under `--agent`.
+- Missing work: Product review of final envelope contract and compatibility.
 
 Local dogfood commands exist for preview checks
 
 - Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests.
 - Status: Partial.
-- Missing work: Public launch still needs packaging, product review, approved live smoke, and a decision on whether dry-run agent output may include a human request preview before the JSON envelope.
+- Missing work: Public launch still needs packaging, product review, and approved live smoke.
 
 MCP count semantics are resolved
 
@@ -138,7 +138,7 @@ Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the gener
 | `/tmp/straddle-pp-cli docs search payment --source commands --json` | Pass | Returned 5 command-search results. The first two were `funding-event-payments get` and `payments list`, each with score 5. |
 | `/tmp/straddle-pp-cli sandbox guide --json` | Pass | Returned guidance-only scenarios including `payment-lifecycle`, `payout-flow`, `failures`, `ach-returns`, `funding`, `bridge`, `embed-onboarding`, and `webhooks`; policy reported no API calls, no docs endpoint calls, and no production writes. |
 | `/tmp/straddle-pp-cli ops guide reconciliation --json` | Pass | Returned local-only reconciliation guidance with docs queries for funding events, charges, payouts, settlement, and reconciliation; safety reported no API calls, no docs endpoint calls, no MCP execution, no webhook posting, and no production writes. |
-| `/tmp/straddle-pp-cli customers list --dry-run --agent` | Pass with concern | Did not send a request. It printed `GET https://sandbox.straddle.com/v1/customers`, `?sort_order=asc`, `(dry run - no request sent)`, then a JSON envelope with `data.dry_run: true`, `schema_version: "1.0"`, `error: null`, and `warnings: []`. The dry-run request preview before the envelope should be reviewed before calling generated `--agent` output pure JSON. |
+| `/tmp/straddle-pp-cli customers list --dry-run --agent` | Pass | Did not send a request. It emitted a single JSON envelope on stdout with `data.dry_run: true`, `schema_version: "1.0"`, `error: null`, and `warnings: []`, with no human request preview before or after the envelope. |
 | README JSON-RPC `tools/list` smoke against `/tmp/straddle-pp-mcp` | Pass | Returned `{"tool_count":83,"first_tools":["account-settings_get-settings","accounts_capability-requests_create","accounts_capability-requests_list","accounts_create","accounts_get"]}`. |
 | `go test -count=1 ./internal/cli -run 'Test.*About|Test.*Setup|Test.*Docs|Test.*Sandbox|Test.*Ops'` from `packages/cli/straddle-pp-cli` | Pass | `ok straddle-pp-cli/internal/cli 0.948s`. |
 | `go test -count=1 ./internal/mcp -run 'Test.*Tools|Test.*Count|Test.*Cobra'` from `packages/cli/straddle-pp-cli` | Pass | `ok straddle-pp-cli/internal/mcp 0.296s`. |
@@ -186,8 +186,8 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 
 ## Launch Readiness Summary
 
-- Ready for docs slice review: yes, with the dry-run `--agent` output concern recorded.
+- Ready for docs slice review: yes.
 - Ready for public CLI launch: no.
 - Ready for product packaging: no.
 - Ready for approved live smoke: no evidence yet.
-- Next narrow work: review whether generated dry-run `--agent` commands should suppress human request preview text before the JSON envelope, then continue packaging or approved live-smoke planning.
+- Next narrow work: continue packaging or approved live-smoke planning.

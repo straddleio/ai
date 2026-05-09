@@ -326,6 +326,9 @@ func (f *rootFlags) newClient() (*client.Client, error) {
 	c := client.New(cfg, f.timeout, f.rateLimit)
 	c.DryRun = f.dryRun
 	c.NoCache = f.noCache
+	// PATCH: dry-run-agent-output suppresses human request previews when the
+	// generated endpoint result is headed into the target agent envelope.
+	c.SuppressDryRunPreview = f.agent
 	return c, nil
 }
 

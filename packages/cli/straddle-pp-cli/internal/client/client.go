@@ -23,13 +23,14 @@ import (
 )
 
 type Client struct {
-	BaseURL    string
-	Config     *config.Config
-	HTTPClient *http.Client
-	DryRun     bool
-	NoCache    bool
-	cacheDir   string
-	limiter    *cliutil.AdaptiveLimiter
+	BaseURL               string
+	Config                *config.Config
+	HTTPClient            *http.Client
+	DryRun                bool
+	NoCache               bool
+	SuppressDryRunPreview bool // PATCH: dry-run-agent-output keeps agent dry-run stdout/stderr machine-readable.
+	cacheDir              string
+	limiter               *cliutil.AdaptiveLimiter
 }
 
 // APIError carries HTTP status information for structured exit codes.
@@ -291,6 +292,9 @@ func (c *Client) do(method, path string, params map[string]string, body any, hea
 // using the auth material already resolved in `do()`. Never triggers a network
 // call — the caller is responsible for passing cached auth material only.
 func (c *Client) dryRun(method, targetURL, path string, params map[string]string, body []byte, headerOverrides map[string]string, authHeader string) (json.RawMessage, int, error) {
+	if c.SuppressDryRunPreview {
+		return json.RawMessage(`{"dry_run": true}`), 0, nil
+	}
 	fmt.Fprintf(os.Stderr, "%s %s\n", method, targetURL)
 	queryPrinted := false
 	if params != nil {
