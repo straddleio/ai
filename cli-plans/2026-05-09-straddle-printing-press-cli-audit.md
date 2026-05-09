@@ -12,7 +12,7 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because final target-envelope implementation, real launch packaging, product review, richer workflow commands, and MCP count discrepancy resolution remain open.
+The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because final target-envelope implementation, real launch packaging, product review, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
 
 For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. Provenance-backed generated list and read commands now use the target envelope from the spec. The target envelope has no provenance field, so the previous `meta` provenance object is intentionally not included in JSON output. Command-specific raw JSON output remains a separate launch gap.
 
@@ -32,7 +32,7 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
 | Phase 3 Build workflow commands | Not done | The generated baseline exists, but absorbed features and new workflow commands have not been built. |
-| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. Launch verification must resolve the MCP count discrepancy: `.printing-press.json` metadata says 70, while current typed Go MCP registrations say 73. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
+| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. MCP count semantics are now resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 79 with 6 Cobra shell-out tools. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
@@ -137,7 +137,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Real launch packaging remains open.
    - Product review remains open.
    - Richer workflow commands remain open.
-   - MCP count discrepancy resolution remains open. `.printing-press.json` metadata says 70, typed `mcplib.NewTool(` API registrations say 73, and runtime `tools/list` may include additional Cobra shell-out tools.
+   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` from the built `/tmp/straddle-pp-mcp` binary returned 79 because it includes those 73 typed tools plus 6 Cobra shell-out tools: `analytics`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
    - Patch-layer review remains open for the new target-agent-envelope generated-tree source patch.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:

@@ -1217,12 +1217,37 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 	return mcplib.NewToolResultText(string(data)), nil
 }
 
+// PATCH: mcp-count-breakdown keeps generated endpoint count, local typed framework count, and runtime tools/list count separate.
+const (
+	endpointToolCount       = 70
+	typedFrameworkToolCount = 3
+	typedToolCount          = endpointToolCount + typedFrameworkToolCount
+	runtimeToolCount        = 79
+)
+
+// PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
+var runtimeShellOutTools = []string{
+	"analytics",
+	"import",
+	"sync",
+	"tail",
+	"workflow_archive",
+	"workflow_status",
+}
+
 func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 	ctx := map[string]any{
-		"api":         "straddle",
-		"description": "Postman environment details omitted from generated CLI artifacts.",
-		"archetype":   "payments",
-		"tool_count":  70,
+		"api":       "straddle",
+		"archetype": "payments",
+		// PATCH: mcp-count-breakdown exposes endpoint, typed, and runtime tool counts separately so agents do not treat endpoint metadata as the runtime tools/list count.
+		"description":                "Postman environment details omitted from generated CLI artifacts.",
+		"endpoint_tool_count":        endpointToolCount,
+		"typed_framework_tool_count": typedFrameworkToolCount,
+		"typed_tool_count":           typedToolCount,
+		"runtime_tool_count":         runtimeToolCount,
+		"runtime_shell_out_tools":    runtimeShellOutTools,
+		"tool_count":                 runtimeToolCount,
+		"tool_count_meaning":         "Same as runtime_tool_count: the count returned by MCP tools/list, including Cobra shell-out tools.",
 		// tool_surface tells agents which surface a capability lives on.
 		"tool_surface": "MCP exposes typed endpoint tools plus a runtime mirror of user-facing CLI commands. Endpoint tools keep typed schemas; command-mirror tools shell out to the companion straddle-pp-cli binary.",
 		"auth": map[string]any{

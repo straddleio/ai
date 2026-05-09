@@ -753,15 +753,17 @@ Credential-free MCP smoke:
 
 ```bash
 node -e 'const {spawn}=require("node:child_process"); const cp=spawn("/tmp/straddle-pp-mcp"); let buf=""; let timer=setTimeout(()=>{console.error("timed out"); cp.kill(); process.exit(1);},5000); function send(msg){cp.stdin.write(JSON.stringify(msg)+"\n");} cp.stdout.on("data", d=>{buf+=d; for(;;){const i=buf.indexOf("\n"); if(i<0) break; const line=buf.slice(0,i).trim(); buf=buf.slice(i+1); if(!line) continue; const msg=JSON.parse(line); if(msg.id===1){send({jsonrpc:"2.0",method:"notifications/initialized",params:{}}); send({jsonrpc:"2.0",id:2,method:"tools/list",params:{}});} if(msg.id===2){clearTimeout(timer); const tools=msg.result.tools||[]; console.log(JSON.stringify({tool_count:tools.length, first_tools:tools.slice(0,5).map(t=>t.name)})); cp.kill(); process.exit(0);}}}); send({jsonrpc:"2.0",id:1,method:"initialize",params:{protocolVersion:"2024-11-05",capabilities:{},clientInfo:{name:"straddle-ai-doc-smoke",version:"0"}}});'
+rm -f /tmp/straddle-pp-mcp
 ```
 
-If the runtime smoke is too noisy for an environment, use this source count as a weaker fallback:
+If the runtime smoke is too noisy for an environment, use the source validation check from the repo root:
 
 ```bash
-rg -o 'mcplib\.NewTool\(' internal/mcp/tools.go | wc -l
+cd /Users/js/clawd/straddle/straddle-ai
+node scripts/validate-cli.js
 ```
 
-Known caveat: `.printing-press.json` metadata says 70 MCP tools while typed `mcplib.NewTool(` API registrations currently say 73. Runtime `tools/list` can include additional Cobra shell-out tools, so the count discrepancy remains open.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. A runtime `tools/list` smoke from the built `/tmp/straddle-pp-mcp` binary returned 79 tools because the MCP runtime also exposes 6 Cobra shell-out tools: `analytics`, `import`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

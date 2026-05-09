@@ -5,8 +5,10 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -100,6 +102,58 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 
 			assertSafeTokenGuidance(t, toolResultText(t, result))
 		})
+	}
+}
+
+// PATCH: mcp-count-breakdown verifies the context tool explains endpoint, typed, and runtime MCP counts separately.
+func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
+	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
+	if err != nil {
+		t.Fatalf("handleContext returned error: %v", err)
+	}
+
+	var got struct {
+		EndpointToolCount       int      `json:"endpoint_tool_count"`
+		TypedFrameworkToolCount int      `json:"typed_framework_tool_count"`
+		TypedToolCount          int      `json:"typed_tool_count"`
+		RuntimeToolCount        int      `json:"runtime_tool_count"`
+		RuntimeShellOutTools    []string `json:"runtime_shell_out_tools"`
+		ToolCount               int      `json:"tool_count"`
+		ToolCountMeaning        string   `json:"tool_count_meaning"`
+	}
+	if err := json.Unmarshal([]byte(toolResultText(t, result)), &got); err != nil {
+		t.Fatalf("handleContext should return JSON: %v", err)
+	}
+
+	wantShellOutTools := []string{
+		"analytics",
+		"import",
+		"sync",
+		"tail",
+		"workflow_archive",
+		"workflow_status",
+	}
+
+	if got.EndpointToolCount != 70 {
+		t.Fatalf("endpoint_tool_count = %d, want 70", got.EndpointToolCount)
+	}
+	if got.TypedFrameworkToolCount != 3 {
+		t.Fatalf("typed_framework_tool_count = %d, want 3", got.TypedFrameworkToolCount)
+	}
+	if got.TypedToolCount != 73 {
+		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
+	}
+	if got.RuntimeToolCount != 79 {
+		t.Fatalf("runtime_tool_count = %d, want 79", got.RuntimeToolCount)
+	}
+	if got.ToolCount != got.RuntimeToolCount {
+		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
+	}
+	if !reflect.DeepEqual(got.RuntimeShellOutTools, wantShellOutTools) {
+		t.Fatalf("runtime_shell_out_tools = %#v, want %#v", got.RuntimeShellOutTools, wantShellOutTools)
+	}
+	if !strings.Contains(got.ToolCountMeaning, "runtime_tool_count") {
+		t.Fatalf("tool_count_meaning should explain runtime count, got %q", got.ToolCountMeaning)
 	}
 }
 
