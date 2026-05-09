@@ -24,13 +24,13 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 
 | Phase | Status | Evidence |
 |-------|--------|----------|
-| Phase 0 Resolve + Reuse | Partial | Current spec, plan, audit, README, generated baseline, and verification notes were reused. Safe token detection and final source resolution are still open gaps. |
-| Phase 1 Research Brief | Partial | API source, Printing Press, Ramp, Stainless, CLI, MCP, and first-slice verification are documented. Competitor research, data-layer notes, and product thesis are not complete enough for the full workflow. |
-| Phase 1.5 Ecosystem Absorb Gate | Not done | No complete catalog exists for every MCP, skill, CLI feature, manifest detail, absorbed feature, or novel suggestion. |
-| Phase 1.7 Browser-Sniff Gate | Not done | No browser capture, HAR import, or discovery provenance exists for this CLI workflow. |
+| Phase 0 Resolve + Reuse | Artifact created, pending final phase-artifact review | Resolve and reuse artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
+| Phase 1 Research Brief | Artifact created, pending final phase-artifact review | Research brief exists and competitor benchmark exists. Do not treat them as fully accepted until final phase-artifact review passes. |
+| Phase 1.5 Ecosystem Absorb Gate | Artifact created, pending final phase-artifact review | Ecosystem absorb artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
+| Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
-| Phase 3 Build The GOAT | Not done | The generated baseline exists, but absorbed features and transcendence commands have not been built. |
-| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
+| Phase 3 Build workflow commands | Not done | The generated baseline exists, but absorbed features and new workflow commands have not been built. |
+| Phase 4 Shipcheck | Partial | First-slice validation, Go verification, reviews, and audit fixes exist. Launch verification must resolve the MCP count discrepancy: `.printing-press.json` metadata says 70, while current typed Go MCP registrations say 73. A single Shipcheck scorecard covering dogfood, verify fix, and launch readiness is not complete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot

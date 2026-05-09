@@ -42,12 +42,12 @@ This workflow is planning and documentation for the CLI effort. It does not auth
 
 | Phase | Status | Current Evidence |
 |-------|--------|------------------|
-| Phase 0 Resolve + Reuse | Partial | Existing spec, plan, audit, generated baseline, README, and verification notes were reused. Token handling and source resolution are not fully closed. |
-| Phase 1 Research Brief | Partial | API source, Printing Press, Ramp, Stainless, generated CLI, generated MCP, and first-slice verification are documented. Competitor and data-layer research are not complete enough for the full workflow. |
-| Phase 1.5 Ecosystem Absorb Gate | Not done | No complete catalog exists for every MCP, skill, CLI feature, manifest detail, or novel suggestion. |
-| Phase 1.7 Browser-Sniff Gate | Not done | No browser capture, HAR import, or discovery provenance has been run for this CLI workflow. |
+| Phase 0 Resolve + Reuse | Artifact created, pending final phase-artifact review | Resolve and reuse artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
+| Phase 1 Research Brief | Artifact created, pending final phase-artifact review | Research brief exists and competitor benchmark exists. Do not treat them as fully accepted until final phase-artifact review passes. |
+| Phase 1.5 Ecosystem Absorb Gate | Artifact created, pending final phase-artifact review | Ecosystem absorb artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
+| Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the Straddle public OpenAPI spec. Root validation and Go verification passed for the first slice. |
-| Phase 3 Build The GOAT | Not done | Generated baseline exists, but absorbed ecosystem features and transcendence commands have not been built. |
+| Phase 3 Build workflow commands | Not done | Generated baseline exists, but absorbed features and new workflow commands have not been built. |
 | Phase 4 Shipcheck | Partial | Dogfood-style verification, fix verification, review history, and audit updates exist for the first slice. The required one-block Shipcheck scorecard is not complete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
@@ -186,15 +186,15 @@ Review gate:
 - Spec reviewer confirms the generated project uses Printing Press and the resolved Straddle spec.
 - Quality reviewer confirms no provider synced copies were edited and no local binaries or secrets were committed.
 
-## Phase 3 Build The GOAT
+## Phase 3 Build workflow commands
 
 Timebox: 10-20 min.
 
 What happens:
 
-- Build from absorbed features, not from vibes.
+- Build from absorbed features and verified user workflows.
 - Add the strongest practical Straddle workflows only after the ecosystem catalog exists.
-- Include transcendence commands only when they have a concrete user workflow, safe API boundary, and verification path.
+- Include new workflow commands only when they have a concrete user workflow, safe API boundary, and verification path.
 
 Evidence required:
 
