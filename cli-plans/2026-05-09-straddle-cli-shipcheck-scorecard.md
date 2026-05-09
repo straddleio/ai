@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial, with fresh Phase 4 local dogfood completed and a local packaging readiness proof added.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, and local-preview product review completed.
 
-Score: 6.5 of 10 for the current preview slice.
+Score: 6.8 of 10 for the current preview slice.
 
-The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT and a packaging readiness slice from 2026-05-09. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, and local package readiness passed. The full public CLI goal is not complete. Public release, product review, approved live smoke, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, and a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, and credential-free local product review passed. The full public CLI goal is not complete. Public release, approved live smoke, public-launch product review, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -26,9 +26,9 @@ Printing Press is the generator foundation
 
 CLI first, MCP sibling from same command tree
 
-- Evidence: `packages/cli/README.md` states the CLI is primary and `straddle-pp-mcp` is generated from the same tree.
+- Evidence: `packages/cli/README.md` states the CLI is primary and `straddle-pp-mcp` is generated from the same tree. The product review approves this CLI-first shape for local preview and confirms the MCP sibling is reviewable through local stdio `tools/list`.
 - Status: Done for preview.
-- Missing work: Product review of the generated MCP surface.
+- Missing work: Public MCP package or desktop bundle review after packaging exists.
 
 Local preview docs are honest
 
@@ -44,15 +44,15 @@ Safe token path exists and is documented
 
 Agent envelopes are documented and covered for current local commands
 
-- Evidence: README documents the target envelope for generated list/read commands, `printJSONFiltered` helpers, `agent-context`, `about`, `setup check`, `sync`, and real `tail`. Fresh local checks show `about --agent` and `setup check --agent` emit the target envelope. `customers list --dry-run --agent` exits 0 and now emits only the target JSON envelope on stdout, with `data.dry_run: true` and no human request preview text.
+- Evidence: README documents the target envelope for generated list/read commands, `printJSONFiltered` helpers, `agent-context`, `about`, `setup check`, `sync`, and real `tail`. Fresh local checks show `about --agent` and `setup check --agent` emit the target envelope. `customers list --dry-run --agent` exits 0 and now emits only the target JSON envelope on stdout, with `data.dry_run: true` and no human request preview text. The product review clears this for local preview only.
 - Status: Partial.
-- Missing work: Product review of final envelope contract and compatibility.
+- Missing work: Public-launch compatibility review after packaging and approved live smoke.
 
 Local dogfood commands exist for preview checks
 
 - Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests.
 - Status: Partial.
-- Missing work: Public launch still needs packaging, product review, and approved live smoke.
+- Missing work: Public launch still needs packaging, public-launch product approval, and approved live smoke.
 
 MCP count semantics are resolved
 
@@ -74,9 +74,15 @@ Sandbox-safe walkthrough avoids side effects
 
 Operational workflows are useful but safe
 
-- Evidence: `ops guide` is local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring.
+- Evidence: `ops guide` is local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring. The product review approves these as planning flows for local preview, not as live workflow execution.
 - Status: Partial.
 - Missing work: Live reads, docs lookup execution, MCP execution, webhook delivery, and workflow engines are not built.
+
+Product review completed for local preview
+
+- Evidence: `cli-plans/2026-05-09-straddle-cli-product-review.md` covers CLI-first and MCP sibling relationship, Printing Press/OpenAPI provenance, target envelope, dry-run agent output, setup check, docs search, sandbox guide, ops guide, stream agent contract, practical workflows, Ramp/reference parity, safety, and launch decision.
+- Status: Done for local preview.
+- Missing work: Public-launch product review after packaging, approved live smoke, and final public docs exist.
 
 Packaging readiness exists, public launch is not ready
 
@@ -171,6 +177,25 @@ Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the gener
 | Targeted release-honesty text check | Pass | Docs still say local preview, future work, no current public installer, no `npx`, no published release artifacts, and no desktop MCP bundle. |
 | `make clean` from `packages/cli/straddle-pp-cli` | Pass | Removed local `bin/` and `dist/local/` build outputs. |
 
+## Product Review Slice Results
+
+Run time: 2026-05-09.
+
+Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the generated project directory.
+
+| Command or artifact | Result | Observed output |
+|---------------------|--------|-----------------|
+| `cli-plans/2026-05-09-straddle-cli-product-review.md` | Pass | Approves local preview, rejects public launch, lists public launch blockers, and documents scorecard impact. |
+| `go build -o /tmp/straddle-pp-cli-product-review ./cmd/straddle-pp-cli` from `packages/cli/straddle-pp-cli` | Pass | Built local CLI preview binary. |
+| `go build -o /tmp/straddle-pp-mcp-product-review ./cmd/straddle-pp-mcp` from `packages/cli/straddle-pp-cli` | Pass | Built local MCP sibling binary. |
+| `/tmp/straddle-pp-cli-product-review --help` | Pass | Root help listed setup, docs, sandbox, ops, endpoint groups, workflow, sync, tail, and agent flags. |
+| `/tmp/straddle-pp-cli-product-review setup check --json` | Pass | Reported local-preview safety flags with no Straddle API calls, docs endpoint calls, MCP execution, webhook posts, or production writes. |
+| `/tmp/straddle-pp-cli-product-review docs search payment --source commands --json` | Pass | Returned local command-search results without auth or live API calls. |
+| `/tmp/straddle-pp-cli-product-review sandbox guide --json` | Pass | Returned help-only sandbox scenarios and policy requiring current docs lookup plus separate approval before live sandbox execution. |
+| `/tmp/straddle-pp-cli-product-review ops guide --json` | Pass | Returned local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring. |
+| `/tmp/straddle-pp-cli-product-review customers list --dry-run --agent` | Pass | Emitted one target JSON envelope with `data.dry_run: true` and no human request preview text. |
+| JSON-RPC `tools/list` smoke against `/tmp/straddle-pp-mcp-product-review` | Pass | Returned tool count 83 and included `setup_check`, `docs_search`, `sandbox_guide`, and `ops_guide`. |
+
 ## Verification Commands
 
 Cheap checks for this documentation slice:
@@ -192,6 +217,13 @@ cd /Users/js/clawd/straddle/straddle-ai
 npm run validate
 git diff --check
 rg -n 'local preview|future release|future work|not a published public launch artifact|no current public|make package-readiness|straddle-pp-mcp' packages/cli/README.md packages/cli/straddle-pp-cli/README.md packages/cli/straddle-pp-cli/SKILL.md cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md
+```
+
+Product review checks:
+
+```bash
+cd /Users/js/clawd/straddle/straddle-ai
+rg -n 'product review|local preview|public launch|MCP sibling|dry-run|setup check|ops guide|approved live smoke' cli-plans/2026-05-09-straddle-cli-product-review.md cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md cli-plans/2026-05-09-straddle-printing-press-cli-plan.md
 ```
 
 Focused generated-project checks when command behavior or generated docs change:
@@ -217,7 +249,8 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 ## Launch Readiness Summary
 
 - Ready for docs slice review: yes.
+- Ready for local preview product review: yes.
 - Ready for public CLI launch: no.
 - Ready for product packaging: partial local proof only.
 - Ready for approved live smoke: no evidence yet.
-- Next narrow work: install or run GoReleaser in an environment where release archives can be checked without publishing, or plan approved live smoke.
+- Next narrow work: plan approved live smoke, or install or run GoReleaser in an environment where release archives can be checked without publishing.

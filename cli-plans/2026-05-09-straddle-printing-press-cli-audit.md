@@ -12,7 +12,7 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because real launch packaging, product review, approved live operations, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
+The selected CLI contract and honesty slice is now partially implemented. The local-preview product review is complete at `cli-plans/2026-05-09-straddle-cli-product-review.md` and approves local preview only. The full objective is not achieved because public launch packaging, public-launch product approval, approved live operations, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
 
 Task 14 implemented the Streaming Agent Contract for `sync --agent` and real `tail --agent`. Agent stream lines now use the target envelope with event payloads under `data`, timestamps, and final summary or end events as envelope lines. Normal human output and normal `--json` stream output remain raw NDJSON for compatibility.
 
@@ -40,7 +40,7 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
 | Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, and ops guide, but approved live workflow execution and full workflow engines have not been built. |
-| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, and audit fixes exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 83 with 10 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, and `setup_check`. Launch readiness remains partial because packaging, product review, approved live smoke, and richer workflow commands are incomplete. |
+| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, and local-preview product review exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 83 with 10 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, and `setup_check`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
@@ -107,6 +107,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Master workflow exists and controls future loops | `cli-plans/2026-05-09-straddle-cli-full-workflow.md` defines Phase 0 through Phase 5, deliverables, review gates, loop rules, commit cadence, subagent roles, repo constraints, and completion audit rule | Done for planning |
 | Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
 | CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. Command-specific local helpers routed through `printJSONFiltered` use the target envelope only for `--agent`, and normal `--json` stays raw. `agent-context --agent`, `about --agent`, and `setup check --agent` use the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`. | Partial, because launch packaging remains open |
+| Local-preview product review | `cli-plans/2026-05-09-straddle-cli-product-review.md` approves local preview and rejects public launch. It covers CLI-first shape, MCP sibling, provenance, agent behavior, workflow readiness, safety, Ramp/reference parity, and blockers. | Done for local preview |
 
 ## Completed Gates
 
@@ -150,7 +151,8 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`.
    - Normal `--json` stream output remains raw NDJSON for compatibility.
    - Real launch packaging remains open.
-   - Product review remains open.
+   - Local-preview product review is done.
+   - Public-launch product approval remains open.
    - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring.
    - Richer live workflow commands remain open.
    - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 83 tools because it includes those 73 typed tools plus 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.

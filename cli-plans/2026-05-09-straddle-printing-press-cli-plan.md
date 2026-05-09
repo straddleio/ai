@@ -548,6 +548,14 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Estimated scope:** Small.
 
+#### Task 18: Create local-preview product review artifact
+
+**Description:** Completed as a review/docs slice in `cli-plans/2026-05-09-straddle-cli-product-review.md`. It approves local preview only, rejects public launch, and covers CLI-first shape, MCP sibling, Printing Press/OpenAPI provenance, agent behavior, setup, customers, payments, reconciliation, fraud monitoring, collections, reporting, monitoring, sandbox testing, docs/search, Ramp/reference parity, safe token guidance, no production writes, and no live smoke without approval.
+
+**Verification:** Credential-free local CLI help, setup, docs search, sandbox guide, ops guide, dry-run agent output, and MCP tools/list checks were run. `npm run validate`, `git diff --check`, and targeted text checks for `product review`, `local preview`, `public launch`, `MCP sibling`, `dry-run`, `setup check`, `ops guide`, and `approved live smoke` passed.
+
+**Files touched:** `cli-plans/2026-05-09-straddle-cli-product-review.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -561,12 +569,14 @@ After each slice passes spec review, quality review, and verification, the contr
 | Generated registration overwrites local workflow edits | High | Use the patch layer with `// PATCH:` comments and `.printing-press-patches.json`; avoid root registration as the workflow extension point. |
 | Docs imply a release path that does not exist yet | High | Separate local preview, future release, MCP registration, and public launch in generated docs. |
 | Broad uncommitted slices become hard to review | High | After a slice passes spec review, quality review, and verification, stage only intended files and make a small commit before starting the next slice. Commit the current baseline in logical chunks: generated baseline first, then hand-authored docs, validation, plans, and audit updates. |
+| Product review is mistaken for public launch approval | High | Keep the product review decision split: local preview approved, public launch not approved. |
 
 ## Open Questions
 
 - Should the preview eventually replace the public binary name `straddle`, or stay `straddle-pp-cli` until launch?
 - Should keychain credential storage be a launch blocker?
 - Which approved live-read operational workflow should follow the local-only `ops guide` planning slice?
+- What exact live sandbox smoke should follow local-preview product approval, and who approves the credential scope?
 
 ## Completion Audit Checklist
 
@@ -582,4 +592,5 @@ After each slice passes spec review, quality review, and verification, the contr
 - [ ] Code-quality review passes.
 - [ ] Each completed slice is committed in a small intended-files-only commit before the next implementation slice starts.
 - [ ] Phase 4 CLI contract and honesty slice is either completed and reviewed or explicitly still pending.
+- [x] Local-preview product review exists and does not claim public launch readiness.
 - [ ] Final `git status --short` shows only intended changes.
