@@ -17,6 +17,7 @@ import (
 	"straddle-pp-cli/internal/client"
 	"straddle-pp-cli/internal/cliutil"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 	"unicode"
@@ -1260,6 +1261,142 @@ func wrapWithProvenance(data json.RawMessage, prov DataProvenance) (json.RawMess
 		"error":          nil,
 	}
 	return json.Marshal(envelope)
+}
+
+// streamEventEmitter writes NDJSON stream events. Normal JSON streams stay as
+// raw event payloads; --agent wraps only stream lines in the target envelope.
+// PATCH: stream-agent-envelope implements the documented agent stream contract
+// for sync and tail without changing non-agent stream semantics.
+type streamEventEmitter struct {
+	agent bool
+	enc   *json.Encoder
+	mu    sync.Mutex
+}
+
+func newStreamEventEmitter(w io.Writer, agent bool) *streamEventEmitter {
+	return &streamEventEmitter{agent: agent, enc: json.NewEncoder(w)}
+}
+
+func (e *streamEventEmitter) Emit(event map[string]any) error {
+	if e == nil {
+		return nil
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if !e.agent {
+		return e.enc.Encode(event)
+	}
+	data := sanitizeAgentStreamValue(cloneEventPayload(event)).(map[string]any)
+	if _, ok := data["timestamp"]; !ok {
+		data["timestamp"] = time.Now().UTC().Format(time.RFC3339)
+	}
+	envelope := map[string]any{
+		"schema_version": "1.0",
+		"data":           data,
+		"pagination":     nil,
+		"warnings":       []string{},
+		"trace_id":       nil,
+		"error":          nil,
+	}
+	return e.enc.Encode(envelope)
+}
+
+func cloneEventPayload(event map[string]any) map[string]any {
+	data := make(map[string]any, len(event))
+	for k, v := range event {
+		data[k] = v
+	}
+	return data
+}
+
+func sanitizeAgentStreamValue(v any) any {
+	switch typed := v.(type) {
+	case map[string]any:
+		clean := make(map[string]any, len(typed))
+		for k, value := range typed {
+			if isSensitiveStreamKey(k) {
+				clean[k] = "[redacted]"
+				continue
+			}
+			clean[k] = sanitizeAgentStreamValue(value)
+		}
+		return clean
+	case []any:
+		clean := make([]any, 0, len(typed))
+		for _, value := range typed {
+			clean = append(clean, sanitizeAgentStreamValue(value))
+		}
+		return clean
+	case json.RawMessage:
+		var decoded any
+		if err := json.Unmarshal(typed, &decoded); err == nil {
+			return sanitizeAgentStreamValue(decoded)
+		}
+		return sanitizeAgentStreamValue(string(typed))
+	case string:
+		if looksLikeTokenShapedValue(typed) {
+			return "[redacted]"
+		}
+		return redactTokenShapedSubstrings(typed)
+	default:
+		return typed
+	}
+}
+
+func isSensitiveStreamKey(key string) bool {
+	normalized := strings.ToLower(strings.ReplaceAll(key, "-", "_"))
+	return strings.Contains(normalized, "token") ||
+		strings.Contains(normalized, "secret") ||
+		strings.Contains(normalized, "authorization") ||
+		strings.Contains(normalized, "api_key") ||
+		strings.Contains(normalized, "apikey")
+}
+
+func looksLikeTokenShapedValue(value string) bool {
+	trimmed := strings.TrimSpace(value)
+	lower := strings.ToLower(trimmed)
+	if strings.HasPrefix(lower, "bearer ") {
+		return true
+	}
+	if strings.HasPrefix(trimmed, "sk_") || strings.HasPrefix(trimmed, "pk_") {
+		return true
+	}
+	if strings.HasPrefix(trimmed, "eyJ") && strings.Count(trimmed, ".") >= 2 {
+		return true
+	}
+	return false
+}
+
+// PATCH: stream-agent-envelope redacts sensitive values inside longer agent
+// stream strings without applying broad ID prefix rules.
+var tokenShapedSubstringPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{8,}`),
+	regexp.MustCompile(`\b(?:sk|pk)_[A-Za-z0-9][A-Za-z0-9_-]{7,}\b`),
+	regexp.MustCompile(`\beyJ[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+){2,}\b`),
+}
+
+const sensitiveStreamKeyPattern = `(?:access_token|token|client_secret|secret|authorization|api_key|apikey)`
+
+var sensitiveKeyValueSubstringPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)((?:["']` + sensitiveStreamKeyPattern + `["']|(?:^|[{\s,;&?])` + sensitiveStreamKeyPattern + `\b)\s*:\s*["'])([^"']*)(["'])`),
+	regexp.MustCompile(`(?i)((?:["']` + sensitiveStreamKeyPattern + `["']|(?:^|[{\s,;&?])` + sensitiveStreamKeyPattern + `\b)\s*=\s*["'])([^"']*)(["'])`),
+	regexp.MustCompile(`(?i)((?:["']` + sensitiveStreamKeyPattern + `["']|(?:^|[{\s,;&?])` + sensitiveStreamKeyPattern + `\b)\s*=\s*["']?)([^"'\s&,;}]+)(["']?)`),
+}
+
+func redactTokenShapedSubstrings(value string) string {
+	clean := redactSensitiveKeyValueSubstrings(value)
+	for _, pattern := range tokenShapedSubstringPatterns {
+		clean = pattern.ReplaceAllString(clean, "[redacted]")
+	}
+	return clean
+}
+
+func redactSensitiveKeyValueSubstrings(value string) string {
+	clean := value
+	for _, pattern := range sensitiveKeyValueSubstringPatterns {
+		clean = pattern.ReplaceAllString(clean, "${1}[redacted]${3}")
+	}
+	return clean
 }
 
 // defaultDBPath returns the canonical path for the local SQLite database.

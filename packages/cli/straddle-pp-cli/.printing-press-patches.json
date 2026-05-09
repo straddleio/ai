@@ -103,6 +103,24 @@
         "../../../scripts/validate-cli.js"
       ],
       "validated_outcome": "go test -count=1 ./internal/mcp covers handleContext JSON count fields and runtime shell-out tool names."
+    },
+    {
+      "id": "stream-agent-envelope",
+      "summary": "Wrap sync --agent and real tail --agent stream lines in the target agent envelope.",
+      "reason": "Sync and tail are NDJSON streams with separate output paths from generated read commands. Agents need each stream line to use the target envelope while normal --json streams stay raw for compatibility.",
+      "files": [
+        "internal/cli/helpers.go",
+        "internal/cli/sync.go",
+        "internal/cli/tail.go",
+        "internal/cli/stream_agent_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-spec.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'Test.*(Sync|Tail).*Agent|Test.*Stream|Test.*Redact' covers sync agent envelopes, warning events, tail data envelopes, final tail_end, sensitive key redaction, and raw non-agent tail JSON streams."
     }
   ]
 }

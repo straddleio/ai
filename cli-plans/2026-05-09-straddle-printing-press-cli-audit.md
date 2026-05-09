@@ -12,13 +12,13 @@ Not complete.
 
 The first generated baseline is present and verified. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues, and those were fixed. The next Task 5 quality re-review found stale spec, plan, and audit wording. That focused fix resolved those wording issues.
 
-The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because sync and real tail event streams, real launch packaging, product review, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
+The selected CLI contract and honesty slice is now partially implemented. The full objective is not achieved because real launch packaging, product review, and richer workflow commands remain open. The MCP count discrepancy is resolved and validated for this slice.
 
-This docs/spec-only slice defines the proposed Streaming Agent Contract for the remaining event stream gap. No Go code was changed. The contract is not implemented yet. Today, `sync --agent` and real `tail --agent` still emit raw NDJSON event streams instead of the target envelope, so event streams are not launch-ready.
+Task 14 implemented the Streaming Agent Contract for `sync --agent` and real `tail --agent`. Agent stream lines now use the target envelope with event payloads under `data`, timestamps, and final summary or end events as envelope lines. Normal human output and normal `--json` stream output remain raw NDJSON for compatibility.
 
-For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. Provenance-backed generated list and read commands now use the target envelope from the spec. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also use the target envelope only when `--agent` is active; normal `--json` stays raw. `agent-context --agent` also uses the target envelope, with the existing v3 agent context object under `data`. The target envelope has no provenance field, so the previous `meta` provenance object is intentionally not included in JSON output. `sync` and real `tail` event streams remain separate launch gaps.
+For this slice, the conservative `--agent` path is documented. Current `--agent` output expands to JSON, compact, no-input, no-color, and yes. Provenance-backed generated list and read commands now use the target envelope from the spec. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also use the target envelope only when `--agent` is active; normal `--json` stays raw. `agent-context --agent` also uses the target envelope, with the existing v3 agent context object under `data`. The target envelope has no provenance field, so the previous `meta` provenance object is intentionally not included in JSON output. `sync --agent` and real `tail --agent` event streams now use the same target envelope.
 
-Safe token guidance is done for the current preview docs: stdin auth is documented, environment injection is documented, and docs say not to commit, print, log, or pass tokens through argv. The non-stream agent envelope is mostly done for generated list/read commands, `printJSONFiltered` local helpers under `--agent`, `agent-context --agent`, and `about --agent`. Event streams remain not launch-ready because they still emit raw NDJSON today.
+Safe token guidance is done for the current preview docs: stdin auth is documented, environment injection is documented, and docs say not to commit, print, log, or pass tokens through argv. The agent envelope is now covered for generated list/read commands, `printJSONFiltered` local helpers under `--agent`, `agent-context --agent`, `about --agent`, `sync --agent`, and real `tail --agent`.
 
 The first presentation polish slice is now partially implemented through `straddle-pp-cli about`. It is local-only, credential-free, and prints Straddle ASCII word art plus concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target envelope.
 
@@ -85,7 +85,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Ramp CLI/MCP/docs/ergonomics/agent friendliness/presentation/word art benchmark | `packages/cli/README.md` has Ramp benchmark checklist including installer, auth, agent JSON, command grammar, skills, MCP, docs, and word art. `about` now covers the first local presentation slice. | Partial |
 | Include MCP from Printing Press | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; Go MCP build passed | Done for first slice |
 | CLI first | `packages/cli/README.md` states CLI first and MCP sibling from same command tree | Done for first slice |
-| Agent-friendly | Generated CLI includes agent-context. Provenance-backed generated list and read commands now use the target envelope. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, use the target envelope only when `--agent` is active. `agent-context --agent` also uses the target envelope. `sync --agent` and real `tail --agent` still emit raw NDJSON today, so event streams remain outside the target envelope and are not launch-ready. | Partial |
+| Agent-friendly | Generated CLI includes agent-context. Provenance-backed generated list and read commands now use the target envelope. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, use the target envelope only when `--agent` is active. `agent-context --agent` also uses the target envelope. `sync --agent` and real `tail --agent` now wrap stream lines in the same target envelope while normal `--json` streams remain raw NDJSON. | Partial |
 | Documented | Spec, plan, generated README, generated SKILL, and package README exist. Install honesty, MCP smoke instructions, and sandbox-safe read-only walkthrough are now documented. | Partial, because later launch and workflow docs remain gaps |
 | Tested | `npm run validate`, `go test -count=1 ./...`, CLI build, and MCP build passed | Done for first slice |
 | Featureful across setup | Generated baseline has setup-adjacent `auth`, `doctor`, `profile`; README lists setup workflow as launch-critical gap | Partial |
@@ -100,7 +100,7 @@ Result: no local build directories found, no credential-pattern matches found.
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
 | Master workflow exists and controls future loops | `cli-plans/2026-05-09-straddle-cli-full-workflow.md` defines Phase 0 through Phase 5, deliverables, review gates, loop rules, commit cadence, subagent roles, repo constraints, and completion audit rule | Done for planning |
 | Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
-| CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. Command-specific local helpers routed through `printJSONFiltered` use the target envelope only for `--agent`, and normal `--json` stays raw. `agent-context --agent` and `about --agent` use the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. The proposed Streaming Agent Contract is documented, but `sync --agent` and real `tail --agent` still emit raw NDJSON today. | Partial, because stream envelope implementation and launch packaging remain open |
+| CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. Command-specific local helpers routed through `printJSONFiltered` use the target envelope only for `--agent`, and normal `--json` stays raw. `agent-context --agent` and `about --agent` use the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`. | Partial, because launch packaging remains open |
 
 ## Completed Gates
 
@@ -139,8 +139,8 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target envelope only for `--agent`; normal `--json` stays raw.
    - `agent-context --agent` now uses the target envelope with the existing v3 agent context object under `data`.
    - Local word art and preview status are partially done through `about`.
-   - The proposed Streaming Agent Contract is documented.
-   - `sync --agent` and real `tail --agent` still emit raw NDJSON today, so event streams remain not launch-ready.
+   - The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`.
+   - Normal `--json` stream output remains raw NDJSON for compatibility.
    - Real launch packaging remains open.
    - Product review remains open.
    - Richer workflow commands remain open.
@@ -159,4 +159,4 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
 
 Do not claim the full goal is complete from the current state.
 
-The current state is a reviewed first-slice baseline plus validation, with Task 5 README, spec, plan, and audit wording fixes applied. The next slice is selected and planned, but not implemented. The broader public CLI objective remains active.
+The current state is a reviewed first-slice baseline plus validation, with Task 14 stream envelope implementation applied. The broader public CLI objective remains active.

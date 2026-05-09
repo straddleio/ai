@@ -214,22 +214,22 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Estimated scope:** Small.
 
-#### Task 8: Document the agent JSON stream gap
+#### Task 8: Document the earlier agent JSON stream gap
 
-**Description:** Document the current `--agent` output behavior. Provenance-backed generated list and read commands now emit the target envelope, `printJSONFiltered` local helpers emit the target envelope under `--agent`, `agent-context --agent` emits the target envelope, and `about --agent` emits the target envelope for local preview status. `sync --agent` and real `tail --agent` streams still emit raw NDJSON today and remain an agent JSON gap that is not launch-ready.
+**Description:** Document the `--agent` output behavior from the docs slice before Task 14. Provenance-backed generated list and read commands now emit the target envelope, `printJSONFiltered` local helpers emit the target envelope under `--agent`, `agent-context --agent` emits the target envelope, and `about --agent` emits the target envelope for local preview status. Task 14 now closes the stream-envelope gap for `sync --agent` and real `tail --agent`. The broader public CLI launch remains incomplete.
 
 **Acceptance criteria:**
 
 - [ ] `packages/cli/README.md` explains that provenance-backed generated list/read output uses the target envelope.
 - [ ] `packages/cli/README.md` explains that `printJSONFiltered` local helpers and `agent-context --agent` use the target envelope under `--agent`.
 - [ ] `packages/cli/README.md` explains that `about --agent` uses the target envelope.
-- [ ] `packages/cli/README.md` states that `sync --agent` and real `tail --agent` streams remain not launch-ready for the target envelope.
+- [ ] `packages/cli/README.md` no longer describes `sync --agent` and real `tail --agent` streams as missing the target envelope after Task 14.
 - [ ] No broad generated-code rewrite is made for the target envelope in this slice.
 
 **Verification:**
 
 - [ ] Run `npm run validate`.
-- [ ] Run `rg -n 'agent JSON|not launch-ready|target envelope|raw NDJSON|about --agent|sync --agent|tail --agent' packages/cli/README.md cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+- [ ] Run `rg -n 'agent JSON|not launch-ready|target envelope|about --agent|sync --agent|tail --agent' packages/cli/README.md cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
 - [ ] Run spec and quality review subagents.
 
 **Dependencies:** Tasks 1 through 7.
@@ -380,7 +380,7 @@ After each slice passes spec review, quality review, and verification, the contr
 
 #### Task 14: Implement stream agent envelopes
 
-**Description:** After this docs/spec slice is reviewed, implement the proposed Streaming Agent Contract for `sync --agent` and real `tail --agent`. Keep normal human output and normal `--json` streaming behavior backward compatible. Do not change command semantics beyond wrapping agent stream lines in the target envelope.
+**Description:** Implemented in Task 14. `sync --agent` and real `tail --agent` now use the Streaming Agent Contract. Normal human output and normal `--json` streaming behavior remain backward compatible. Command semantics changed only by wrapping agent stream lines in the target envelope. This completes the stream-envelope slice, not the full public CLI launch.
 
 **Acceptance criteria:**
 

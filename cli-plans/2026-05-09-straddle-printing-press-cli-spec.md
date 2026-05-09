@@ -118,15 +118,15 @@ Target agent JSON contract for the CLI:
 }
 ```
 
-Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also emit this target envelope only when `--agent` is active; normal `--json` output stays raw. `agent-context --agent` emits the target envelope with the existing v3 agent context object under `data`. `about --agent` also emits the target envelope for local preview status. `sync` and real `tail` event streams remain open because their streaming output paths are separate from `printJSONFiltered`.
+Provenance-backed generated list and read commands now emit this target envelope for `--agent` output. Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, also emit this target envelope only when `--agent` is active; normal `--json` output stays raw. `agent-context --agent` emits the target envelope with the existing v3 agent context object under `data`. `about --agent` also emits the target envelope for local preview status. Task 14 now wraps `sync --agent` and real `tail --agent` stream lines in the same target envelope. The broader public CLI launch is still incomplete.
 
 ## Streaming Agent Contract
 
-This contract is proposed for the next implementation slice. It is not implemented yet.
+This contract is implemented for Task 14. It covers `sync --agent` and real `tail --agent` stream lines. It does not mean the full public CLI launch is complete.
 
 `sync` and real `tail` are NDJSON streams, not single response objects. Normal human output and normal `--json` streaming behavior must remain backward compatible until a deliberate breaking change is approved.
 
-Future `sync --agent` and `tail --agent` stream lines should write one JSON object per line to stdout. Each line should use the same top-level envelope keys as the target agent envelope:
+`sync --agent` and `tail --agent` stream lines write one JSON object per line to stdout. Each line uses the same top-level envelope keys as the target agent envelope:
 
 ```json
 {
@@ -142,9 +142,9 @@ Future `sync --agent` and `tail --agent` stream lines should write one JSON obje
 }
 ```
 
-The `data` object holds the event-specific payload. Every agent stream line needs a stable event name in `data.event`, an ISO timestamp in `data.timestamp` when the source has one, and no secrets or token-shaped values. Existing events such as `sync_start`, `sync_warning`, `sync_summary`, and real tail data events should map into that `data` payload instead of changing the top-level envelope.
+The `data` object holds the event-specific payload. Every agent stream line has a stable event name in `data.event`, an ISO timestamp in `data.timestamp` when the source has one, and no secrets or token-shaped values. Existing events such as `sync_start`, `sync_warning`, `sync_summary`, and real tail data events map into that `data` payload instead of changing the top-level envelope.
 
-Terminal and status chatter belongs on stderr in human mode. Agent stream data belongs on stdout. Once implemented, `sync_summary` and final tail shutdown or end events should be final envelope lines, not out-of-band text.
+Terminal and status chatter belongs on stderr in human mode. Agent stream data belongs on stdout. `sync_summary` and final tail shutdown or end events are final envelope lines, not out-of-band text.
 
 ## Testing Strategy
 
@@ -263,7 +263,7 @@ Acceptance criteria:
 
 - The auth path accepts a token without echoing it in the terminal and without passing it through argv, or the chosen equivalent is documented with the same safety properties.
 - The README documents env, config, and stdin or equivalent auth paths without implying that secrets should be committed.
-- The `--agent` output contract is documented. The README and audit state that provenance-backed generated list/read output, `printJSONFiltered` command-specific local output under `--agent`, and `about --agent` use the target envelope, while `sync` and real `tail` event streams remain an agent JSON gap that is not launch-ready.
+- The `--agent` output contract is documented. The README and audit state that provenance-backed generated list/read output, `printJSONFiltered` command-specific local output under `--agent`, `about --agent`, `sync --agent`, and real `tail --agent` stream lines use the target envelope. The full public CLI launch remains incomplete.
 - Generated install docs separate local preview, future release, MCP registration, and public launch.
 - MCP smoke docs build or run `straddle-pp-mcp` from the generated project and verify that generated tools are exposed without a separate MCP tree.
 - The walkthrough uses sandbox-safe setup and read-only customer and payment exploration only.
@@ -275,7 +275,7 @@ Verification:
 - Run root validation with `npm run validate`.
 - Run generated Go tests and builds to `/tmp`.
 - Run a CLI auth help or dry-run check that proves the new token input path is discoverable without printing a token.
-- Verify the docs explicitly mark `sync` and real `tail` event streams as not launch-ready for the target envelope.
+- Verify the docs state that Task 14 implements stream envelopes for `sync --agent` and real `tail --agent` without claiming the full public CLI launch is complete.
 - Run the MCP smoke command from the generated project and record the output that proves generated tools are exposed.
 - Review generated README and SKILL docs for local preview, future release, MCP registration, and public launch wording.
 - Run the sandbox-safe walkthrough without production credentials or production API calls.

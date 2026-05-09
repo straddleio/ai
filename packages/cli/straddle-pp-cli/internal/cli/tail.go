@@ -65,26 +65,54 @@ native streaming instead of polling.`,
 
 			sig := make(chan os.Signal, 1)
 			signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+			defer signal.Stop(sig)
 
 			ticker := time.NewTicker(interval)
 			defer ticker.Stop()
 
-			enc := json.NewEncoder(os.Stdout)
+			// PATCH: stream-agent-envelope wraps only --agent stream lines.
+			stream := newStreamEventEmitter(os.Stdout, flags.agent)
 
 			fmt.Fprintf(os.Stderr, "Tailing %s every %s (Ctrl+C to stop)\n", resource, interval)
 
 			// Initial fetch
-			if err := fetchAndEmit(c, path, enc); err != nil {
+			if err := fetchAndEmit(c, path, stream); err != nil {
 				fmt.Fprintf(os.Stderr, "warning: initial fetch failed: %v\n", err)
+			}
+			if !follow {
+				if flags.agent {
+					_ = stream.Emit(map[string]any{
+						"event":    "tail_end",
+						"resource": resource,
+						"reason":   "follow_false",
+					})
+				}
+				return nil
 			}
 
 			for {
 				select {
 				case <-sig:
 					fmt.Fprintln(os.Stderr, "\nShutting down gracefully...")
+					if flags.agent {
+						_ = stream.Emit(map[string]any{
+							"event":    "tail_shutdown",
+							"resource": resource,
+							"reason":   "signal",
+						})
+					}
+					return nil
+				case <-cmd.Context().Done():
+					if flags.agent {
+						_ = stream.Emit(map[string]any{
+							"event":    "tail_shutdown",
+							"resource": resource,
+							"reason":   "context_cancelled",
+						})
+					}
 					return nil
 				case <-ticker.C:
-					if err := fetchAndEmit(c, path, enc); err != nil {
+					if err := fetchAndEmit(c, path, stream); err != nil {
 						fmt.Fprintf(os.Stderr, "warning: poll failed: %v\n", err)
 					}
 				}
@@ -123,7 +151,7 @@ func tailKnownResources() []string {
 
 func fetchAndEmit(c interface {
 	Get(string, map[string]string) (json.RawMessage, error)
-}, path string, enc *json.Encoder) error {
+}, path string, stream *streamEventEmitter) error {
 	data, err := c.Get(path, nil)
 	if err != nil {
 		return err
@@ -136,7 +164,7 @@ func fetchAndEmit(c interface {
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 			"data":      json.RawMessage(data),
 		}
-		return enc.Encode(event)
+		return stream.Emit(event)
 	}
 
 	for _, item := range items {
@@ -145,7 +173,7 @@ func fetchAndEmit(c interface {
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 			"data":      item,
 		}
-		if err := enc.Encode(event); err != nil {
+		if err := stream.Emit(event); err != nil {
 			return err
 		}
 	}
