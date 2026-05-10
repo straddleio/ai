@@ -369,6 +369,24 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-spec.md"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestWorkflowPlan' covers workflow list, named workflows, all workflows, invalid workflow, agent envelope output, deliver rejection before profile preload, profile rejection before profile-store creation, safety metadata, and token literal leakage checks. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover workflow_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 87."
+    },
+    {
+      "id": "mcp-config",
+      "summary": "Add local-only MCP client config generation for the generated straddle-pp-mcp stdio sibling.",
+      "reason": "Desktop MCP packaging remains future work, but local users and agents need machine-readable config fragments for Claude Desktop, Codex, Cursor, and generic stdio clients without installing, writing files, reading secrets, calling APIs, executing MCP, publishing, signing, or approving launch.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/mcp.go",
+        "internal/cli/mcp_config_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestMCPConfig' covers available clients, safety metadata, Claude Desktop, Codex, Cursor, stdio, all-client output, blank and token-literal binary rejection, and --deliver rejection. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAll' covers runtime count 89, mcp_config shell-out metadata, and readOnlyHint. jq empty .printing-press-patches.json validates the patch manifest."
     }
   ]
 }

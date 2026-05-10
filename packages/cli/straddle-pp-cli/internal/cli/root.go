@@ -219,6 +219,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	// PATCH: credentials-plan adds local-only credential storage readiness guidance
 	// without reading secrets, writing credentials, calling services, executing MCP, or approving launch.
 	rootCmd.AddCommand(newCredentialsCmd(flags))
+	// PATCH: mcp-config adds local-only desktop MCP config generation without
+	// installing, writing files, reading secrets, calling services, or executing MCP.
+	rootCmd.AddCommand(newMCPcmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))

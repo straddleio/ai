@@ -79,6 +79,15 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 		Run: func(*cobra.Command, []string) {},
 	}
 	credentials.AddCommand(credentialsPlan)
+	mcp := &cobra.Command{Use: "mcp"}
+	mcpConfig := &cobra.Command{
+		Use: "config [client]",
+		Annotations: map[string]string{
+			ReadOnlyAnnotation: "true",
+		},
+		Run: func(*cobra.Command, []string) {},
+	}
+	mcp.AddCommand(mcpConfig)
 	workflow := &cobra.Command{Use: "workflow"}
 	workflowPlan := &cobra.Command{
 		Use: "plan [workflow]",
@@ -88,7 +97,7 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 		Run: func(*cobra.Command, []string) {},
 	}
 	workflow.AddCommand(workflowPlan)
-	root.AddCommand(topLevelSearch, docs, sandbox, setup, ops, smoke, release, credentials, workflow)
+	root.AddCommand(topLevelSearch, docs, sandbox, setup, ops, smoke, release, credentials, mcp, workflow)
 
 	if got := classify(topLevelSearch); got != commandFramework {
 		t.Fatalf("top-level search classified as %v, want commandFramework", got)
@@ -127,6 +136,9 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["credentials_plan"]; !ok {
 		t.Fatalf("credentials_plan shell-out tool was not registered; tools = %#v", tools)
+	}
+	if _, ok := tools["mcp_config"]; !ok {
+		t.Fatalf("mcp_config shell-out tool was not registered; tools = %#v", tools)
 	}
 	if _, ok := tools["workflow_plan"]; !ok {
 		t.Fatalf("workflow_plan shell-out tool was not registered; tools = %#v", tools)

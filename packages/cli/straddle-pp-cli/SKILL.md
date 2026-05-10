@@ -71,6 +71,19 @@ straddle-pp-cli credentials plan keychain --agent
 
 `credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `packaged-client`, `launch`, and `all`. It is local-only guidance. It does not build packages, run binaries, read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that keychain-backed storage exists as opt-in preview support, and the `packaged-client` surface makes local built-binary smoke steps machine-readable for `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, including JSON-RPC `tools/list` only. Local packaged-client credential smoke evidence exists and passed on 2026-05-10, but it remains scoped to local built binaries and does not approve broad public launch. Broad public launch remains blocked and still needs owner/security approval, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
 
+For local MCP client config generation without installing or writing files:
+
+```bash
+straddle-pp-cli mcp config --json
+straddle-pp-cli mcp config claude-desktop --binary /tmp/straddle-pp-mcp --json
+straddle-pp-cli mcp config codex --binary /tmp/straddle-pp-mcp --json
+straddle-pp-cli mcp config cursor --binary /tmp/straddle-pp-mcp --json
+straddle-pp-cli mcp config stdio --binary /tmp/straddle-pp-mcp --json
+straddle-pp-cli mcp config all --binary /tmp/straddle-pp-mcp --json
+```
+
+`mcp config` prints machine-readable config fragments for `claude-desktop`, `codex`, `cursor`, `stdio`, or `all`. It defaults `--binary` to `straddle-pp-mcp`, rejects blank binary paths and token literals, names `STRADDLE_TOKEN` only in notes or env var name lists, and does not install, write desktop config files, read profiles, read secrets, call APIs, execute MCP, publish, sign, or approve launch. It reduces the local desktop setup blocker, but public desktop MCP packaging and install approval are still not done.
+
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash
@@ -927,9 +940,9 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 88 because the MCP runtime also exposes 15 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 89 because the MCP runtime also exposes 16 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
-Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
+Generate local config fragments with `straddle-pp-cli mcp config [client] --binary /tmp/straddle-pp-mcp --json` for `claude-desktop`, `codex`, `cursor`, `stdio`, or `all`. This prints config only and does not install, write config files, read secrets, execute MCP, or approve public desktop MCP packaging. Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 
 ## Direct Use
 
