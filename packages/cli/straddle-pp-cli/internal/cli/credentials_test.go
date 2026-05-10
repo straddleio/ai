@@ -69,8 +69,7 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"keychain-backed storage exists as opt-in preview support",
 			"auth set-token --stdin --keychain",
 			"owner/security approval",
-			"Run and review packaged-client smoke before broad launch",
-			"packaged-client smoke is only planned or local evidence until run and reviewed",
+			"Local packaged-client credential smoke evidence exists",
 			"Signed/notarized packaging posture is still required before broad public launch",
 			"Desktop MCP packaging posture is still required before broad public launch",
 			"approved live read-only smoke",
@@ -84,7 +83,8 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"dist/local/straddle-pp-mcp",
 			"JSON-RPC tools/list",
 			"credential-bearing MCP tools",
-			"packaged-client smoke is only planned or local evidence until run and reviewed",
+			"Local packaged-client credential smoke evidence exists",
+			"passed on 2026-05-10",
 			"broad public launch remains blocked",
 			"does not build packages",
 			"does not read secrets",
@@ -94,8 +94,8 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 		"launch": {
 			"blocking decision set",
 			"keychain-backed storage exists as opt-in preview support",
-			"Run and review packaged-client smoke before broad public launch",
-			"packaged-client smoke is only planned or local evidence until run and reviewed",
+			"Local packaged-client credential smoke evidence exists",
+			"Owner/security approval is missing",
 			"Signed/notarized packaging posture is missing",
 			"Desktop MCP packaging posture is missing",
 			"approved live read-only smoke",
@@ -156,6 +156,11 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			}
 			if strings.Contains(stdout, "fixture-secret-token-never-print") || strings.Contains(stdout, "Bearer ") || strings.Contains(stdout, "STRADDLE_TOKEN=") {
 				t.Fatalf("credentials plan should not emit token values, bearer examples, or env assignments:\n%s", stdout)
+			}
+			stalePackagedEvidenceText := "planned or local evidence" + " until run and reviewed"
+			staleRunReviewText := "Run and review packaged-client" + " smoke"
+			if strings.Contains(stdout, stalePackagedEvidenceText) || strings.Contains(stdout, staleRunReviewText) {
+				t.Fatalf("credentials plan should not imply packaged-client smoke is still only planned:\n%s", stdout)
 			}
 		})
 	}

@@ -117,8 +117,10 @@ func buildCredentialsPlanResponse(surface string) (credentialsPlanResponse, erro
 		RunbookPurpose: "Reduce the credential storage launch blocker by listing current support, safe local checks, required decisions, and blockers. This command only prints guidance.",
 		Blockers: []string{
 			"Keychain-backed storage exists as opt-in preview support, but broad public launch still needs owner/security approval.",
-			"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
-			"Approved live read-only smoke and public docs wording remain required before broad launch.",
+			"Local packaged-client credential smoke evidence exists for dist/local CLI and MCP binaries, but it does not approve broad public launch.",
+			"Approved live read-only smoke and approved public docs wording remain required before broad launch.",
+			"Signed/notarized packaging posture remains required before broad launch.",
+			"Desktop MCP packaging posture remains required before broad launch.",
 			"The blocker remains: broad public launch remains blocked.",
 			"Desktop MCP public install remains future work.",
 		},
@@ -293,7 +295,6 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			LaunchDecisionNeeded: []string{
 				"Get owner/security approval before recommending keychain auth for broad public launch.",
-				"Run and review packaged-client smoke before broad launch.",
 				"Decide signed/notarized packaging posture before broad public launch.",
 				"Decide desktop MCP packaging posture before broad public launch.",
 				"Run approved live read-only smoke before broad launch.",
@@ -301,21 +302,21 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			Blockers: []string{
 				"Owner/security approval is still required.",
-				"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
 				"Signed/notarized packaging posture is still required before broad public launch.",
 				"Desktop MCP packaging posture is still required before broad public launch.",
 				"Approved live read-only smoke is still required.",
 				"Public docs wording is still required.",
 			},
 			Notes: []string{
+				"Local packaged-client credential smoke evidence exists, but it does not approve broad public launch.",
 				"This command does not probe OS credential stores or read keychain values.",
 			},
 		},
 		{
 			Name:           "packaged-client",
-			Title:          "Packaged CLI and MCP credential smoke plan",
-			Summary:        "Describe local credential smoke for built CLI/MCP binaries without running smoke or approving public release.",
-			CurrentSupport: "Packaged-client credential smoke is planned for built CLI/MCP binaries in dist/local, not public release artifacts.",
+			Title:          "Packaged CLI and MCP credential smoke evidence",
+			Summary:        "Report local credential smoke evidence for built CLI/MCP binaries without running smoke or approving public release.",
+			CurrentSupport: "Local packaged-client credential smoke evidence exists for built CLI/MCP binaries in dist/local. The smoke passed on 2026-05-10 and remains scoped to local evidence, not public release artifacts.",
 			LocalProofCommands: []string{
 				"make package-readiness",
 				"dist/local/straddle-pp-cli --help",
@@ -342,7 +343,6 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 				"Approved live read-only smoke still needs approval before broad launch.",
 			},
 			Blockers: []string{
-				"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
 				"The blocker remains: broad public launch remains blocked.",
 				"Owner/security approval is still required.",
 				"Public docs wording is still required.",
@@ -352,6 +352,7 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			Notes: []string{
 				"This surface describes packaged-client credential smoke for built CLI/MCP binaries, not public release.",
+				"Local packaged-client credential smoke evidence exists, but it does not approve broad public launch.",
 				"This command does not build packages, does not run binaries, does not read secrets, does not write credentials, does not call Straddle APIs, does not execute MCP tools, does not publish, does not sign, does not notarize, and does not approve launch.",
 				"Use dist/local/straddle-pp-mcp only as the binary for JSON-RPC tools/list smoke and do not execute credential-bearing MCP tools.",
 			},
@@ -371,7 +372,6 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			LaunchDecisionNeeded: []string{
 				"Get owner/security approval before broad public launch.",
-				"Run and review packaged-client smoke before broad public launch.",
 				"Decide signed/notarized packaging posture before broad public launch.",
 				"Decide desktop MCP packaging posture before broad public launch.",
 				"Run approved live read-only smoke before broad public launch.",
@@ -380,7 +380,6 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			Blockers: []string{
 				"Owner/security approval is missing.",
-				"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
 				"Signed/notarized packaging posture is missing.",
 				"Desktop MCP packaging posture is missing.",
 				"Approved live read-only smoke is missing.",
@@ -388,6 +387,7 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 				"Desktop MCP public install remains future work.",
 			},
 			Notes: []string{
+				"Local packaged-client credential smoke evidence exists, but it does not approve broad public launch.",
 				"This command records required decisions only and does not approve launch.",
 			},
 		},
