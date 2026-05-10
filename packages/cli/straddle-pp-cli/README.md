@@ -1006,7 +1006,7 @@ straddle-pp-cli smoke plan all --agent
 
 `smoke plan [scope]` is local-only guidance for a future approved read-only smoke. It suggests commands such as `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP `tools/list` smoke guidance. `smoke plan approval --json` prints the required approval packet fields and local proof commands such as `smoke plan setup --json`, `smoke plan customers --json`, and `docs search sandbox --source commands --json`. Docs lookup topics are returned as query text, not as commands for this local-only runbook. It does not execute those commands.
 
-`smoke run <scope> --approval-file <path>` is approval-file gated and supports only `setup` and `customers` for this slice. `setup` is local only. `customers` makes one read-only `GET /v1/customers` request against the approved base URL. Keep approval files free of token literals. The runner uses caller-supplied `STRADDLE_TOKEN` only when the approval file names `env:STRADDLE_TOKEN` and the target is trusted.
+`smoke run <scope> --approval-file <path>` is approval-file gated and supports only `setup` and `customers` for this slice. `setup` is local only. `customers` makes one read-only `GET /v1/customers` request against the approved base URL. The runner writes the redacted transcript artifact to the approval file `transcript_path`, creating parent directories as needed. Keep approval files free of token literals. The runner uses caller-supplied `STRADDLE_TOKEN` only when the approval file names `env:STRADDLE_TOKEN` and the target is trusted.
 
 ## Configuration
 

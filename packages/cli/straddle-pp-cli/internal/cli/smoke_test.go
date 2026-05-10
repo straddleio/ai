@@ -17,6 +17,7 @@ import (
 
 // PATCH: smoke-plan covers local-only approved live-smoke planning guidance and safety metadata.
 // PATCH: smoke-run-approval-gated covers approval gates and fake-server smoke execution.
+// PATCH: smoke-run-approval-gated covers redacted transcript artifact writing.
 func TestSmokePlanNoArgJSONReturnsScopesAndSafety(t *testing.T) {
 	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "plan", "--json")
 	if err != nil {
@@ -464,9 +465,11 @@ func TestSmokeRunSetupDoesNotCallAPI(t *testing.T) {
 	}))
 	defer server.Close()
 
+	transcriptPath := filepath.Join(t.TempDir(), "nested", "smoke", "setup-transcript.json")
 	approvalPath := writeSmokeApprovalFile(t, map[string]any{
-		"allowed_scope": "setup",
-		"base_url":      server.URL,
+		"allowed_scope":   "setup",
+		"base_url":        server.URL,
+		"transcript_path": transcriptPath,
 	})
 
 	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
@@ -496,6 +499,20 @@ func TestSmokeRunSetupDoesNotCallAPI(t *testing.T) {
 	if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
 		t.Fatalf("smoke run setup should not print token values:\n%s", stdout)
 	}
+
+	transcript := readSmokeTranscript(t, transcriptPath)
+	if transcript.Command != "smoke run" || transcript.Scope != "setup" || transcript.Environment != "local-test" {
+		t.Fatalf("setup transcript has wrong command evidence: %#v", transcript)
+	}
+	if transcript.BaseURL != server.URL || transcript.CredentialSource != "env:STRADDLE_TOKEN" || transcript.TranscriptPath != transcriptPath {
+		t.Fatalf("setup transcript has wrong redacted approval evidence: %#v", transcript)
+	}
+	if len(transcript.Checks) != 1 || transcript.Checks[0].Name != "approval" || !transcript.Checks[0].Passed {
+		t.Fatalf("setup transcript should include approval check: %#v", transcript.Checks)
+	}
+	assertSmokeTranscriptRedacted(t, transcriptPath)
+	assertSmokeTranscriptMode(t, transcriptPath)
+	assertSmokeTranscriptDirMode(t, filepath.Dir(transcriptPath))
 }
 
 func TestSmokeRunCustomersUsesLocalApprovedBaseURL(t *testing.T) {
@@ -518,9 +535,11 @@ func TestSmokeRunCustomersUsesLocalApprovedBaseURL(t *testing.T) {
 	}))
 	defer server.Close()
 
+	transcriptPath := filepath.Join(t.TempDir(), "nested", "customers", "smoke-transcript.json")
 	approvalPath := writeSmokeApprovalFile(t, map[string]any{
-		"allowed_scope": "customers",
-		"base_url":      server.URL,
+		"allowed_scope":   "customers",
+		"base_url":        server.URL,
+		"transcript_path": transcriptPath,
 	})
 
 	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "run", "customers", "--approval-file", approvalPath, "--json")
@@ -553,6 +572,99 @@ func TestSmokeRunCustomersUsesLocalApprovedBaseURL(t *testing.T) {
 	if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
 		t.Fatalf("smoke run customers should not print token values:\n%s", stdout)
 	}
+
+	transcript := readSmokeTranscript(t, transcriptPath)
+	if transcript.Command != "smoke run" || transcript.Scope != "customers" || transcript.Environment != "local-test" {
+		t.Fatalf("customers transcript has wrong command evidence: %#v", transcript)
+	}
+	if transcript.BaseURL != server.URL || transcript.CredentialSource != "env:STRADDLE_TOKEN" || transcript.TranscriptPath != transcriptPath {
+		t.Fatalf("customers transcript has wrong redacted approval evidence: %#v", transcript)
+	}
+	if len(transcript.Checks) != 2 {
+		t.Fatalf("customers transcript should report approval and customers list checks: %#v", transcript.Checks)
+	}
+	if transcript.Checks[1].Name != "customers_list" || !transcript.Checks[1].Passed || transcript.Checks[1].StatusCode != http.StatusOK || transcript.Checks[1].ObjectCount != 1 {
+		t.Fatalf("customers transcript has wrong customers list check: %#v", transcript.Checks[1])
+	}
+	assertSmokeTranscriptRedacted(t, transcriptPath)
+	assertSmokeTranscriptMode(t, transcriptPath)
+	assertSmokeTranscriptDirMode(t, filepath.Dir(transcriptPath))
+}
+
+func TestSmokeRunCustomersWritesFailedTranscriptBeforeReturningError(t *testing.T) {
+	t.Setenv("STRADDLE_TOKEN", "fixture-smoke-token")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Fatalf("method: want GET, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/customers" {
+			t.Fatalf("path: want /v1/customers, got %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(`{"error":"temporary fixture failure","token":"not a real token"}`))
+	}))
+	defer server.Close()
+
+	transcriptPath := filepath.Join(t.TempDir(), "failed", "customers", "smoke-transcript.json")
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope":   "customers",
+		"base_url":        server.URL,
+		"transcript_path": transcriptPath,
+	})
+
+	_, _, err := runCLIForDocsTest(t, "smoke", "run", "customers", "--approval-file", approvalPath, "--json")
+	if err == nil {
+		t.Fatalf("smoke run customers should return an error for non-2xx responses")
+	}
+	if !strings.Contains(err.Error(), "HTTP 503") {
+		t.Fatalf("non-2xx error should mention status code, got %v", err)
+	}
+
+	transcript := readSmokeTranscript(t, transcriptPath)
+	if transcript.Command != "smoke run" || transcript.Scope != "customers" || transcript.BaseURL != server.URL {
+		t.Fatalf("failed customers transcript has wrong run evidence: %#v", transcript)
+	}
+	if len(transcript.Checks) != 2 {
+		t.Fatalf("failed customers transcript should include approval and customers list checks: %#v", transcript.Checks)
+	}
+	failedCheck := transcript.Checks[1]
+	if failedCheck.Name != "customers_list" || failedCheck.Passed || failedCheck.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("failed customers transcript should contain failed customers_list check: %#v", failedCheck)
+	}
+	if failedCheck.ObjectCount != 0 {
+		t.Fatalf("failed customers transcript should not persist response body data, got object_count %d", failedCheck.ObjectCount)
+	}
+	assertSmokeTranscriptRedacted(t, transcriptPath)
+	assertSmokeTranscriptMode(t, transcriptPath)
+	assertSmokeTranscriptDirMode(t, filepath.Dir(transcriptPath))
+}
+
+func TestSmokeRunRewritesPermissiveTranscriptWithPrivateMode(t *testing.T) {
+	transcriptPath := filepath.Join(t.TempDir(), "existing-transcript.json")
+	if err := os.WriteFile(transcriptPath, []byte(`{"old":true}`), 0o644); err != nil {
+		t.Fatalf("write existing permissive transcript: %v", err)
+	}
+	if err := os.Chmod(transcriptPath, 0o644); err != nil {
+		t.Fatalf("set existing permissive transcript mode: %v", err)
+	}
+
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope":   "setup",
+		"transcript_path": transcriptPath,
+	})
+
+	_, _, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
+	if err != nil {
+		t.Fatalf("smoke run setup returned error: %v", err)
+	}
+
+	transcript := readSmokeTranscript(t, transcriptPath)
+	if transcript.Command != "smoke run" || transcript.Scope != "setup" {
+		t.Fatalf("rewritten transcript has wrong smoke evidence: %#v", transcript)
+	}
+	assertSmokeTranscriptMode(t, transcriptPath)
 }
 
 func TestSmokeRunCustomersDoesNotSendEnvTokenToUntrustedApprovedBaseURL(t *testing.T) {
@@ -689,6 +801,59 @@ func writeSmokeApprovalFile(t *testing.T, overrides map[string]any) string {
 		t.Fatalf("write approval file: %v", err)
 	}
 	return path
+}
+
+func readSmokeTranscript(t *testing.T, path string) smokeRunResponse {
+	t.Helper()
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read smoke transcript: %v", err)
+	}
+	var got smokeRunResponse
+	if err := json.Unmarshal(raw, &got); err != nil {
+		t.Fatalf("smoke transcript should be valid JSON: %v\n%s", err, string(raw))
+	}
+	return got
+}
+
+func assertSmokeTranscriptRedacted(t *testing.T, path string) {
+	t.Helper()
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read smoke transcript for redaction check: %v", err)
+	}
+	content := string(raw)
+	for _, forbidden := range []string{"fixture-smoke-token", "Bearer ", "temporary fixture failure", "not a real token"} {
+		if strings.Contains(content, forbidden) {
+			t.Fatalf("smoke transcript should not contain %q:\n%s", forbidden, content)
+		}
+	}
+}
+
+func assertSmokeTranscriptMode(t *testing.T, path string) {
+	t.Helper()
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat smoke transcript: %v", err)
+	}
+	if got := info.Mode().Perm(); got != 0o600 {
+		t.Fatalf("smoke transcript mode = %v, want 0600", got)
+	}
+}
+
+func assertSmokeTranscriptDirMode(t *testing.T, path string) {
+	t.Helper()
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat smoke transcript directory: %v", err)
+	}
+	if got := info.Mode().Perm(); got != 0o700 {
+		t.Fatalf("smoke transcript directory mode = %v, want 0700", got)
+	}
 }
 
 func containsSubstring(items []string, want string) bool {
