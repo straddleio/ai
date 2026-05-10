@@ -483,6 +483,19 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckLocal(ObjectiveSurfaces|JSONSuccessWithoutMCP|CommandTreeRequiredPaths)' covers executable objective evidence for local word art presentation, agent output, setup, customers, payments, reconciliation data, fraud review, collections, reporting, monitoring, sandbox testing, docs search, MCP config, release readiness, and workflow plans for reconciliation, fraud-monitoring, collections, reporting, and monitoring."
+    },
+    {
+      "id": "root-help-word-art",
+      "summary": "Show the Straddle ASCII banner on the root help screen.",
+      "reason": "The first human CLI screen should carry the same presentation polish as the local about command while keeping JSON and agent output clean.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/about_test.go",
+        "README.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'Test(RootHelpPrintsWordArtForFirstRun|About|ShipcheckLocalObjectiveSurfaces)' covers root --help rendering the Straddle ASCII banner, STRADDLE CLI title, setup check guidance, and normal command help while about JSON and agent output remain banner-free."
     }
   ]
 }

@@ -613,7 +613,7 @@ straddle-pp-cli about
 straddle-pp-cli setup check --json
 ```
 
-`about` is local-only and credential-free. It prints Straddle ASCII presentation, preview status, OpenAPI source, MCP sibling, and next checks. `setup check` is a local preflight that summarizes config path, resolved base URL, environment classification, auth source, saved profile names, MCP sibling file presence, docs search readiness, sandbox guide readiness, and safe next steps without calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
+The root `--help` screen and `about` both print Straddle ASCII presentation for the human first-run path. `about` is local-only and credential-free; it prints preview status, OpenAPI source, MCP sibling, and next checks. `setup check` is a local preflight that summarizes config path, resolved base URL, environment classification, auth source, saved profile names, MCP sibling file presence, docs search readiness, sandbox guide readiness, and safe next steps without calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
 
 Run `doctor --json` only when you want an optional live sandbox auth and reachability check after explicitly setting a sandbox base URL and credentials.
 

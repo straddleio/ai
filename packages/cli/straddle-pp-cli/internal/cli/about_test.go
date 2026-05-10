@@ -58,6 +58,27 @@ func TestAboutPrintsHumanPreviewWithoutCredentials(t *testing.T) {
 	}
 }
 
+func TestRootHelpPrintsWordArtForFirstRun(t *testing.T) {
+	stdout, stderr, err := runCLIForAboutTest(t, "--help")
+	if err != nil {
+		t.Fatalf("root --help returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("root --help wrote stderr: %q", stderr)
+	}
+	for _, want := range []string{
+		"  ____  _____ ____",
+		"STRADDLE CLI",
+		"Manage straddle resources via the straddle API.",
+		"straddle-pp-cli setup check --json",
+		"Available Commands:",
+	} {
+		if !strings.Contains(stdout, want) {
+			t.Fatalf("root help missing %q:\n%s", want, stdout)
+		}
+	}
+}
+
 func TestAboutJSONEmitsStableMachineObject(t *testing.T) {
 	stdout, stderr, err := runCLIForAboutTest(t, "about", "--json")
 	if err != nil {

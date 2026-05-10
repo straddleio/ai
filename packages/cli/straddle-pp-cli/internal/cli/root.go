@@ -22,6 +22,12 @@ var version = "1.0.0"
 
 const localOnlyNoPreloadAnnotation = "straddle:local-only-no-preload"
 
+const straddleWordArt = `  ____  _____ ____      _    ____  ____  _     _____
+ / ___||_   _|  _ \    / \  |  _ \|  _ \| |   | ____|
+ \___ \  | | | |_) |  / _ \ | | | | | | | |   |  _|
+  ___) | | | |  _ <  / ___ \| |_| | |_| | |___| |___
+ |____/  |_| |_| \_\/_/   \_\____/|____/|_____|_____|`
+
 type rootFlags struct {
 	asJSON        bool
 	compact       bool
@@ -86,7 +92,11 @@ func newRootCmd(flags *rootFlags) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "straddle-pp-cli",
 		Short: "Manage straddle resources via the straddle API",
-		Long: `Manage straddle resources via the straddle API.
+		Long: straddleWordArt + `
+
+STRADDLE CLI
+
+Manage straddle resources via the straddle API.
 
 Add --agent to any command for JSON output + non-interactive mode.
 Run 'straddle-pp-cli setup check --json' for local setup readiness.
@@ -337,11 +347,7 @@ func buildAboutPayload() aboutPayload {
 
 func printAboutHuman(cmd *cobra.Command, payload aboutPayload) error {
 	w := cmd.OutOrStdout()
-	fmt.Fprintln(w, `  ____  _____ ____      _    ____  ____  _     _____`)
-	fmt.Fprintln(w, ` / ___||_   _|  _ \    / \  |  _ \|  _ \| |   | ____|`)
-	fmt.Fprintln(w, ` \___ \  | | | |_) |  / _ \ | | | | | | | |   |  _|`)
-	fmt.Fprintln(w, `  ___) | | | |  _ <  / ___ \| |_| | |_| | |___| |___`)
-	fmt.Fprintln(w, ` |____/  |_| |_| \_\/_/   \_\____/|____/|_____|_____|`)
+	fmt.Fprintln(w, straddleWordArt)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "STRADDLE CLI")
 	fmt.Fprintf(w, "Status: %s\n", payload.Status)

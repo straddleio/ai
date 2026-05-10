@@ -59,7 +59,7 @@ Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance
 
 The target envelope does not include a provenance field, so the old `meta` object is not present in JSON output. `sync --agent` and real `tail --agent` stream lines now use the same target envelope while normal `--json` streams stay raw NDJSON for compatibility.
 
-`straddle-pp-cli about` is a local-only presentation command. It prints Straddle ASCII word art and concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
+The root `straddle-pp-cli --help` screen and `straddle-pp-cli about` both print Straddle ASCII word art for the human first-run path. `about` is local-only and prints concise preview status for humans. `about --json` emits a stable machine object, and `about --agent` emits the target agent envelope. It does not read credentials, call Straddle APIs, or write production data.
 
 `straddle-pp-cli setup check` is a local-only first-run readiness command. It reports config path, resolved base URL, sandbox/production/custom/unset classification, auth source, profile names, MCP sibling file presence, docs search readiness, sandbox guide readiness, and safe next steps. It does not call Straddle APIs, docs endpoints, MCP, webhooks, or production. `setup check --json` emits a stable machine object, and `setup check --agent` emits the target agent envelope.
 
