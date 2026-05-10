@@ -50,13 +50,14 @@ For public-release readiness guidance without publishing or secrets:
 
 ```bash
 straddle-pp-cli release plan --json
+straddle-pp-cli release plan compatibility --json
 straddle-pp-cli release plan docs-support --json
 straddle-pp-cli release plan naming --json
 straddle-pp-cli release plan all --json
 straddle-pp-cli release plan signing --agent
 ```
 
-`release plan` covers `archives`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. The docs-support surface states that public docs and support are not approved yet and that public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. The naming surface states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and preview should keep `straddle-pp-cli` until compatibility review approves a replacement or migration plan. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof, but desktop MCP packaging remains future work. No npm or npx path exists yet.
+`release plan` covers `archives`, `compatibility`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. The compatibility surface inventories the installed Stainless-generated `straddle` command and source tree as local evidence only before any rename, alias, replacement, or migration decision. The docs-support surface states that public docs and support are not approved yet and that public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. The naming surface states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and preview should keep `straddle-pp-cli` until compatibility review approves a replacement or migration plan. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof, but desktop MCP packaging remains future work. No npm or npx path exists yet.
 
 For credential storage readiness guidance without reading or writing secrets:
 

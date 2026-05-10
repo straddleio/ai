@@ -33,7 +33,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Printing Press MCP sibling | `cmd/straddle-pp-mcp/main.go` and `internal/mcp/` exist; fresh runtime smoke returned `tool_count: 87`. | Done for preview |
 | CLI first | `packages/cli/README.md` says `straddle-pp-cli` is primary and `straddle-pp-mcp` is the sibling from the same Printing Press tree. | Done for preview |
 | Ramp as benchmark, not architecture | Spec and benchmark docs say Ramp is a benchmark only; the competitor benchmark includes Ramp evidence. Extra CLI research for Stripe, GitHub CLI, Wrangler, Vercel, Shopify, Supabase, Brex, Finch, Kiro, and LangChain Deep Agents is supporting context only, not a required completion gate. | Done for planning |
-| Stainless as reference only | Spec and docs say Stainless is a behavior reference only and not the architecture. | Done for planning |
+| Stainless as reference only | Spec and docs say Stainless is a behavior reference only and not the architecture. `release plan compatibility --json` now records local proof commands for the installed Stainless-generated `straddle` command and source tree. | Done for planning, partial for public compatibility |
 | Word art and presentation | `about` exists and fresh `about --agent` returned `schema_version: "1.0"`, `data.command: "about"`, and `data.status: "local preview"`. Human `about` is documented as Straddle ASCII word art. | Done for local preview |
 | Agent output | Generated list/read output, local helper `--agent` output, `agent-context --agent`, `about --agent`, `setup check --agent`, `sync --agent`, and real `tail --agent` are documented as target-envelope paths. | Partial, public compatibility review still needed |
 | Setup workflow | `setup check` exists and is local-only; docs cover config path, environment classification, auth source, MCP sibling, docs search, sandbox guide, and safe next steps. | Partial, public onboarding still open |
@@ -49,7 +49,8 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Docs search | `docs search` separates product docs, command search, and API or SDK `search_docs` guidance. | Done for preview |
 | Safe token guidance | `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented; `credentials plan launch` reports no secret reads/writes and lists keychain preview support plus remaining launch approvals. | Partial, owner/security approval, packaged-client smoke, approved live read-only smoke, and docs wording open |
 | Release path | `make package-readiness`, `make release-check`, and `make release-snapshot` exist and prior scorecard evidence says local archives include both CLI and MCP. A 2026-05-10 keychain packaging smoke reran `make package-readiness` and `make release-check` after adding `go-keyring`, then cleaned local outputs. | Partial, no public publish, signing, notarization, packaged-client keychain smoke, or approved live smoke |
-| Release naming plan | `release plan naming --json` exists and records that the preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved, compatibility inventory is incomplete, and any alias, migration, or replacement plan still needs approval. | Partial, reduces naming decision blocker, no public command chosen |
+| Current CLI compatibility inventory | `release plan compatibility --json` exists and records local proof commands for `/opt/homebrew/bin/straddle --version`, `/opt/homebrew/bin/straddle --help`, `/opt/homebrew/bin/straddle charges create --help`, the Stainless CLI remote, and Stainless markers in the source tree. It states that public `straddle` replacement is not approved and that the inventory is local evidence only. | Partial, reduces command-name blocker, no public command chosen |
+| Release naming plan | `release plan naming --json` exists and records that the preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved, compatibility review is incomplete, and any alias, migration, or replacement plan still needs approval. | Partial, reduces naming decision blocker, no public command chosen |
 | Docs and support plan | `release plan docs-support --json` exists and records that public docs and support are not approved yet, issue intake and support owner are missing, and public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. | Partial, reduces docs/support blocker, no public docs or support approval |
 | Validation | Fresh `npm run validate` passed with `Summary: 0 errors`; generated artifact validation checks config, CLI main, README, SKILL, spec title, MCP main, `internal/mcp`, MCP typed counts, and endpoint count. | Done for preview |
 | Go tests | Fresh `go test -count=1 ./...` passed in `packages/cli/straddle-pp-cli`. | Done for preview |
@@ -112,6 +113,7 @@ go build -o /tmp/straddle-pp-cli-audit ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli-audit about --agent
 /tmp/straddle-pp-cli-audit workflow plan all --json
 /tmp/straddle-pp-cli-audit credentials plan launch --json
+/tmp/straddle-pp-cli-audit release plan compatibility --json
 /tmp/straddle-pp-cli-audit release plan docs-support --json
 /tmp/straddle-pp-cli-audit release plan naming --json
 /tmp/straddle-pp-cli-audit smoke plan approval --json
@@ -124,7 +126,8 @@ Observed summaries:
 {"name":"about","schema_version":"1.0","error":null,"data.command":"about","data.status":"local preview"}
 {"name":"workflow","workflow_count":5,"first_workflow":"reconciliation"}
 {"name":"credentials","surface":"launch","blockers":["Owner/security approval is missing.","Packaged-client smoke is missing.","Public docs wording is missing.","Desktop MCP public install remains future work."]}
-{"name":"release","surface":"naming","current_preview":"straddle-pp-cli","public_straddle_approved":false,"blockers":["Public binary name is undecided.","Existing Straddle CLI compatibility inventory is incomplete.","No migration or alias plan is approved.","Public install docs and support wording are not approved.","Live smoke is not approved or run."]}
+{"name":"release","surface":"compatibility","public_straddle_replacement_approved":false,"local_evidence_only":true,"proof_commands":["/opt/homebrew/bin/straddle --version","/opt/homebrew/bin/straddle --help","/opt/homebrew/bin/straddle charges create --help"]}
+{"name":"release","surface":"naming","current_preview":"straddle-pp-cli","public_straddle_approved":false,"blockers":["Public binary name is undecided.","Existing Straddle CLI compatibility review is incomplete.","No migration or alias plan is approved.","Public install docs and support wording are not approved.","Live smoke is not approved or run."]}
 {"name":"smoke","scope":"approval","requires_explicit_approval":true,"requires_secure_credential_flow":true,"no_live_execution_in_command":true,"evidence":["redacted command","exit code","endpoint or tool name","environment classification","object count or empty-list proof","no token exposure"]}
 ```
 
@@ -138,7 +141,7 @@ These are blockers for claiming the activated goal is complete:
 4. Credential launch posture is still not approved for broad public launch. The repo now has opt-in preview keychain support, but still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 5. Operational workflows are still planning guidance. Reconciliation, fraud monitoring, collections, reporting, and monitoring have useful local plans, but no approved live read execution or workflow engines.
 6. Public docs and support are still not approved. `straddle-pp-cli release plan docs-support --json` now documents the missing docs owner approval, support owner, issue intake path, install path, command name, support boundaries, known limits, security wording, final docs review, and live smoke.
-7. The generated preview is still named `straddle-pp-cli`. `straddle-pp-cli release plan naming --json` now documents that `straddle` is not approved yet, but replacing or publishing the public `straddle` binary still needs an explicit naming and migration decision.
+7. The generated preview is still named `straddle-pp-cli`. `straddle-pp-cli release plan compatibility --json` now gives local evidence commands for the current Stainless-generated CLI and installed `straddle` behavior, and `straddle-pp-cli release plan naming --json` documents that `straddle` is not approved yet. Replacing or publishing the public `straddle` binary still needs an explicit naming and migration decision.
 8. Phase 5 live smoke remains not done.
 9. Durable subagent/review evidence for the recent committed slices now exists in `cli-plans/2026-05-10-straddle-cli-subagent-review-log.md`. Older historical slices may still lack complete reviewer evidence. Future slices must commit implementer, spec-review, quality-review, controller-verification, and commit evidence before selecting the next slice, or keep the checklist partial.
 

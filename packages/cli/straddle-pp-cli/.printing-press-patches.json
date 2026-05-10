@@ -284,8 +284,8 @@
     },
     {
       "id": "release-plan",
-      "summary": "Add local-only public-release readiness guidance for archives, docs/support, Homebrew, MCP, naming, npm, signing, and all surfaces.",
-      "reason": "The preview needs a safe runbook command that reduces the public-release distribution, docs, and support decision blockers without publishing, pushing, uploading, signing, notarizing, calling external services, executing MCP tools, or reading secrets.",
+    "summary": "Add local-only public-release readiness guidance for archives, compatibility, docs/support, Homebrew, MCP, naming, npm, signing, and all surfaces.",
+    "reason": "The preview needs a safe runbook command that reduces the public-release distribution, current-CLI compatibility, docs, and support decision blockers without publishing, pushing, uploading, signing, notarizing, calling external services, executing MCP tools, reading secrets, replacing public straddle, or approving migration or alias plans.",
       "files": [
         "internal/cli/root.go",
         "internal/cli/release.go",
@@ -305,7 +305,7 @@
         "../../../cli-plans/2026-05-10-straddle-cli-public-launch-decision-packet.md",
         "../../../cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md"
       ],
-      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestReleasePlan' covers surface list, docs/support honesty, naming honesty, named surfaces, all surfaces, invalid surface, agent envelope output, and deliver rejection. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover release_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and the current MCP count validation."
+    "validated_outcome": "go test -count=1 ./internal/cli -run 'TestReleasePlan' covers surface list, compatibility local proof commands, Stainless reference-only wording, public straddle replacement blockers, docs/support honesty, naming honesty, named surfaces, all surfaces, invalid surface, agent envelope output, and deliver rejection. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover release_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and the current MCP count validation."
     },
     {
       "id": "credentials-plan",

@@ -15,6 +15,7 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 - Local preview is approved with limits in `cli-plans/2026-05-09-straddle-cli-product-review.md`.
 - Public launch is not approved. Existing docs say public release artifacts are not published and no public-launch product review has approved packaging, live smoke, docs, command name, support expectations, or MCP distribution.
 - Printing Press and OpenAPI provenance are documented. `.printing-press.json` records Printing Press `4.2.0`, `cli_name: straddle-pp-cli`, `mcp_binary: straddle-pp-mcp`, and the OpenAPI source at `/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json`.
+- Local compatibility guidance now exists at `straddle-pp-cli release plan compatibility --json`. It inventories the installed Stainless-generated `straddle` command and source tree as local evidence only, states that public `straddle` replacement is not approved, and does not approve any migration or alias plan.
 - Local naming guidance now exists at `straddle-pp-cli release plan naming --json`. It states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and preview should keep `straddle-pp-cli` until compatibility review approves a replacement or migration plan.
 - Local docs/support guidance now exists at `straddle-pp-cli release plan docs-support --json`. It states that public docs and support are not approved yet and that public docs must not imply workflow execution, production readiness, or replacement of public `straddle`.
 - The generated MCP sibling exists from the same Printing Press command tree. The latest completion audit records a credential-free runtime `tools/list` smoke with `tool_count: 87`.
@@ -45,7 +46,7 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 <td>Should the public command be <code>straddle</code> or stay preview-scoped as <code>straddle-pp-cli</code>?</td>
 <td>Keep <code>straddle-pp-cli</code> for any preview publish. Reserve <code>straddle</code> for a replacement decision after compatibility review.</td>
 <td>The current generated name is honest. Publishing <code>straddle</code> implies an official user-facing CLI and possible replacement of existing behavior.</td>
-<td>Inventory of existing Straddle CLI behavior, command collision review, migration or alias plan, public help output review, and product approval for the name.</td>
+<td>`release plan compatibility --json` output, installed `straddle` help and version output, Stainless source-tree markers, command collision review, migration or alias plan, public help output review, and product approval for the name.</td>
 <td>Do not publish, document, or alias the command as <code>straddle</code>. Do not replace an existing public or internal CLI path.</td>
 </tr>
 <tr>
@@ -136,6 +137,7 @@ Run `straddle-pp-cli smoke plan approval --json` locally first to print these fi
   - `straddle-pp-cli docs search <query> --source commands --json`
   - `straddle-pp-cli workflow plan <workflow> --json`
   - `straddle-pp-cli ops guide <workflow> --json`
+  - `straddle-pp-cli release plan compatibility --json`
   - `straddle-pp-cli release plan docs-support --json`
   - `straddle-pp-cli release plan naming --json`
 - Read-only API inspection, only when the approver names the resource category:

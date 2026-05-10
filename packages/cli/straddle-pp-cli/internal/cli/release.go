@@ -195,7 +195,7 @@ func renderReleasePlanResponse(cmd *cobra.Command, flags *rootFlags, payload rel
 }
 
 func releaseSurfaceNames() []string {
-	return []string{"archives", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
+	return []string{"archives", "compatibility", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
 }
 
 func releaseSurfacePlanByName(name string) (releaseSurfacePlan, bool) {
@@ -235,6 +235,45 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Blockers: []string{
 				"Snapshot archives are local proof only and are not published.",
 				"Public release owner, artifact host, release notes, and checksum approval are still missing.",
+			},
+		},
+		// PATCH: compatibility inventories current Stainless CLI behavior without approving public straddle replacement.
+		{
+			Name:    "compatibility",
+			Title:   "Current CLI compatibility inventory",
+			Summary: "Inventory the current Stainless CLI and public straddle command behavior before any rename, alias, replacement, or migration decision.",
+			LocalProofCommands: []string{
+				"/opt/homebrew/bin/straddle --version",
+				"/opt/homebrew/bin/straddle --help",
+				"/opt/homebrew/bin/straddle charges create --help",
+				"git -C /Users/js/clawd/straddle/sdks/sdks/straddle-cli remote -v",
+				"rg -n \"generated with Stainless|stainless\" /Users/js/clawd/straddle/sdks/sdks/straddle-cli/README.md /Users/js/clawd/straddle/sdks/sdks/straddle-cli/pkg/cmd/cmd.go",
+			},
+			PublicArtifactSurfaces: []string{
+				"Public command name",
+				"Migration or alias docs",
+				"Help-output compatibility inventory",
+				"Support wording for existing users",
+			},
+			RequiredFutureApprovals: []string{
+				"Launch owner approval for public command name, migration, alias, replacement, or deferral.",
+				"Support and docs owner approval for compatibility wording before public docs mention existing-user migration.",
+				"Compatibility review against the installed straddle command plus the current Stainless source tree.",
+			},
+			RequiredDecisions: []string{
+				"Decide whether to keep straddle-pp-cli.",
+				"Decide whether to publish as straddle.",
+				"Decide whether to add an alias.",
+				"Decide whether to defer public replacement.",
+			},
+			Blockers: []string{
+				"Public straddle replacement is not approved.",
+				"Compatibility inventory is local evidence only.",
+				"No migration or alias plan is approved.",
+			},
+			Notes: []string{
+				"Stainless is reference only and Printing Press remains the generator foundation.",
+				"This surface is local-only. It makes no live calls, reads no credentials, publishes nothing, and does not approve support wording.",
 			},
 		},
 		{
@@ -365,7 +404,7 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			},
 			Blockers: []string{
 				"Public binary name is undecided.",
-				"Existing Straddle CLI compatibility inventory is incomplete.",
+				"Existing Straddle CLI compatibility review is incomplete.",
 				"No migration or alias plan is approved.",
 				"Public install docs and support wording are not approved.",
 				"Live smoke is not approved or run.",

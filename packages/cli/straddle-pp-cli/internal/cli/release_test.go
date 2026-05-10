@@ -29,7 +29,7 @@ func TestReleasePlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 	if got.Command != "release plan" {
 		t.Fatalf("command = %q, want release plan", got.Command)
 	}
-	wantSurfaces := []string{"archives", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
+	wantSurfaces := []string{"archives", "compatibility", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
 	if strings.Join(got.AvailableSurfaces, ",") != strings.Join(wantSurfaces, ",") {
 		t.Fatalf("available surfaces = %#v, want %#v", got.AvailableSurfaces, wantSurfaces)
 	}
@@ -47,6 +47,13 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"make release-check",
 			"make release-snapshot",
 			"make clean",
+		},
+		"compatibility": {
+			"/opt/homebrew/bin/straddle --version",
+			"/opt/homebrew/bin/straddle --help",
+			"/opt/homebrew/bin/straddle charges create --help",
+			"git -C /Users/js/clawd/straddle/sdks/sdks/straddle-cli remote -v",
+			"rg -n \"generated with Stainless|stainless\" /Users/js/clawd/straddle/sdks/sdks/straddle-cli/README.md /Users/js/clawd/straddle/sdks/sdks/straddle-cli/pkg/cmd/cmd.go",
 		},
 		"docs-support": {
 			"straddle-pp-cli release plan docs-support --json",
@@ -166,6 +173,20 @@ func TestReleasePlanSpecialSurfacesStayHonest(t *testing.T) {
 	if strings.Contains(stdout, "public launch is approved") || strings.Contains(stdout, "production ready") || strings.Contains(stdout, "replaces public straddle") {
 		t.Fatalf("docs-support surface should not imply approved launch, production readiness, or public straddle replacement:\n%s", stdout)
 	}
+
+	stdout, _, err = runCLIForDocsTest(t, "release", "plan", "compatibility", "--json")
+	if err != nil {
+		t.Fatalf("release plan compatibility --json returned error: %v", err)
+	}
+	if !strings.Contains(stdout, "Stainless is reference only") || !strings.Contains(stdout, "Printing Press remains the generator foundation") {
+		t.Fatalf("compatibility surface should keep Stainless reference-only wording and Printing Press foundation:\n%s", stdout)
+	}
+	if !strings.Contains(stdout, "Public straddle replacement is not approved") {
+		t.Fatalf("compatibility surface should state public straddle replacement is not approved:\n%s", stdout)
+	}
+	if !strings.Contains(stdout, "Compatibility inventory is local evidence only") || !strings.Contains(stdout, "No migration or alias plan is approved") {
+		t.Fatalf("compatibility surface should keep local evidence and migration blockers explicit:\n%s", stdout)
+	}
 }
 
 func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
@@ -184,8 +205,8 @@ func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
 	if got.Surface != "all" {
 		t.Fatalf("surface = %q, want all", got.Surface)
 	}
-	if len(got.SurfacePlans) != 7 {
-		t.Fatalf("all surface should include seven concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
+	if len(got.SurfacePlans) != 8 {
+		t.Fatalf("all surface should include eight concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
 	}
 	if got.SurfacePlan != nil {
 		t.Fatalf("all surface should use surface_plans, not surface_plan: %#v", got.SurfacePlan)
