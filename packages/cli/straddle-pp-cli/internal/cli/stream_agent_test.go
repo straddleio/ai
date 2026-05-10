@@ -5,6 +5,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,9 +14,15 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func runCLIForStreamTest(t *testing.T, args ...string) (string, string, error) {
+	t.Helper()
+	return runCLIForStreamTestWithContext(t, context.Background(), args...)
+}
+
+func runCLIForStreamTestWithContext(t *testing.T, ctx context.Context, args ...string) (string, string, error) {
 	t.Helper()
 
 	oldStdout := os.Stdout
@@ -52,6 +59,7 @@ func runCLIForStreamTest(t *testing.T, args ...string) (string, string, error) {
 	cmd := RootCmd()
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
+	cmd.SetContext(ctx)
 	cmd.SetArgs(args)
 	cmdErr := cmd.Execute()
 
@@ -90,6 +98,19 @@ func parseStreamEnvelopes(t *testing.T, stdout string) []streamEnvelope {
 
 	envelopes := make([]streamEnvelope, 0, len(lines))
 	for _, line := range lines {
+		var topLevel map[string]json.RawMessage
+		if err := json.Unmarshal([]byte(line), &topLevel); err != nil {
+			t.Fatalf("stream line is not a JSON object: %v\nline: %s\nstdout:\n%s", err, line, stdout)
+		}
+		expectedTopLevelKeys := []string{"schema_version", "data", "pagination", "warnings", "trace_id", "error"}
+		if len(topLevel) != len(expectedTopLevelKeys) {
+			t.Fatalf("stream line has unexpected top-level key count: want %d, got %d in line %s", len(expectedTopLevelKeys), len(topLevel), line)
+		}
+		for _, key := range expectedTopLevelKeys {
+			if _, ok := topLevel[key]; !ok {
+				t.Fatalf("stream line is missing target envelope key %q in line %s", key, line)
+			}
+		}
 		var got streamEnvelope
 		if err := json.Unmarshal([]byte(line), &got); err != nil {
 			t.Fatalf("stream line is not JSON: %v\nline: %s\nstdout:\n%s", err, line, stdout)
@@ -106,11 +127,17 @@ func parseStreamEnvelopes(t *testing.T, stdout string) []streamEnvelope {
 		if _, ok := got.Data["timestamp"].(string); !ok {
 			t.Fatalf("data.timestamp must be a string in line %s", line)
 		}
+		if _, err := time.Parse(time.RFC3339, got.Data["timestamp"].(string)); err != nil {
+			t.Fatalf("data.timestamp must be RFC3339: %v in line %s", err, line)
+		}
 		if got.Pagination != nil {
 			t.Fatalf("pagination: want null, got %#v in line %s", got.Pagination, line)
 		}
 		if got.Warnings == nil {
 			t.Fatalf("warnings should be an empty array, not null, in line %s", line)
+		}
+		if len(got.Warnings) != 0 {
+			t.Fatalf("warnings should be empty, got %#v in line %s", got.Warnings, line)
 		}
 		if got.TraceID != nil {
 			t.Fatalf("trace_id: want null, got %#v in line %s", got.TraceID, line)
@@ -137,6 +164,14 @@ func tokenShapedTestValue(prefix string, parts ...string) string {
 
 func bearerCredentialPrefix() string {
 	return strings.Join([]string{"Bear", "er"}, "") + " "
+}
+
+func setStreamCredentialFixture(t *testing.T) string {
+	t.Helper()
+	credentialEnvName := strings.Join([]string{"STRADDLE", "TOKEN"}, "_")
+	credentialFixture := strings.Join([]string{"fixture", "value"}, "-")
+	t.Setenv(credentialEnvName, credentialFixture)
+	return credentialFixture
 }
 
 func TestAgentStreamEnvelopeRedactsEmbeddedTokenShapedSubstrings(t *testing.T) {
@@ -201,7 +236,7 @@ func TestSyncAgentWrapsStreamEventsInTargetEnvelope(t *testing.T) {
 
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("STRADDLE_BASE_URL", server.URL)
-	t.Setenv("STRADDLE_TOKEN", "fixture-value")
+	credentialFixture := setStreamCredentialFixture(t)
 
 	stdout, stderr, err := runCLIForStreamTest(t,
 		"sync", "--agent",
@@ -231,7 +266,7 @@ func TestSyncAgentWrapsStreamEventsInTargetEnvelope(t *testing.T) {
 	if summary.Data["resources"].(float64) == 0 {
 		t.Fatalf("sync_summary should report at least one resource: %#v", summary.Data)
 	}
-	if strings.Contains(stdout, "fixture-value") || strings.Contains(stdout, bearerCredentialPrefix()) {
+	if strings.Contains(stdout, credentialFixture) || strings.Contains(stdout, bearerCredentialPrefix()) {
 		t.Fatalf("sync --agent stdout leaked token-shaped output:\n%s", stdout)
 	}
 	if strings.Contains(stderr, "{") {
@@ -254,7 +289,7 @@ func TestTailAgentWrapsDataAndEndEventsInTargetEnvelope(t *testing.T) {
 
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("STRADDLE_BASE_URL", server.URL)
-	t.Setenv("STRADDLE_TOKEN", "fixture-value")
+	credentialFixture := setStreamCredentialFixture(t)
 
 	stdout, stderr, err := runCLIForStreamTest(t, "tail", "charges", "--agent", "--follow=false", "--interval", "1ms")
 	if err != nil {
@@ -276,11 +311,63 @@ func TestTailAgentWrapsDataAndEndEventsInTargetEnvelope(t *testing.T) {
 	if _, ok := events["tail_end"]; !ok {
 		t.Fatalf("expected final tail_end envelope, got %#v", events)
 	}
-	if strings.Contains(stdout, "fixture-value") || strings.Contains(stdout, bearerCredentialPrefix()) {
+	if strings.Contains(stdout, credentialFixture) || strings.Contains(stdout, bearerCredentialPrefix()) {
 		t.Fatalf("tail --agent stdout leaked token-shaped output:\n%s", stdout)
 	}
 	if strings.Contains(stdout, sensitiveResponseValue) {
 		t.Fatalf("tail --agent stdout leaked sensitive response payload:\n%s", stdout)
+	}
+	if strings.Contains(stderr, "{") {
+		t.Fatalf("tail --agent should keep stream data on stdout, got JSON-looking stderr:\n%s", stderr)
+	}
+}
+
+func TestTailAgentWritesShutdownEnvelopeOnContextCancellation(t *testing.T) {
+	firstRequest := make(chan struct{})
+	cancelled := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/charges" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+		select {
+		case <-firstRequest:
+		default:
+			close(firstRequest)
+		}
+		<-cancelled
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`[{"id":"chg_123","status":"created"}]`))
+	}))
+	t.Cleanup(server.Close)
+
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("STRADDLE_BASE_URL", server.URL)
+	credentialFixture := setStreamCredentialFixture(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		<-firstRequest
+		cancel()
+		close(cancelled)
+	}()
+
+	stdout, stderr, err := runCLIForStreamTestWithContext(t, ctx, "tail", "charges", "--agent", "--interval", "1ms")
+	<-done
+	if err != nil {
+		t.Fatalf("tail --agent returned error: %v\nstderr:\n%s\nstdout:\n%s", err, stderr, stdout)
+	}
+
+	envelopes := parseStreamEnvelopes(t, stdout)
+	if got := envelopes[len(envelopes)-1].Data["event"]; got != "tail_shutdown" {
+		t.Fatalf("tail_shutdown should be the final agent line, got %q in stdout:\n%s", got, stdout)
+	}
+	if got := envelopes[len(envelopes)-1].Data["reason"]; got != "context_cancelled" {
+		t.Fatalf("tail_shutdown should record context cancellation, got %#v in stdout:\n%s", got, stdout)
+	}
+	if strings.Contains(stdout, credentialFixture) || strings.Contains(stdout, bearerCredentialPrefix()) {
+		t.Fatalf("tail --agent stdout leaked token-shaped output:\n%s", stdout)
 	}
 	if strings.Contains(stderr, "{") {
 		t.Fatalf("tail --agent should keep stream data on stdout, got JSON-looking stderr:\n%s", stderr)

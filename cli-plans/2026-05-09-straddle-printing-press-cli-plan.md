@@ -396,34 +396,36 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Acceptance criteria:**
 
-- [ ] `sync --agent` writes one JSON object per line to stdout using the target envelope keys: `schema_version`, `data`, `pagination`, `warnings`, `trace_id`, and `error`.
-- [ ] Real `tail --agent` writes one JSON object per line to stdout using the same target envelope keys.
-- [ ] Each agent stream line has a stable event name in `data.event`.
-- [ ] Each agent stream line includes an ISO timestamp in `data.timestamp` when the source event has one.
-- [ ] Stream payloads do not include secrets or token-shaped values.
-- [ ] Human status chatter stays on stderr, and agent stream data stays on stdout.
-- [ ] Existing `sync_start`, `sync_warning`, `sync_summary`, and real tail data events map into the `data` payload.
-- [ ] `sync_summary` and final tail shutdown or end events are final envelope lines, not out-of-band text.
-- [ ] Normal human output and normal `--json` stream behavior remain backward compatible unless a deliberate breaking change is approved.
+- [x] `sync --agent` writes one JSON object per line to stdout using the target envelope keys: `schema_version`, `data`, `pagination`, `warnings`, `trace_id`, and `error`.
+- [x] Real `tail --agent` writes one JSON object per line to stdout using the same target envelope keys.
+- [x] Each agent stream line has a stable event name in `data.event`.
+- [x] Each agent stream line includes an ISO timestamp in `data.timestamp` when the source event has one.
+- [x] Stream payloads do not include secrets or token-shaped values.
+- [x] Human status chatter stays on stderr, and agent stream data stays on stdout.
+- [x] Existing `sync_start`, `sync_warning`, `sync_summary`, and real tail data events map into the `data` payload.
+- [x] `sync_summary` and final tail shutdown or end events are final envelope lines, not out-of-band text.
+- [x] Normal human output and normal `--json` stream behavior remain backward compatible unless a deliberate breaking change is approved.
 
 **Verification:**
 
-- [ ] Run `npm run validate`.
-- [ ] Run `go test ./...` from `packages/cli/straddle-pp-cli`.
-- [ ] Build the CLI to `/tmp`:
+- [x] Run `npm run validate`.
+- [x] Run `go test ./...` from `packages/cli/straddle-pp-cli`. Current evidence used `go test -count=1 ./...`.
+- [x] Build the CLI to `/tmp`:
   ```bash
   cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
   go build -o /tmp/pp-cli-stream-verify ./cmd/straddle-pp-cli
   ```
-- [ ] Run a unit test or local fake-server `sync --agent` check that proves every stdout line parses as JSON and has the target envelope keys. Do not use the real Straddle API for this verification unless live smoke has been explicitly approved.
-- [ ] Run a unit test or local fake-server `tail --agent` check that proves every stdout line parses as JSON and has the target envelope keys. Do not use the real Straddle API for this verification unless live smoke has been explicitly approved.
-- [ ] Terminate the `tail --agent` fixture with a context cancellation or signal and assert that the final shutdown or end event is emitted as an envelope line.
-- [ ] Confirm human/status output is on stderr and agent data is on stdout.
-- [ ] Run:
+- [x] Run a unit test or local fake-server `sync --agent` check that proves every stdout line parses as JSON and has the target envelope keys. Do not use the real Straddle API for this verification unless live smoke has been explicitly approved.
+- [x] Run a unit test or local fake-server `tail --agent` check that proves every stdout line parses as JSON and has the target envelope keys. Do not use the real Straddle API for this verification unless live smoke has been explicitly approved.
+- [x] Terminate the `tail --agent` fixture with a context cancellation or signal and assert that the final shutdown or end event is emitted as an envelope line.
+- [x] Confirm human/status output is on stderr and agent data is on stdout.
+- [x] Run:
   ```bash
   rg -n 'sync --agent|tail --agent|sync_summary|Streaming Agent Contract|target envelope' cli-plans packages/cli/README.md packages/cli/straddle-pp-cli/README.md packages/cli/straddle-pp-cli/SKILL.md
   ```
-- [ ] Remove `/tmp/pp-cli-stream-verify`.
+- [x] Remove `/tmp/pp-cli-stream-verify`.
+
+Current local proof is `packages/cli/straddle-pp-cli/internal/cli/stream_agent_test.go`. It uses local `httptest` servers and temporary local paths only. `parseStreamEnvelopes` asserts every stream line parses as JSON, includes the six target envelope keys, has `schema_version: "1.0"`, has object `data`, has stable string `data.event`, has RFC3339 `data.timestamp`, has empty `warnings`, and has null `pagination`, `trace_id`, and `error`. `TestSyncAgentWrapsStreamEventsInTargetEnvelope` proves `sync_start`, `sync_warning`, and final `sync_summary`. `TestTailAgentWrapsDataAndEndEventsInTargetEnvelope` proves real tail data lines and final `tail_end`. `TestTailAgentWritesShutdownEnvelopeOnContextCancellation` proves context cancellation emits final `tail_shutdown`. `TestTailJSONStreamStaysRawWithoutAgent` proves normal `--json` tail remains raw NDJSON.
 
 **Dependencies:** This docs/spec slice.
 

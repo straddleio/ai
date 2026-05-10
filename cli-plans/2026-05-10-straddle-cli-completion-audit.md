@@ -35,7 +35,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Ramp as benchmark, not architecture | Spec and benchmark docs say Ramp is a benchmark only; the competitor benchmark includes Ramp evidence. Extra CLI research for Stripe, GitHub CLI, Wrangler, Vercel, Shopify, Supabase, Brex, Finch, Kiro, and LangChain Deep Agents is supporting context only, not a required completion gate. | Done for planning |
 | Stainless as reference only | Spec and docs say Stainless is a behavior reference only and not the architecture. `cli-plans/2026-05-10-straddle-cli-current-cli-compatibility-inventory.md` records local evidence from the installed Stainless-generated `straddle` command, Stainless source repo, and Printing Press preview help output. | Done for local evidence, partial for public compatibility |
 | Word art and presentation | `about` exists and fresh `about --agent` returned `schema_version: "1.0"`, `data.command: "about"`, and `data.status: "local preview"`. Human `about` is documented as Straddle ASCII word art. | Done for local preview |
-| Agent output | Generated list/read output, local helper `--agent` output, `agent-context --agent`, `about --agent`, `setup check --agent`, `sync --agent`, and real `tail --agent` are documented as target-envelope paths. The current CLI compatibility inventory now records that these preview agent surfaces are additive and not evidence that public `straddle` replacement is approved. | Partial, public command decision still needed |
+| Agent output | Generated list/read output, local helper `--agent` output, `agent-context --agent`, `about --agent`, `setup check --agent`, `sync --agent`, and real `tail --agent` are documented as target-envelope paths. Fresh local tests now prove `sync --agent` and real `tail --agent` stream lines use the target envelope keys, stable `data.event`, RFC3339 `data.timestamp`, stdout/stderr separation, redaction, final `sync_summary`, final `tail_end`, final context-cancel `tail_shutdown`, and raw `tail --json` compatibility. These preview agent surfaces are additive and are not evidence that public `straddle` replacement is approved. | Partial, public command decision still needed |
 | Setup workflow | `setup check` exists and is local-only; docs cover config path, environment classification, auth source, MCP sibling, docs search, sandbox guide, and safe next steps. | Partial, public onboarding still open |
 | Customer workflow | Generated customer commands exist, dry-run agent output is tested, and read-only sandbox exploration is documented. | Partial, no approved live read smoke |
 | Payment workflow | Generated charges, payouts, paykeys, payments, funding events, and reports exist; read-only exploration and dry-run checks are documented. | Partial, no approved live read smoke |
@@ -79,6 +79,16 @@ go test -count=1 ./...
 ```
 
 Result: passed for all generated project packages.
+
+Stream agent verification slice:
+
+```bash
+go test -count=1 ./internal/cli -run 'Test(AgentStreamEnvelopeRedactsEmbeddedTokenShapedSubstrings|SyncAgentWrapsStreamEventsInTargetEnvelope|TailAgentWrapsDataAndEndEventsInTargetEnvelope|TailAgentWritesShutdownEnvelopeOnContextCancellation|TailJSONStreamStaysRawWithoutAgent)'
+go build -o /tmp/pp-cli-stream-verify ./cmd/straddle-pp-cli
+rm -f /tmp/pp-cli-stream-verify
+```
+
+Observed result: focused stream tests passed, the temporary CLI build passed, and `/tmp/pp-cli-stream-verify` was removed. The tests use local fake HTTP servers only. They prove `sync --agent` and real `tail --agent` stream envelopes, event names, RFC3339 timestamps, redaction, stdout/stderr separation, final summary/end/shutdown lines, context-cancel shutdown handling, and normal raw `tail --json` compatibility.
 
 Credential-free MCP runtime smoke:
 

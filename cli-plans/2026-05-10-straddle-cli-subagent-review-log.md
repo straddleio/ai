@@ -35,6 +35,33 @@ Every implementation slice must complete these gates before the controller selec
 
 ## Latest Slice Review Detail
 
+### Stream agent envelope verification slice
+
+Run date: 2026-05-10.
+
+What changed:
+
+- Tightened `packages/cli/straddle-pp-cli/internal/cli/stream_agent_test.go`.
+- Added exact target-envelope key set checks for every agent stream line and asserted expected empty warnings arrays.
+- Added RFC3339 timestamp parsing for `data.timestamp`.
+- Added a local fake-server `tail --agent` test that cancels the command context and proves final `tail_shutdown` is emitted as an envelope line.
+- Marked Task 14 stream-envelope acceptance and verification items complete in `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`.
+- Updated this audit trail and the completion audit with fresh local evidence.
+
+Evidence:
+
+- `go test -count=1 ./internal/cli -run 'Test(AgentStreamEnvelopeRedactsEmbeddedTokenShapedSubstrings|SyncAgentWrapsStreamEventsInTargetEnvelope|TailAgentWrapsDataAndEndEventsInTargetEnvelope|TailAgentWritesShutdownEnvelopeOnContextCancellation|TailJSONStreamStaysRawWithoutAgent)'` passed.
+- `go test -count=1 ./...` passed from `packages/cli/straddle-pp-cli`.
+- `npm run validate` passed with `Summary: 0 errors`.
+- `go build -o /tmp/pp-cli-stream-verify ./cmd/straddle-pp-cli` passed, and `/tmp/pp-cli-stream-verify` was removed.
+- `rg -n 'sync --agent|tail --agent|sync_summary|Streaming Agent Contract|target envelope' cli-plans packages/cli/README.md packages/cli/straddle-pp-cli/README.md packages/cli/straddle-pp-cli/SKILL.md` returned the expected documentation and plan references.
+
+Safety boundary:
+
+- Tests used local `httptest` servers, temporary home directories, and temporary database paths only.
+- No Straddle API calls, production calls, real credentials, publishing, signing, notarization, registry, or tap commands happened.
+- Stainless remained reference only; Printing Press remained the generator foundation.
+
 ### Fresh non-live shipcheck after compatibility inventory
 
 Run date: 2026-05-10.
