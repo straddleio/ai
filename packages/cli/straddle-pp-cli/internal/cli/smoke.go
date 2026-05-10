@@ -6,6 +6,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -32,13 +33,40 @@ type smokeSafety struct {
 }
 
 type smokeScopePlan struct {
-	Name               string   `json:"name"`
-	Title              string   `json:"title"`
-	Summary            string   `json:"summary"`
-	ApprovalChecklist  []string `json:"approval_checklist"`
-	DocsQueries        []string `json:"docs_queries"`
-	CommandSuggestions []string `json:"command_suggestions"`
-	MCPGuidance        []string `json:"mcp_guidance,omitempty"`
+	Name                 string                     `json:"name"`
+	Title                string                     `json:"title"`
+	Summary              string                     `json:"summary"`
+	ApprovalChecklist    []string                   `json:"approval_checklist"`
+	DocsQueries          []string                   `json:"docs_queries"`
+	CommandSuggestions   []string                   `json:"command_suggestions"`
+	MCPGuidance          []string                   `json:"mcp_guidance,omitempty"`
+	ApprovalPacketFields *smokeApprovalPacketFields `json:"approval_packet_fields,omitempty"`
+	ExpectedEvidence     *smokeExpectedEvidence     `json:"expected_evidence,omitempty"`
+	StopCriteria         []string                   `json:"stop_criteria,omitempty"`
+	TranscriptGuidance   *smokeTranscriptGuidance   `json:"transcript_guidance,omitempty"`
+}
+
+type smokeApprovalPacketFields struct {
+	TargetEnvironmentAndBaseURLClassification string   `json:"target_environment_and_base_url_classification,omitempty"`
+	CredentialSourceAndSecureSecretFlow       string   `json:"credential_source_and_secure_secret_flow,omitempty"`
+	AllowedScopeOrCommands                    []string `json:"allowed_scope_or_commands,omitempty"`
+	TranscriptArtifactPath                    string   `json:"transcript_artifact_path,omitempty"`
+	ReviewerSignoff                           string   `json:"reviewer_signoff,omitempty"`
+}
+
+type smokeExpectedEvidence struct {
+	RedactedCommand             string `json:"redacted_command,omitempty"`
+	ExitCode                    string `json:"exit_code,omitempty"`
+	EndpointOrToolName          string `json:"endpoint_or_tool_name,omitempty"`
+	EnvironmentClassification   string `json:"environment_classification,omitempty"`
+	ObjectCountOrEmptyListProof string `json:"object_count_or_empty_list_proof,omitempty"`
+	NoTokenExposure             string `json:"no_token_exposure,omitempty"`
+}
+
+type smokeTranscriptGuidance struct {
+	ArtifactPath string `json:"artifact_path,omitempty"`
+	Redaction    string `json:"redaction,omitempty"`
+	Shareability string `json:"shareability,omitempty"`
 }
 
 type smokePlanResponse struct {
@@ -168,7 +196,11 @@ func renderSmokePlanResponse(cmd *cobra.Command, flags *rootFlags, payload smoke
 	plan := payload.ScopePlan
 	fmt.Fprintf(w, "Smoke plan: %s\n", plan.Name)
 	fmt.Fprintln(w, "Safety: local guidance only. No live execution happens here.")
-	fmt.Fprintln(w, "Suggested commands:")
+	if plan.Name == "approval" {
+		fmt.Fprintln(w, "Local proof commands:")
+	} else {
+		fmt.Fprintln(w, "Suggested commands:")
+	}
 	for _, suggestion := range plan.CommandSuggestions {
 		fmt.Fprintf(w, "  %s\n", suggestion)
 	}
@@ -178,11 +210,52 @@ func renderSmokePlanResponse(cmd *cobra.Command, flags *rootFlags, payload smoke
 			fmt.Fprintf(w, "  %s\n", guidance)
 		}
 	}
+	if plan.Name == "approval" {
+		renderSmokeApprovalPlan(w, plan)
+	}
 	return nil
 }
 
+func renderSmokeApprovalPlan(w io.Writer, plan *smokeScopePlan) {
+	if plan.ApprovalPacketFields != nil {
+		fields := plan.ApprovalPacketFields
+		fmt.Fprintln(w, "Approval packet fields:")
+		fmt.Fprintf(w, "  target_environment_and_base_url_classification: %s\n", fields.TargetEnvironmentAndBaseURLClassification)
+		fmt.Fprintf(w, "  credential_source_and_secure_secret_flow: %s\n", fields.CredentialSourceAndSecureSecretFlow)
+		fmt.Fprintln(w, "  allowed_scope_or_commands:")
+		for _, scope := range fields.AllowedScopeOrCommands {
+			fmt.Fprintf(w, "    %s\n", scope)
+		}
+		fmt.Fprintf(w, "  transcript_artifact_path: %s\n", fields.TranscriptArtifactPath)
+		fmt.Fprintf(w, "  reviewer_signoff: %s\n", fields.ReviewerSignoff)
+	}
+	if plan.ExpectedEvidence != nil {
+		evidence := plan.ExpectedEvidence
+		fmt.Fprintln(w, "Expected evidence:")
+		fmt.Fprintf(w, "  redacted_command: %s\n", evidence.RedactedCommand)
+		fmt.Fprintf(w, "  exit_code: %s\n", evidence.ExitCode)
+		fmt.Fprintf(w, "  endpoint_or_tool_name: %s\n", evidence.EndpointOrToolName)
+		fmt.Fprintf(w, "  environment_classification: %s\n", evidence.EnvironmentClassification)
+		fmt.Fprintf(w, "  object_count_or_empty_list_proof: %s\n", evidence.ObjectCountOrEmptyListProof)
+		fmt.Fprintf(w, "  no_token_exposure: %s\n", evidence.NoTokenExposure)
+	}
+	if len(plan.StopCriteria) > 0 {
+		fmt.Fprintln(w, "Stop criteria:")
+		for _, criterion := range plan.StopCriteria {
+			fmt.Fprintf(w, "  %s\n", criterion)
+		}
+	}
+	if plan.TranscriptGuidance != nil {
+		guidance := plan.TranscriptGuidance
+		fmt.Fprintln(w, "Transcript guidance:")
+		fmt.Fprintf(w, "  artifact_path: %s\n", guidance.ArtifactPath)
+		fmt.Fprintf(w, "  redaction: %s\n", guidance.Redaction)
+		fmt.Fprintf(w, "  shareability: %s\n", guidance.Shareability)
+	}
+}
+
 func smokeScopeNames() []string {
-	return []string{"setup", "customers", "payments", "funding", "mcp", "all"}
+	return []string{"setup", "customers", "payments", "funding", "mcp", "approval", "all"}
 }
 
 func smokeScopePlanByName(name string) (smokeScopePlan, bool) {
@@ -289,6 +362,60 @@ func smokeScopePlans() []smokeScopePlan {
 				"Run a local JSON-RPC initialize plus tools/list smoke against the stdio MCP process.",
 				"Confirm smoke_plan appears with readOnlyHint true and destructiveHint false.",
 				"Do not call API-backed MCP tools without explicit approval and secure credentials.",
+			},
+		},
+		{
+			Name:    "approval",
+			Title:   "Live smoke approval packet",
+			Summary: "Print the written approval fields required before any future read-only live smoke.",
+			ApprovalChecklist: []string{
+				"Written approval names the target environment and base URL classification.",
+				"Written approval names the credential source and secure secret flow.",
+				"Written approval limits execution to read-only scope or commands.",
+				"Written approval names the redacted transcript artifact path and reviewer signoff owner.",
+			},
+			DocsQueries: []string{
+				"live smoke approval sandbox environment base url read only",
+				"docs search commands source sandbox",
+			},
+			CommandSuggestions: []string{
+				"straddle-pp-cli smoke plan setup --json",
+				"straddle-pp-cli smoke plan customers --json",
+				"straddle-pp-cli docs search sandbox --source commands --json",
+			},
+			ApprovalPacketFields: &smokeApprovalPacketFields{
+				TargetEnvironmentAndBaseURLClassification: "Name the target environment and classify the resolved base URL before execution. Approved first run should be sandbox or another explicitly approved non-production environment.",
+				CredentialSourceAndSecureSecretFlow:       "Name the credential source and how the secret is supplied through a secure flow. Do not paste, log, print, store, or pass token literals in argv.",
+				AllowedScopeOrCommands: []string{
+					"read-only only",
+					"Approved scope, for example setup plus customers, or exact commands named in the approval.",
+					"No create, update, delete, cancel, hold, release, resubmit, webhook post, publish, sign, or notarize command.",
+				},
+				TranscriptArtifactPath: "Provide the planned path for the redacted transcript artifact before live execution.",
+				ReviewerSignoff:        "Name the reviewer who will approve the redacted transcript after execution.",
+			},
+			ExpectedEvidence: &smokeExpectedEvidence{
+				RedactedCommand:             "Every executed command is recorded with secrets redacted.",
+				ExitCode:                    "Each command records its exit code.",
+				EndpointOrToolName:          "Each result names the endpoint or local tool checked.",
+				EnvironmentClassification:   "Each result records sandbox, approved non-production, custom, or production classification.",
+				ObjectCountOrEmptyListProof: "Each list result includes an object count or clear empty-list proof.",
+				NoTokenExposure:             "Transcript review confirms no token, bearer credential, or sensitive value exposure.",
+			},
+			StopCriteria: []string{
+				"Stop if the resolved target is a production URL unexpectedly.",
+				"Stop if any write-looking operation appears in the command, docs guidance, output, or prompt.",
+				"Stop if any token printed in output or logs.",
+				"Stop if any prompt for token literal appears.",
+				"Stop if unredacted sensitive data appears beyond approved fixtures.",
+				"Stop after 401/403 after one retry.",
+				"Stop on any HTTP 5xx response.",
+				"Stop if output is not safely shareable.",
+			},
+			TranscriptGuidance: &smokeTranscriptGuidance{
+				ArtifactPath: "Use the approval packet transcript artifact path and keep the raw transcript local until reviewed.",
+				Redaction:    "Redact secrets, bearer credentials, account identifiers, personal data, and any value outside approved fixtures.",
+				Shareability: "Only the redacted transcript may be attached to review or launch evidence.",
 			},
 		},
 	}

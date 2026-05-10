@@ -616,15 +616,16 @@ Before any separately approved live sandbox execution, run `docs search` to veri
 
 ## Smoke Plan
 
-Use `smoke plan` for local-only planning before any approved read-only live smoke. With no scope, it lists supported scopes. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
+Use `smoke plan` for local-only planning before any approved read-only live smoke. With no scope, it lists supported scopes. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, `approval`, and `all`.
 
 ```bash
 straddle-pp-cli smoke plan --json
 straddle-pp-cli smoke plan customers --json
+straddle-pp-cli smoke plan approval --json
 straddle-pp-cli smoke plan all --agent
 ```
 
-`smoke plan [scope]` returns a runbook, docs lookup topics, dry-run command suggestions, and explicit safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
+`smoke plan [scope]` returns a runbook, docs lookup topics, dry-run command suggestions, and explicit safety metadata. The `approval` scope returns the required written approval packet fields, expected evidence, stop criteria, and transcript guidance before any future live run. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
 
 ## Streaming Agent Contract
 
@@ -992,10 +993,11 @@ straddle-pp-cli smoke plan customers --json
 straddle-pp-cli smoke plan payments --json
 straddle-pp-cli smoke plan funding --json
 straddle-pp-cli smoke plan mcp --json
+straddle-pp-cli smoke plan approval --json
 straddle-pp-cli smoke plan all --agent
 ```
 
-`smoke plan [scope]` is local-only guidance for a future approved read-only smoke. It suggests commands such as `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP `tools/list` smoke guidance. Docs lookup topics are returned as query text, not as commands for this local-only runbook. It does not execute those commands.
+`smoke plan [scope]` is local-only guidance for a future approved read-only smoke. It suggests commands such as `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP `tools/list` smoke guidance. `smoke plan approval --json` prints the required approval packet fields and local proof commands such as `smoke plan setup --json`, `smoke plan customers --json`, and `docs search sandbox --source commands --json`. Docs lookup topics are returned as query text, not as commands for this local-only runbook. It does not execute those commands.
 
 ## Configuration
 

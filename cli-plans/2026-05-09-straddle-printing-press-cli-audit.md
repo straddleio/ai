@@ -114,7 +114,7 @@ Result: config validation passed with no deprecation warning after moving from `
 | Featureful across reporting | `ops guide reporting` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, live reports, exports, or production workflow |
 | Featureful across monitoring | `ops guide monitoring` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, polling, alerting, webhook delivery, or production workflow |
 | Featureful across sandbox testing | Sandbox-safe help, config, local build, read-only walkthrough, and help-only `sandbox guide [scenario]` flow are documented. For this slice, production calls and live writes are out of scope. | Partial |
-| Featureful across approved live smoke | `smoke plan [scope]` provides local-only runbook guidance for setup, customers, payments, funding, MCP tools/list, and all scopes. It returns docs lookup topics as text, not endpoint-calling docs commands. It requires explicit approval and secure credentials for any future live execution. | Partial, no actual approved live smoke has run |
+| Featureful across approved live smoke | `smoke plan [scope]` provides local-only runbook guidance for setup, customers, payments, funding, MCP tools/list, approval packet, and all scopes. It returns docs lookup topics as text, not endpoint-calling docs commands. It requires explicit approval and secure credentials for any future live execution. | Partial, no actual approved live smoke has run |
 | Featureful across docs/search integration | Generated `search` remains synced local data search. `docs search` now provides product docs lookup, local command search, and API or SDK `search_docs` guidance. | Partial |
 | Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
@@ -170,7 +170,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Local-preview product review is done.
    - Public-launch product approval remains open.
    - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring.
-   - Smoke plan is implemented as local-only guidance for future approved read-only smoke across setup, customers, payments, funding, and MCP.
+   - Smoke plan is implemented as local-only guidance for future approved read-only smoke across setup, customers, payments, funding, MCP, and approval packet fields.
    - Release plan is implemented as local-only guidance for public-release readiness across archives, Homebrew, MCP, naming, npm, and signing. It reduces the distribution decision blocker but does not publish, upload, push, sign, notarize, call external services, execute MCP tools, read secrets, or approve launch.
    - Credentials plan is implemented as local-only guidance for credential storage readiness across config, environment, MCP, keychain, and launch surfaces. It reduces the auth launch blocker but does not read secrets, print secrets, write credentials, call APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch.
    - Actual approved live smoke has not run.
@@ -185,7 +185,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Richer presentation polish beyond the local `about` command.
    - Full workflow engine for reconciliation, fraud monitoring, collections, reporting, and monitoring.
    - Live API reads, docs lookup, MCP execution, webhook posts, or production writes from `ops guide`.
-   - Live API reads, docs lookup execution, MCP execution, sandbox access, production access, or approval from `smoke plan`.
+   - Live API reads, docs lookup execution, MCP execution, sandbox access, production access, or live approval from `smoke plan`.
 3. Run a fresh completion audit after the next slice. Treat uncertainty as incomplete.
 
 ## Do Not Claim

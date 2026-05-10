@@ -6,6 +6,7 @@ package cli
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,7 +30,7 @@ func TestSmokePlanNoArgJSONReturnsScopesAndSafety(t *testing.T) {
 	if got.Command != "smoke plan" {
 		t.Fatalf("command = %q, want smoke plan", got.Command)
 	}
-	wantScopes := []string{"setup", "customers", "payments", "funding", "mcp", "all"}
+	wantScopes := []string{"setup", "customers", "payments", "funding", "mcp", "approval", "all"}
 	if strings.Join(got.AvailableScopes, ",") != strings.Join(wantScopes, ",") {
 		t.Fatalf("available scopes = %#v, want %#v", got.AvailableScopes, wantScopes)
 	}
@@ -64,6 +65,11 @@ func TestSmokePlanScopesIncludeExpectedCommands(t *testing.T) {
 		},
 		"mcp": {
 			"straddle-pp-cli setup check --json",
+		},
+		"approval": {
+			"straddle-pp-cli smoke plan setup --json",
+			"straddle-pp-cli smoke plan customers --json",
+			"straddle-pp-cli docs search sandbox --source commands --json",
 		},
 	}
 
@@ -120,6 +126,120 @@ func TestSmokePlanCommandSuggestionsResolveToRealCommands(t *testing.T) {
 	}
 }
 
+func TestSmokePlanApprovalIncludesApprovalPacketFields(t *testing.T) {
+	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "plan", "approval", "--json")
+	if err != nil {
+		t.Fatalf("smoke plan approval --json returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("smoke plan approval wrote stderr: %q", stderr)
+	}
+
+	var got smokePlanResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("smoke plan approval --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Scope != "approval" || got.ScopePlan == nil {
+		t.Fatalf("expected approval scope plan, got %#v", got)
+	}
+
+	plan := got.ScopePlan
+	if plan.ApprovalPacketFields == nil {
+		t.Fatalf("approval scope should include approval packet fields: %#v", plan)
+	}
+	if plan.ApprovalPacketFields.TargetEnvironmentAndBaseURLClassification == "" {
+		t.Fatalf("approval packet should require target environment and base URL classification: %#v", plan.ApprovalPacketFields)
+	}
+	if plan.ApprovalPacketFields.CredentialSourceAndSecureSecretFlow == "" {
+		t.Fatalf("approval packet should require credential source and secure secret flow: %#v", plan.ApprovalPacketFields)
+	}
+	if !containsString(plan.ApprovalPacketFields.AllowedScopeOrCommands, "read-only only") {
+		t.Fatalf("approval packet should require read-only allowed scope or commands: %#v", plan.ApprovalPacketFields.AllowedScopeOrCommands)
+	}
+	if plan.ApprovalPacketFields.TranscriptArtifactPath == "" {
+		t.Fatalf("approval packet should require transcript artifact path: %#v", plan.ApprovalPacketFields)
+	}
+	if plan.ApprovalPacketFields.ReviewerSignoff == "" {
+		t.Fatalf("approval packet should require reviewer signoff: %#v", plan.ApprovalPacketFields)
+	}
+	if plan.ExpectedEvidence == nil {
+		t.Fatalf("approval scope should include expected evidence: %#v", plan)
+	}
+	if plan.ExpectedEvidence.RedactedCommand == "" || plan.ExpectedEvidence.ExitCode == "" || plan.ExpectedEvidence.EndpointOrToolName == "" {
+		t.Fatalf("approval expected evidence should require redacted command, exit code, and endpoint or tool name: %#v", plan.ExpectedEvidence)
+	}
+	if plan.ExpectedEvidence.EnvironmentClassification == "" || plan.ExpectedEvidence.ObjectCountOrEmptyListProof == "" || plan.ExpectedEvidence.NoTokenExposure == "" {
+		t.Fatalf("approval expected evidence should require environment classification, object count or empty-list proof, and no token exposure: %#v", plan.ExpectedEvidence)
+	}
+	if len(plan.StopCriteria) < 7 {
+		t.Fatalf("approval scope should include stop criteria, got %#v", plan.StopCriteria)
+	}
+	for _, want := range []string{"production URL unexpectedly", "write-looking operation", "token printed", "prompt for token literal", "401/403 after one retry", "HTTP 5xx", "not safely shareable"} {
+		if !containsSubstring(plan.StopCriteria, want) {
+			t.Fatalf("approval stop criteria = %#v, want substring %q", plan.StopCriteria, want)
+		}
+	}
+	if plan.TranscriptGuidance == nil || plan.TranscriptGuidance.ArtifactPath == "" || plan.TranscriptGuidance.Redaction == "" || plan.TranscriptGuidance.Shareability == "" {
+		t.Fatalf("approval scope should include transcript guidance: %#v", plan.TranscriptGuidance)
+	}
+	if strings.Contains(stdout, "STRADDLE_TOKEN=") || strings.Contains(stdout, "Bearer ") {
+		t.Fatalf("approval scope should not emit token literals or bearer examples:\n%s", stdout)
+	}
+}
+
+func TestSmokePlanApprovalTerminalRendersApprovalDetails(t *testing.T) {
+	restoreTerminal := forceTerminalForSmokePlanTest(t)
+	defer restoreTerminal()
+
+	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "plan", "approval")
+	if err != nil {
+		t.Fatalf("smoke plan approval returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("smoke plan approval wrote stderr: %q", stderr)
+	}
+
+	for _, want := range []string{
+		"Smoke plan: approval",
+		"Local proof commands:",
+		"straddle-pp-cli smoke plan setup --json",
+		"straddle-pp-cli smoke plan customers --json",
+		"straddle-pp-cli docs search sandbox --source commands --json",
+		"Approval packet fields:",
+		"target_environment_and_base_url_classification",
+		"credential_source_and_secure_secret_flow",
+		"allowed_scope_or_commands",
+		"read-only only",
+		"transcript_artifact_path",
+		"reviewer_signoff",
+		"Expected evidence:",
+		"redacted_command",
+		"exit_code",
+		"endpoint_or_tool_name",
+		"environment_classification",
+		"object_count_or_empty_list_proof",
+		"no_token_exposure",
+		"Stop criteria:",
+		"production URL unexpectedly",
+		"write-looking operation",
+		"token printed",
+		"401/403 after one retry",
+		"HTTP 5xx",
+		"not safely shareable",
+		"Transcript guidance:",
+		"artifact_path",
+		"redaction",
+		"shareability",
+	} {
+		if !strings.Contains(stdout, want) {
+			t.Fatalf("terminal output omitted %q:\n%s", want, stdout)
+		}
+	}
+	if strings.Contains(stdout, "STRADDLE_TOKEN=") || strings.Contains(stdout, "Bearer ") {
+		t.Fatalf("approval terminal output should not emit token literals or bearer examples:\n%s", stdout)
+	}
+}
+
 func TestSmokePlanAllIncludesEveryScopePlan(t *testing.T) {
 	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "plan", "all", "--json")
 	if err != nil {
@@ -136,8 +256,8 @@ func TestSmokePlanAllIncludesEveryScopePlan(t *testing.T) {
 	if got.Scope != "all" {
 		t.Fatalf("scope = %q, want all", got.Scope)
 	}
-	if len(got.ScopePlans) != 5 {
-		t.Fatalf("all scope should include five concrete scope plans, got %d: %#v", len(got.ScopePlans), got.ScopePlans)
+	if len(got.ScopePlans) != 6 {
+		t.Fatalf("all scope should include six concrete scope plans, got %d: %#v", len(got.ScopePlans), got.ScopePlans)
 	}
 	if got.ScopePlan != nil {
 		t.Fatalf("all scope should use scope_plans, not scope_plan: %#v", got.ScopePlan)
@@ -248,4 +368,25 @@ func commandPathFromSuggestion(t *testing.T, suggestion string) []string {
 		t.Fatalf("suggestion should include a command path, got %q", suggestion)
 	}
 	return path
+}
+
+func containsSubstring(items []string, want string) bool {
+	for _, item := range items {
+		if strings.Contains(item, want) {
+			return true
+		}
+	}
+	return false
+}
+
+func forceTerminalForSmokePlanTest(t *testing.T) func() {
+	t.Helper()
+
+	old := isTerminalWriter
+	isTerminalWriter = func(io.Writer) bool {
+		return true
+	}
+	return func() {
+		isTerminalWriter = old
+	}
 }

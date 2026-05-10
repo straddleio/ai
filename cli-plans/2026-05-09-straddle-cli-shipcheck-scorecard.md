@@ -74,7 +74,7 @@ Sandbox-safe walkthrough avoids side effects
 
 Approved live-smoke planning exists, but live smoke has not run
 
-- Evidence: `smoke plan [scope]` supports `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`; it emits safety metadata requiring explicit approval, secure credential flow, read-only intended commands, no writes, no token literals, and no live execution in the command.
+- Evidence: `smoke plan [scope]` supports `setup`, `customers`, `payments`, `funding`, `mcp`, `approval`, and `all`; it emits safety metadata requiring explicit approval, secure credential flow, read-only intended commands, no writes, no token literals, and no live execution in the command.
 - Status: Partial.
 - Missing work: Secure credential approval and actual read-only live smoke execution remain open.
 
@@ -121,8 +121,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
   Status: Built and documented. Help-only guidance, no live write.
 - Ops guide: `/tmp/straddle-pp-cli ops guide reconciliation --json`.
   Status: Built and documented. Local-only guidance, no live operation.
-- Smoke plan: `/tmp/straddle-pp-cli smoke plan all --json`.
-  Status: Built and documented. Local-only runbook guidance, no live smoke execution or approval.
+- Smoke plan: `/tmp/straddle-pp-cli smoke plan approval --json` and `/tmp/straddle-pp-cli smoke plan all --json`.
+  Status: Built and documented. Local-only runbook and approval packet guidance, no live smoke execution or approval.
 - Release plan: `/tmp/straddle-pp-cli release plan all --json`.
   Status: Built and documented. Local-only public-release readiness guidance, no publishing, external calls, signing, notarization, MCP execution, or secrets.
 - Credentials plan: `/tmp/straddle-pp-cli credentials plan all --json`.

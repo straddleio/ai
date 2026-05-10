@@ -125,7 +125,7 @@ Observed summaries:
 These are blockers for claiming the activated goal is complete:
 
 1. Public release is not published. There is no public Homebrew tap update, `npx` package, release download, signed or notarized macOS path, desktop MCP package, or final public install doc.
-2. No approved live read-only smoke has run with scoped sandbox credentials and expected outputs.
+2. No approved live read-only smoke has run with scoped sandbox credentials and expected outputs. `smoke plan approval --json` now structures the required approval packet, but it does not run live smoke.
 3. The public-launch product review gate exists at `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md`, but it rejects approval until owner decisions and approved live smoke happen.
 4. Credential launch posture is still not approved for broad public launch. The repo now has opt-in preview keychain support, but still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 5. Operational workflows are still planning guidance. Reconciliation, fraud monitoring, collections, reporting, and monitoring have useful local plans, but no approved live read execution or workflow engines.
@@ -135,6 +135,6 @@ These are blockers for claiming the activated goal is complete:
 
 ## Next Slice
 
-The next slice should be selected from the blocker list, not from new feature ideas. The highest-leverage next slice is an approved live read-only smoke, because it would test the generated CLI against real sandbox API behavior and give product review concrete outputs. If live smoke is not approved yet, the next best slice is a public-release decision pass that resolves command name, Homebrew or archive publish target, MCP desktop packaging, and credential-storage posture.
+The next slice should be selected from the blocker list, not from new feature ideas. The highest-leverage next slice is an approved live read-only smoke, because it would test the generated CLI against real sandbox API behavior and give product review concrete outputs. If live smoke is not approved yet, use `smoke plan approval --json` as the local approval packet surface, or run a public-release decision pass that resolves command name, Homebrew or archive publish target, MCP desktop packaging, and credential-storage posture.
 
 Do not mark the goal complete until a fresh audit maps every blocker above to evidence or to an explicit user-approved exclusion.

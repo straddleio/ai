@@ -81,10 +81,10 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 </tr>
 <tr>
 <td>Live smoke scope</td>
-<td>Which read-only live smoke is approved: setup only, customers, payments, funding, MCP tools/list, all, or none?</td>
+<td>Which read-only live smoke is approved after the local `approval` packet: setup only, customers, payments, funding, MCP tools/list, all, or none?</td>
 <td>Approve setup plus one narrow read-only sandbox entity-list path first. Keep payments, funding, and broader MCP use staged until the first run is reviewed.</td>
 <td>The highest value blocker is proof that the generated CLI can read from an approved environment. Starting narrow limits credential and data risk.</td>
-<td>Written approval naming environment, credential source, allowed commands, expected redacted outputs, data boundaries, stop criteria, transcript storage path, and reviewer signoff.</td>
+<td>`smoke plan approval --json`, then written approval naming environment, base URL classification, credential source, allowed commands, expected redacted outputs, data boundaries, stop criteria, transcript storage path, and reviewer signoff.</td>
 <td>Do not run production commands, write commands, webhook posts, token-bearing examples, live docs claims, or broad workflow runs.</td>
 </tr>
 <tr>
@@ -110,6 +110,8 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 
 This packet is the minimum approval text needed before anyone runs live CLI commands.
 
+Run `straddle-pp-cli smoke plan approval --json` locally first to print these fields as structured CLI output. That command is local-only and does not read credentials, call APIs, call docs endpoints, execute MCP tools, touch sandbox, touch production, or run live smoke.
+
 ### Required Approval Fields
 
 - Approver name and role.
@@ -128,6 +130,7 @@ This packet is the minimum approval text needed before anyone runs live CLI comm
   - `straddle-pp-cli auth status --json`
   - `straddle-pp-cli doctor --json` only if the approved environment and credential source are already configured.
 - Local planning and discovery:
+  - `straddle-pp-cli smoke plan approval --json`
   - `straddle-pp-cli smoke plan <scope> --json`
   - `straddle-pp-cli docs search <query> --source commands --json`
   - `straddle-pp-cli workflow plan <workflow> --json`

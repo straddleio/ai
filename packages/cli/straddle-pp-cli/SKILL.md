@@ -735,16 +735,17 @@ The command returns phases, steps, docs search topics, read-only CLI commands to
 
 ## Smoke Plan
 
-Use `smoke plan` for local-only planning before any approved read-only live smoke. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
+Use `smoke plan` for local-only planning before any approved read-only live smoke. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, `approval`, and `all`.
 
 ```bash
 straddle-pp-cli smoke plan --json
 straddle-pp-cli smoke plan customers --json
+straddle-pp-cli smoke plan approval --json
 straddle-pp-cli smoke plan payments --agent
 straddle-pp-cli smoke plan all --json
 ```
 
-The command returns a future runbook, docs lookup topics, dry-run command suggestions, MCP tools/list guidance, and explicit approval metadata. Docs lookup topics are query text, not commands for this local-only runbook. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
+The command returns a future runbook, docs lookup topics, dry-run command suggestions, MCP tools/list guidance, and explicit approval metadata. The `approval` scope returns the required written approval packet fields, expected evidence, stop criteria, and transcript guidance before any future live run. Docs lookup topics are query text, not commands for this local-only runbook. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
 
 ## Agent Mode
 

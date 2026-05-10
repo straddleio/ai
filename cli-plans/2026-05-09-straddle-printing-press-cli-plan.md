@@ -603,15 +603,15 @@ After each slice passes spec review, quality review, and verification, the contr
 
 #### Task 20: Implement local live-smoke planning flow
 
-**Description:** Implemented as a bounded patch-layer command. `smoke plan [scope]` is local-only live-smoke planning guidance for `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`. It returns docs lookup topics, dry-run command suggestions, MCP tools/list smoke guidance, and safety metadata for a future approved read-only smoke. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, run live smoke, or approve launch.
+**Description:** Implemented as a bounded patch-layer command. `smoke plan [scope]` is local-only live-smoke planning guidance for `setup`, `customers`, `payments`, `funding`, `mcp`, `approval`, and `all`. It returns docs lookup topics, dry-run command suggestions, MCP tools/list smoke guidance, safety metadata, and approval packet fields for a future approved read-only smoke. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, run live smoke, or approve launch.
 
 **Acceptance criteria:**
 
 - [x] `smoke plan [scope]` exists under a `smoke` command tree.
-- [x] Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
+- [x] Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, `approval`, and `all`.
 - [x] The command lists supported scopes when no scope is provided.
 - [x] Named scopes return docs lookup topics and read-only intended command suggestions.
-- [x] Suggested commands include `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP tools/list smoke guidance where relevant.
+- [x] Suggested commands include `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, local approval packet proof commands, and MCP tools/list smoke guidance where relevant.
 - [x] Safety metadata states that the command requires explicit approval, requires sandbox or approved environment credentials through a secure secret flow, allows read-only intended commands only, has no writes, has no token literals, and performs no live execution.
 - [x] `smoke plan` rejects `--deliver` before delivery.
 - [x] `smoke plan --agent` uses the target envelope through the existing local JSON helper path.
@@ -748,7 +748,7 @@ After each slice passes spec review, quality review, and verification, the contr
 | Docs imply a release path that does not exist yet | High | Separate local preview, future release, MCP registration, and public launch in generated docs. |
 | Broad uncommitted slices become hard to review | High | After a slice passes spec review, quality review, and verification, stage only intended files and make a small commit before starting the next slice. Commit the current baseline in logical chunks: generated baseline first, then hand-authored docs, validation, plans, and audit updates. |
 | Product review is mistaken for public launch approval | High | Keep the product review decision split: local preview approved, public launch not approved. |
-| Smoke planning is mistaken for actual live smoke | High | Keep docs explicit: `smoke plan` only prints a future runbook and does not grant approval, execute MCP, call APIs, or use credentials. |
+| Smoke planning is mistaken for actual live smoke | High | Keep docs explicit: `smoke plan` only prints a future runbook and approval packet fields. It does not grant approval, execute MCP, call APIs, or use credentials. |
 | Credential storage planning is mistaken for launch approval | High | Keep docs explicit: keychain-backed storage exists as opt-in preview support, while broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording. |
 | Workflow planning is mistaken for live workflow execution | High | Keep docs explicit: `workflow plan` only prints local structured command plans and does not run API, docs, MCP, webhook, sandbox, production, credential, or write actions. |
 
