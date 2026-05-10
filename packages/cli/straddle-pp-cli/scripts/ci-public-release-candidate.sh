@@ -104,8 +104,7 @@ const redacted = {
   local_preview_passed: result.local_preview_passed,
   checks: (result.checks || []).map((check) => ({
     name: check.name,
-    status: check.status,
-    required: check.required,
+    passed: check.passed,
     evidence_count: Array.isArray(check.evidence) ? check.evidence.length : 0
   })),
   safety: result.safety,

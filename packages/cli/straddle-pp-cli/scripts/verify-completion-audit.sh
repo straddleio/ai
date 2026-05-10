@@ -361,6 +361,10 @@ if (metadata.raw_approval_file_uploaded !== false || metadata.raw_shipcheck_file
 if (redacted.ready !== true || redacted.local_preview_passed !== true) {
   throw new Error('redacted release-candidate shipcheck must be ready');
 }
+const redactedChecks = redacted.checks || [];
+if (redactedChecks.length === 0 || redactedChecks.some((check) => check.passed !== true)) {
+  throw new Error('redacted release-candidate checks must preserve passing status');
+}
 if (JSON.stringify(redacted).match(/Completion Audit|completion audit evidence|Bearer |STRADDLE_TOKEN=|sk_live|sk_test/i)) {
   throw new Error('redacted release-candidate artifact leaked approval or token text');
 }
