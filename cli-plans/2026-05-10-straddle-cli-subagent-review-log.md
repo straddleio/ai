@@ -22,6 +22,10 @@ Every implementation slice must complete these gates before the controller selec
 
 | Commit | Slice | Durable evidence |
 |--------|-------|------------------|
+| `c1eb35d docs: record packaged credential smoke` | Recorded the local packaged-client credential smoke results in durable planning docs. | Local built CLI and MCP binaries ran without credentials or API calls; auth status returned expected exit 4; MCP `tools/list` returned 87 tools; `make clean` passed. Spec and quality review approved the evidence. |
+| `4b4c90f feat: add packaged credential smoke plan` | Added `credentials plan packaged-client --json` so agents can print local packaged CLI/MCP smoke steps before running them. | Review requested MCP `tools/list` proof command, completion-audit command consistency, and keychain and launch wording fixes. Fixes landed before spec and quality approval. |
+| `0abc7e4 feat: add release owner decisions plan` | Added `release plan owner-decisions --json` for public release owner choices that remain blocked. | Review requested stale release surface list and runbook purpose fixes. Fixes landed before approval; public launch stayed blocked. |
+| `c7f9497 feat: add release compatibility plan` | Added `release plan compatibility --json` to inventory current Stainless CLI behavior before any public command replacement. | Spec and quality review approved after the installed Stainless CLI and source-tree inventory were verified. |
 | `1515611 feat: add release docs support plan` | Added local docs and support launch planning through `release plan docs-support --json`, refreshed audit and decision docs, and updated generated CLI support code and tests. | This log records the session review details below. |
 | `34549dd docs: refresh cli completion audit` | Refreshed the completion audit and public-launch product review after new local readiness evidence. | Commit contains audit updates that keep launch status partial. |
 | `8eac604 feat: add smoke approval plan` | Added the local-only `smoke plan approval` surface, approval evidence fields, stop criteria, and tests. | Completion audit and decision packet now point at the approval packet, while live smoke remains incomplete. |
@@ -30,6 +34,73 @@ Every implementation slice must complete these gates before the controller selec
 | `cf2598e feat: add opt-in keychain auth` | Added opt-in keychain auth, launch credential planning updates, and related tests. | Completion audit and public-launch review keep credential launch posture partial pending owner and security approval. |
 
 ## Latest Slice Review Detail
+
+### Commit `c1eb35d docs: record packaged credential smoke`
+
+What changed:
+
+- Recorded passed local packaged-client credential smoke evidence in the shipcheck scorecard, completion audit, decision packet, and public-launch product review.
+- Kept the result scoped to local packaged binaries and stated that it does not approve public launch.
+
+Evidence:
+
+- Implementer ran local packaged binaries under `dist/local`.
+- `auth status --json` returned expected unauthenticated exit 4 and did not print credentials.
+- MCP JSON-RPC `tools/list` against the packaged MCP binary returned `tool_count: 87` without executing MCP tools.
+- `make clean` passed and removed local build outputs.
+- Spec and quality review approved the recorded evidence.
+- Controller committed only documentation evidence.
+
+### Commit `4b4c90f feat: add packaged credential smoke plan`
+
+What changed:
+
+- Added `credentials plan packaged-client --json` to print local smoke steps for built CLI and MCP binaries.
+- Updated credential launch docs, release docs, audits, and patch metadata to keep packaged smoke separate from public launch.
+
+Requested changes and resolution:
+
+- Review requested an explicit MCP `tools/list` proof command. The plan now prints a JSON-RPC `tools/list` smoke command for `dist/local/straddle-pp-mcp`.
+- Review requested completion-audit command consistency. The audit now lists the packaged credential plan command in the fresh CLI smoke block.
+- Review requested keychain and launch wording fixes. The docs now say keychain is preview support and packaged smoke evidence does not approve broad launch.
+
+Evidence:
+
+- Implementer added code, tests, docs, and patch manifest updates.
+- Spec and quality review approved after the requested fixes.
+- Controller verification covered release and credential plan output, tests, validation, patch JSON, formatting, and unsafe added-line scans.
+
+### Commit `0abc7e4 feat: add release owner decisions plan`
+
+What changed:
+
+- Added `release plan owner-decisions --json` to print the public release owner choices still required.
+- Updated docs, audits, review packets, generated release code, tests, and patch metadata.
+
+Requested changes and resolution:
+
+- Review requested a stale release surface list fix. The owner-decisions surface was added to the release surface list and tests.
+- Review requested runbook purpose wording fixes. The runbook now states that the command only prints local planning guidance and does not publish, make live calls, read secrets, approve launch, approve support, sign, notarize, or execute MCP tools.
+
+Evidence:
+
+- Implementer added the owner-decision surface and test coverage.
+- Spec and quality review approved after the requested fixes.
+- Controller verification covered release plan output, tests, validation, patch JSON, formatting, and unsafe added-line scans.
+
+### Commit `c7f9497 feat: add release compatibility plan`
+
+What changed:
+
+- Added `release plan compatibility --json` to inventory current Stainless CLI behavior before any public `straddle` replacement, alias, or migration decision.
+- Updated audits, decision docs, product review docs, generated release code, tests, package docs, and patch metadata.
+
+Evidence:
+
+- Implementer added local proof commands for the installed Stainless CLI and Stainless source-tree markers.
+- Spec review approved after the Stainless CLI inventory was verified.
+- Quality review approved after confirming the surface stays local-only and does not approve public replacement.
+- Controller verification covered release plan output, tests, validation, patch JSON, formatting, and unsafe added-line scans.
 
 Commit: `1515611 feat: add release docs support plan`.
 
