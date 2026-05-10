@@ -122,9 +122,10 @@ func buildReleasePlanResponse(surface string) (releasePlanResponse, error) {
 			NoLiveExecution:  true,
 			LocalOutputOnly:  true,
 		},
-		RunbookPurpose: "Reduce the public-release distribution decision blocker by listing local proof commands, future approvals, artifact surfaces, and blockers. This command only prints the plan.",
+		RunbookPurpose: "Reduce the public-release distribution, docs, and support blockers by listing local proof commands, future approvals, artifact surfaces, and blockers. This command only prints the plan and does not publish, make live calls, or approve support.",
 		Blockers: []string{
 			"No public release artifact has been published, uploaded, or pushed.",
+			"Public docs and support are not approved yet.",
 			"Homebrew tap publishing is not approved or executed by this command.",
 			"No npm or npx distribution path exists yet.",
 			"Desktop MCP bundle and public MCP install remain future work.",
@@ -194,7 +195,7 @@ func renderReleasePlanResponse(cmd *cobra.Command, flags *rootFlags, payload rel
 }
 
 func releaseSurfaceNames() []string {
-	return []string{"archives", "homebrew", "mcp", "naming", "npm", "signing", "all"}
+	return []string{"archives", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
 }
 
 func releaseSurfacePlanByName(name string) (releaseSurfacePlan, bool) {
@@ -234,6 +235,50 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Blockers: []string{
 				"Snapshot archives are local proof only and are not published.",
 				"Public release owner, artifact host, release notes, and checksum approval are still missing.",
+			},
+		},
+		{
+			Name:    "docs-support",
+			Title:   "Public docs and support readiness",
+			Summary: "State that public docs and support are not approved yet and list the local proof needed before public wording can be reviewed.",
+			LocalProofCommands: []string{
+				"straddle-pp-cli release plan docs-support --json",
+				"straddle-pp-cli docs search straddle --source commands --json",
+				"straddle-pp-cli smoke plan approval --json",
+				"straddle-pp-cli credentials plan launch --json",
+			},
+			PublicArtifactSurfaces: []string{
+				"Public install docs",
+				"Release notes or changelog",
+				"Support and issue intake path",
+				"Known limits and security wording",
+				"MCP setup docs",
+			},
+			RequiredFutureApprovals: []string{
+				"Docs owner approval before publishing public install docs, release notes, changelog wording, known limits, security wording, or MCP setup docs.",
+				"Support owner approval for issue intake, support boundaries, escalation paths, and support wording.",
+				"Final docs review against current generated behavior before public docs can describe the CLI as supported.",
+			},
+			RequiredDecisions: []string{
+				"Approve the public install path and command name.",
+				"Name the docs owner and approve the public docs wording.",
+				"Name the support owner and approve the issue intake path.",
+				"Define support boundaries for install failures, credential questions, MCP setup, and generated command behavior.",
+				"Approve known limits and security wording.",
+				"Complete final docs review against current generated behavior.",
+			},
+			Blockers: []string{
+				"Public docs wording is not approved.",
+				"Support owner is not named.",
+				"Issue intake path is not approved.",
+				"Public install path and command name are not approved.",
+				"Live smoke is not approved or run.",
+				"Public docs must not imply workflow execution, production readiness, or replacement of public straddle.",
+			},
+			Notes: []string{
+				"Public docs and support are not approved yet.",
+				"This surface is local guidance only and does not publish docs, approve support, approve launch, call external services, execute MCP tools, or read secrets.",
+				"Public wording should describe current generated behavior and avoid claims that planning surfaces execute workflows.",
 			},
 		},
 		{

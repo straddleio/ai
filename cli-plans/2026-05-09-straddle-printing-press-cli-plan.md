@@ -634,18 +634,19 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Status:** Implemented in the 2026-05-09 release-plan slice.
 
-**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution decision blocker by making archive, Homebrew, MCP, naming, npm, and signing blockers explicit without publishing or using secrets.
+**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution, docs, and support decision blockers by making archive, docs/support, Homebrew, MCP, naming, npm, and signing blockers explicit without publishing or using secrets.
 
 **Acceptance criteria:**
 
 - [x] `release plan [surface]` exists under a `release` command tree.
-- [x] Supported surfaces are `archives`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`.
+- [x] Supported surfaces are `archives`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`.
 - [x] The command lists supported surfaces when no surface is provided.
 - [x] Named surfaces return local proof commands, required future approvals, public artifact surfaces, and blockers.
 - [x] Local proof commands include `make release-check`, `make release-snapshot`, archive inspection, and `make clean` where relevant.
 - [x] Safety metadata states that the command is local-only guidance and does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets.
 - [x] `signing` explains signing and notarization are unresolved and required before public macOS distribution if Straddle chooses signed or notarized artifacts.
 - [x] `mcp` explains the MCP sibling exists and is archived, but desktop MCP bundle and public install remain future work.
+- [x] `docs-support` explains public docs and support are not approved yet, and public docs must not imply workflow execution, production readiness, or replacement of public `straddle`.
 - [x] `npm` explains no npm or npx path exists yet.
 - [x] `release plan` rejects `--deliver` before delivery.
 - [x] `release plan --agent` uses the target envelope through the existing local JSON helper path.

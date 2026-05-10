@@ -74,7 +74,7 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli smoke plan [scope]` is local-only live-smoke planning guidance for `setup`, `customers`, `payments`, `funding`, `mcp`, `approval`, or `all`. The `approval` scope prints the written approval packet fields required before a future live read-only smoke, including environment and base URL classification, secure credential flow, allowed read-only commands, transcript path, expected evidence, stop criteria, and reviewer signoff. It does not call Straddle APIs, docs endpoints, MCP tools, webhooks, sandbox, or production, and it does not approve or run live smoke.
 
-`straddle-pp-cli release plan [surface]` is local-only public-release readiness guidance for `archives`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, or `all`. It prints local proof commands, future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. The `naming` surface states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and the recommended default is to keep `straddle-pp-cli` for preview until a compatibility review approves a replacement or migration plan.
+`straddle-pp-cli release plan [surface]` is local-only public-release readiness guidance for `archives`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, or `all`. It prints local proof commands, future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. The `docs-support` surface states that public docs and support are not approved yet and that public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. The `naming` surface states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and the recommended default is to keep `straddle-pp-cli` for preview until a compatibility review approves a replacement or migration plan.
 
 ## Streaming Agent Contract
 
@@ -149,6 +149,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli workflow plan --json
 /tmp/straddle-pp-cli workflow plan all --json
 /tmp/straddle-pp-cli release plan --json
+/tmp/straddle-pp-cli release plan docs-support --json
 /tmp/straddle-pp-cli release plan naming --json
 /tmp/straddle-pp-cli release plan all --json
 /tmp/straddle-pp-cli credentials plan --json
@@ -324,7 +325,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Sandbox testing now has the help-only `straddle-pp-cli sandbox guide [scenario]` terminal flow. Live writes remain out of scope.
 - Reconciliation, fraud monitoring, collections, reporting, and monitoring now have the help-only `straddle-pp-cli ops guide [workflow]` terminal flow and the structured local-only `straddle-pp-cli workflow plan [workflow]` command plan flow. Live execution, API reads, docs lookup execution, MCP execution, webhook posts, production writes, and full workflow engines remain out of scope.
 - Approved live-smoke planning now has the local-only `straddle-pp-cli smoke plan [scope]` terminal flow. The `approval` scope reduces the live-smoke blocker by turning required written approval into structured output, but it does not run live smoke or approve launch.
-- Public-release readiness now has the local-only `straddle-pp-cli release plan [surface]` terminal flow. It reduces the distribution decision blocker by making archive, Homebrew, MCP, naming, npm, and signing decisions explicit, but it does not publish, approve launch, replace `straddle`, or solve distribution.
+- Public-release readiness now has the local-only `straddle-pp-cli release plan [surface]` terminal flow. It reduces the distribution, docs, and support decision blockers by making archive, docs/support, Homebrew, MCP, naming, npm, and signing decisions explicit, but it does not publish, approve launch, replace `straddle`, approve public docs, or approve support.
 - Credential storage readiness now has the local-only `straddle-pp-cli credentials plan [surface]` terminal flow. It reduces the auth launch blocker by making config, environment, MCP, keychain, and launch decisions explicit, but it does not read or write credentials and does not approve launch.
 
 ## Later Polish

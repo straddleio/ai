@@ -16,6 +16,7 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 - Public launch is not approved. Existing docs say public release artifacts are not published and no public-launch product review has approved packaging, live smoke, docs, command name, support expectations, or MCP distribution.
 - Printing Press and OpenAPI provenance are documented. `.printing-press.json` records Printing Press `4.2.0`, `cli_name: straddle-pp-cli`, `mcp_binary: straddle-pp-mcp`, and the OpenAPI source at `/Users/js/clawd/straddle/sdks/straddle-docs/docs/api-reference/openapi.json`.
 - Local naming guidance now exists at `straddle-pp-cli release plan naming --json`. It states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and preview should keep `straddle-pp-cli` until compatibility review approves a replacement or migration plan.
+- Local docs/support guidance now exists at `straddle-pp-cli release plan docs-support --json`. It states that public docs and support are not approved yet and that public docs must not imply workflow execution, production readiness, or replacement of public `straddle`.
 - The generated MCP sibling exists from the same Printing Press command tree. The latest completion audit records a credential-free runtime `tools/list` smoke with `tool_count: 87`.
 - Release archive local proof exists. Prior release validation produced local darwin, linux, and windows snapshot archives containing both `straddle-pp-cli` and `straddle-pp-mcp`, plus a local Homebrew cask. Nothing was published, uploaded, pushed, signed, notarized, or written to a tap.
 - Safe token stdin exists. Docs prefer `auth set-token --stdin`, allow caller-supplied environment injection, and warn against checked-in config, logs, argv, and shell-history exposure.
@@ -135,6 +136,7 @@ Run `straddle-pp-cli smoke plan approval --json` locally first to print these fi
   - `straddle-pp-cli docs search <query> --source commands --json`
   - `straddle-pp-cli workflow plan <workflow> --json`
   - `straddle-pp-cli ops guide <workflow> --json`
+  - `straddle-pp-cli release plan docs-support --json`
   - `straddle-pp-cli release plan naming --json`
 - Read-only API inspection, only when the approver names the resource category:
   - list commands for approved resources such as customers, charges, payouts, paykeys, payments, funding events, reports, or webhooks.

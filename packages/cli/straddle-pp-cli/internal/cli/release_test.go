@@ -29,7 +29,7 @@ func TestReleasePlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 	if got.Command != "release plan" {
 		t.Fatalf("command = %q, want release plan", got.Command)
 	}
-	wantSurfaces := []string{"archives", "homebrew", "mcp", "naming", "npm", "signing", "all"}
+	wantSurfaces := []string{"archives", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
 	if strings.Join(got.AvailableSurfaces, ",") != strings.Join(wantSurfaces, ",") {
 		t.Fatalf("available surfaces = %#v, want %#v", got.AvailableSurfaces, wantSurfaces)
 	}
@@ -47,6 +47,12 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"make release-check",
 			"make release-snapshot",
 			"make clean",
+		},
+		"docs-support": {
+			"straddle-pp-cli release plan docs-support --json",
+			"straddle-pp-cli docs search straddle --source commands --json",
+			"straddle-pp-cli smoke plan approval --json",
+			"straddle-pp-cli credentials plan launch --json",
 		},
 		"homebrew": {
 			"make release-check",
@@ -146,6 +152,20 @@ func TestReleasePlanSpecialSurfacesStayHonest(t *testing.T) {
 	if !strings.Contains(stdout, "public straddle command/binary is not approved yet") {
 		t.Fatalf("naming surface should state public straddle is not approved:\n%s", stdout)
 	}
+
+	stdout, _, err = runCLIForDocsTest(t, "release", "plan", "docs-support", "--json")
+	if err != nil {
+		t.Fatalf("release plan docs-support --json returned error: %v", err)
+	}
+	if !strings.Contains(stdout, "Public docs and support are not approved yet") {
+		t.Fatalf("docs-support surface should say public docs and support are not approved yet:\n%s", stdout)
+	}
+	if !strings.Contains(stdout, "must not imply workflow execution, production readiness, or replacement of public straddle") {
+		t.Fatalf("docs-support surface should not imply public launch or public straddle replacement:\n%s", stdout)
+	}
+	if strings.Contains(stdout, "public launch is approved") || strings.Contains(stdout, "production ready") || strings.Contains(stdout, "replaces public straddle") {
+		t.Fatalf("docs-support surface should not imply approved launch, production readiness, or public straddle replacement:\n%s", stdout)
+	}
 }
 
 func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
@@ -164,8 +184,8 @@ func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
 	if got.Surface != "all" {
 		t.Fatalf("surface = %q, want all", got.Surface)
 	}
-	if len(got.SurfacePlans) != 6 {
-		t.Fatalf("all surface should include six concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
+	if len(got.SurfacePlans) != 7 {
+		t.Fatalf("all surface should include seven concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
 	}
 	if got.SurfacePlan != nil {
 		t.Fatalf("all surface should use surface_plans, not surface_plan: %#v", got.SurfacePlan)

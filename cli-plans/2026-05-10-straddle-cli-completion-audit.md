@@ -50,6 +50,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Safe token guidance | `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented; `credentials plan launch` reports no secret reads/writes and lists keychain preview support plus remaining launch approvals. | Partial, owner/security approval, packaged-client smoke, approved live read-only smoke, and docs wording open |
 | Release path | `make package-readiness`, `make release-check`, and `make release-snapshot` exist and prior scorecard evidence says local archives include both CLI and MCP. A 2026-05-10 keychain packaging smoke reran `make package-readiness` and `make release-check` after adding `go-keyring`, then cleaned local outputs. | Partial, no public publish, signing, notarization, packaged-client keychain smoke, or approved live smoke |
 | Release naming plan | `release plan naming --json` exists and records that the preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved, compatibility inventory is incomplete, and any alias, migration, or replacement plan still needs approval. | Partial, reduces naming decision blocker, no public command chosen |
+| Docs and support plan | `release plan docs-support --json` exists and records that public docs and support are not approved yet, issue intake and support owner are missing, and public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. | Partial, reduces docs/support blocker, no public docs or support approval |
 | Validation | Fresh `npm run validate` passed with `Summary: 0 errors`; generated artifact validation checks config, CLI main, README, SKILL, spec title, MCP main, `internal/mcp`, MCP typed counts, and endpoint count. | Done for preview |
 | Go tests | Fresh `go test -count=1 ./...` passed in `packages/cli/straddle-pp-cli`. | Done for preview |
 | MCP runtime, not just source validation | Fresh JSON-RPC `tools/list` against a `/tmp` MCP build returned `tool_count: 87`, `workflow_plan.readOnlyHint: true`, `workflow_plan.destructiveHint: false`, `credentials_plan.readOnlyHint: true`, and `credentials_plan.destructiveHint: false`. | Done for preview |
@@ -111,6 +112,7 @@ go build -o /tmp/straddle-pp-cli-audit ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli-audit about --agent
 /tmp/straddle-pp-cli-audit workflow plan all --json
 /tmp/straddle-pp-cli-audit credentials plan launch --json
+/tmp/straddle-pp-cli-audit release plan docs-support --json
 /tmp/straddle-pp-cli-audit release plan naming --json
 /tmp/straddle-pp-cli-audit smoke plan approval --json
 rm -f /tmp/straddle-pp-cli-audit
@@ -135,9 +137,10 @@ These are blockers for claiming the activated goal is complete:
 3. The public-launch product review gate exists at `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md`, but it rejects approval until owner decisions and approved live smoke happen.
 4. Credential launch posture is still not approved for broad public launch. The repo now has opt-in preview keychain support, but still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 5. Operational workflows are still planning guidance. Reconciliation, fraud monitoring, collections, reporting, and monitoring have useful local plans, but no approved live read execution or workflow engines.
-6. The generated preview is still named `straddle-pp-cli`. `straddle-pp-cli release plan naming --json` now documents that `straddle` is not approved yet, but replacing or publishing the public `straddle` binary still needs an explicit naming and migration decision.
-7. Phase 5 live smoke remains not done.
-8. Durable subagent/review evidence for all historical slices is incomplete. Future slices should either commit reviewer summaries into the relevant audit artifact or keep the plan checklist partial.
+6. Public docs and support are still not approved. `straddle-pp-cli release plan docs-support --json` now documents the missing docs owner approval, support owner, issue intake path, install path, command name, support boundaries, known limits, security wording, final docs review, and live smoke.
+7. The generated preview is still named `straddle-pp-cli`. `straddle-pp-cli release plan naming --json` now documents that `straddle` is not approved yet, but replacing or publishing the public `straddle` binary still needs an explicit naming and migration decision.
+8. Phase 5 live smoke remains not done.
+9. Durable subagent/review evidence for all historical slices is incomplete. Future slices should either commit reviewer summaries into the relevant audit artifact or keep the plan checklist partial.
 
 ## Next Slice
 
