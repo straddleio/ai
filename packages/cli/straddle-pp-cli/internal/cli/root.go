@@ -222,6 +222,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	// PATCH: mcp-config adds local-only desktop MCP config generation without
 	// installing, writing files, reading secrets, calling services, or executing MCP.
 	rootCmd.AddCommand(newMCPcmd(flags))
+	// PATCH: shipcheck-local adds a local executable public-preview verifier
+	// without credentials, external calls, release actions, secret reads, or production writes.
+	rootCmd.AddCommand(newShipcheckCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))

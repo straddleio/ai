@@ -124,6 +124,7 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 // PATCH: credentials-plan verifies credentials_plan is included in runtime shell-out metadata.
 // PATCH: workflow-plan verifies workflow_plan is included in runtime shell-out metadata.
 // PATCH: mcp-config verifies mcp_config is included in runtime shell-out metadata.
+// PATCH: shipcheck-local verifies shipcheck_local is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
 	if err != nil {
@@ -153,6 +154,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 		"release_plan",
 		"sandbox_guide",
 		"setup_check",
+		"shipcheck_local",
 		"smoke_plan",
 		"smoke_run",
 		"sync",
@@ -171,8 +173,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 89 {
-		t.Fatalf("runtime_tool_count = %d, want 89", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 90 {
+		t.Fatalf("runtime_tool_count = %d, want 90", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -194,12 +196,13 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 // PATCH: credentials-plan verifies the local credentials plan shell-out is read-only.
 // PATCH: workflow-plan verifies the local workflow plan shell-out is read-only.
 // PATCH: mcp-config verifies the local MCP config generator shell-out is read-only.
+// PATCH: shipcheck-local verifies the local shipcheck verifier shell-out is read-only.
 func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	mcpServer := server.NewMCPServer("test", "0.0.0")
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	for _, name := range []string{"credentials_plan", "docs_search", "mcp_config", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "smoke_plan", "smoke_run", "workflow_plan"} {
+	for _, name := range []string{"credentials_plan", "docs_search", "mcp_config", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "shipcheck_local", "smoke_plan", "smoke_run", "workflow_plan"} {
 		tool, ok := tools[name]
 		if !ok {
 			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)

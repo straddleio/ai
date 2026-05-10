@@ -68,6 +68,15 @@ straddle-pp-cli mcp config all --binary /tmp/straddle-pp-mcp --json
 
 `mcp config` prints machine-readable config fragments for `claude-desktop`, `codex`, `cursor`, `stdio`, or `all`. It defaults `--binary` to `straddle-pp-mcp`, rejects blank binary paths and token literals, names `STRADDLE_TOKEN` only in notes or env var name lists, and does not install, write desktop config files, read profiles, read secrets, call APIs, execute MCP, publish, sign, or approve launch. It reduces the local desktop setup blocker, but public desktop MCP packaging and install approval are still not done.
 
+For executable local readiness verification without credentials or external calls:
+
+```bash
+straddle-pp-cli shipcheck local --json
+straddle-pp-cli shipcheck local --mcp-binary /tmp/straddle-pp-mcp --agent
+```
+
+`shipcheck local` verifies the in-process CLI command tree, required workflow plan names, local docs command-search helper indexing, and safety metadata. With `--mcp-binary`, it runs a local child process and sends only stdio JSON-RPC `initialize` plus `tools/list`, requiring `mcp_config`, `docs_search`, `workflow_plan`, `release_plan`, `credentials_plan`, `smoke_run`, `setup_check`, and `shipcheck_local`. It rejects `--deliver` and token literals in `--mcp-binary`, and the child process receives an allowlisted environment. It does not publish, sign, notarize, or write production. It does not sandbox the child MCP process or prove that child process behavior beyond the MCP response.
+
 For structured workflow planning without executing anything:
 
 ```bash
@@ -946,7 +955,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 89 because the MCP runtime also exposes 16 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 90 because the MCP runtime also exposes 17 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 
@@ -1026,6 +1035,15 @@ straddle-pp-cli smoke plan all --agent
 `smoke plan [scope]` is local-only guidance for a future approved read-only smoke. It suggests commands such as `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP `tools/list` smoke guidance. `smoke plan approval --json` prints the required approval packet fields and local proof commands such as `smoke plan setup --json`, `smoke plan customers --json`, and `docs search sandbox --source commands --json`. Docs lookup topics are returned as query text, not as commands for this local-only runbook. It does not execute those commands.
 
 `smoke run <scope> --approval-file <path>` is approval-file gated and supports `setup`, `customers`, and `mcp` for this slice. `setup` is local only. `customers` makes one read-only `GET /v1/customers` request against the approved base URL. `mcp` uses `--mcp-binary` defaulting to `straddle-pp-mcp` and runs only local stdio JSON-RPC initialize plus `tools/list`, requiring the returned tools to include `mcp_config` and `smoke_run`. The runner writes the redacted transcript artifact to the approval file `transcript_path`, creating parent directories as needed. Keep approval files and `--mcp-binary` free of token literals and secret environment assignments. The runner uses caller-supplied `STRADDLE_TOKEN` only for trusted `customers` runs; MCP smoke does not read or pass it.
+
+## Local Shipcheck
+
+```bash
+straddle-pp-cli shipcheck local --json
+straddle-pp-cli shipcheck local --mcp-binary /tmp/straddle-pp-mcp --agent
+```
+
+`shipcheck local` is an executable local verifier for this preview. It returns `command`, `passed`, `checks`, and `safety`. It checks required public-preview helper commands, workflow plans for `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`, and `docs search --source commands` coverage for helper commands such as `workflow plan` and `mcp config`. With `--mcp-binary`, it runs a local child process and sends only stdio MCP `initialize` plus `tools/list`, requiring `mcp_config`, `docs_search`, `workflow_plan`, `release_plan`, `credentials_plan`, `smoke_run`, `setup_check`, and `shipcheck_local`. It rejects `--deliver`, avoids secret-bearing child env vars, and does not publish, sign, notarize, or write production. It does not sandbox the child MCP process or prove that child process behavior beyond the MCP response.
 
 ## Configuration
 

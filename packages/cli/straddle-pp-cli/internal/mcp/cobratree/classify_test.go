@@ -97,7 +97,16 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 		Run: func(*cobra.Command, []string) {},
 	}
 	workflow.AddCommand(workflowPlan)
-	root.AddCommand(topLevelSearch, docs, sandbox, setup, ops, smoke, release, credentials, mcp, workflow)
+	shipcheck := &cobra.Command{Use: "shipcheck"}
+	shipcheckLocal := &cobra.Command{
+		Use: "local",
+		Annotations: map[string]string{
+			ReadOnlyAnnotation: "true",
+		},
+		Run: func(*cobra.Command, []string) {},
+	}
+	shipcheck.AddCommand(shipcheckLocal)
+	root.AddCommand(topLevelSearch, docs, sandbox, setup, ops, smoke, release, credentials, mcp, workflow, shipcheck)
 
 	if got := classify(topLevelSearch); got != commandFramework {
 		t.Fatalf("top-level search classified as %v, want commandFramework", got)
@@ -142,5 +151,8 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["workflow_plan"]; !ok {
 		t.Fatalf("workflow_plan shell-out tool was not registered; tools = %#v", tools)
+	}
+	if _, ok := tools["shipcheck_local"]; !ok {
+		t.Fatalf("shipcheck_local shell-out tool was not registered; tools = %#v", tools)
 	}
 }

@@ -84,6 +84,15 @@ straddle-pp-cli mcp config all --binary /tmp/straddle-pp-mcp --json
 
 `mcp config` prints machine-readable config fragments for `claude-desktop`, `codex`, `cursor`, `stdio`, or `all`. It defaults `--binary` to `straddle-pp-mcp`, rejects blank binary paths and token literals, names `STRADDLE_TOKEN` only in notes or env var name lists, and does not install, write desktop config files, read profiles, read secrets, call APIs, execute MCP, publish, sign, or approve launch. It reduces the local desktop setup blocker, but public desktop MCP packaging and install approval are still not done.
 
+For executable local readiness verification without credentials or external calls:
+
+```bash
+straddle-pp-cli shipcheck local --json
+straddle-pp-cli shipcheck local --mcp-binary /tmp/straddle-pp-mcp --agent
+```
+
+`shipcheck local` verifies the in-process CLI command tree, required workflow plan names, local docs command-search helper indexing, and safety metadata. With `--mcp-binary`, it runs a local child process and sends only stdio JSON-RPC `initialize` plus `tools/list`, requiring `mcp_config`, `docs_search`, `workflow_plan`, `release_plan`, `credentials_plan`, `smoke_run`, `setup_check`, and `shipcheck_local`. It rejects `--deliver` and token literals in `--mcp-binary`, and the child process receives an allowlisted environment. It does not publish, sign, notarize, or write production. It does not sandbox the child MCP process or prove that child process behavior beyond the MCP response.
+
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash
@@ -940,7 +949,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 89 because the MCP runtime also exposes 16 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 90 because the MCP runtime also exposes 17 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Generate local config fragments with `straddle-pp-cli mcp config [client] --binary /tmp/straddle-pp-mcp --json` for `claude-desktop`, `codex`, `cursor`, `stdio`, or `all`. This prints config only and does not install, write config files, read secrets, execute MCP, or approve public desktop MCP packaging. Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

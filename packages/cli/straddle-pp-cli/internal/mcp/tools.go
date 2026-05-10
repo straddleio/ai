@@ -1229,11 +1229,12 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 // PATCH: credentials-plan adds one Cobra shell-out runtime tool for local credential storage readiness guidance.
 // PATCH: workflow-plan adds one Cobra shell-out runtime tool for local structured workflow planning guidance.
 // PATCH: mcp-config adds one Cobra shell-out runtime tool for local desktop MCP config generation.
+// PATCH: shipcheck-local adds one Cobra shell-out runtime tool for local public-preview verification.
 const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 89
+	runtimeToolCount        = 90
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
@@ -1246,6 +1247,7 @@ const (
 // PATCH: credentials-plan records credentials_plan as a read-only Cobra shell-out runtime tool.
 // PATCH: workflow-plan records workflow_plan as a read-only Cobra shell-out runtime tool.
 // PATCH: mcp-config records mcp_config as a read-only Cobra shell-out runtime tool.
+// PATCH: shipcheck-local records shipcheck_local as a read-only Cobra shell-out runtime tool.
 var runtimeShellOutTools = []string{
 	"analytics",
 	"credentials_plan",
@@ -1256,6 +1258,7 @@ var runtimeShellOutTools = []string{
 	"release_plan",
 	"sandbox_guide",
 	"setup_check",
+	"shipcheck_local",
 	"smoke_plan",
 	"smoke_run",
 	"sync",

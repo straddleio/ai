@@ -387,6 +387,25 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestMCPConfig' covers available clients, safety metadata, Claude Desktop, Codex, Cursor, stdio, all-client output, blank and token-literal binary rejection, and --deliver rejection. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAll' covers runtime count 89, mcp_config shell-out metadata, and readOnlyHint. jq empty .printing-press-patches.json validates the patch manifest."
+    },
+    {
+      "id": "shipcheck-local",
+      "summary": "Add an executable local shipcheck verifier for public-preview helper readiness.",
+      "reason": "The preview needs a credential-free command that proves the local CLI and optional local MCP surface are internally coherent without calling Straddle APIs, docs endpoints, GitHub, npm, Homebrew, publishing, signing, notarizing, reading secrets, delivering output, or writing production.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "internal/cli/docs_test.go",
+        "internal/cli/which.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheck|TestDocsSearchCommands' covers local JSON success, required command paths, required workflow names, docs command-search helper indexing, optional fake MCP success, missing required MCP tool failure, --deliver rejection, and token literal rejection. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'Test.*Shipcheck|TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAll' covers shipcheck_local MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 90."
     }
   ]
 }

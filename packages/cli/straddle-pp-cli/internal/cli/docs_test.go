@@ -240,6 +240,38 @@ func TestDocsSearchCommandsJSONUsesLocalCapabilityIndex(t *testing.T) {
 	}
 }
 
+func TestDocsSearchCommandsIndexesLocalHelperCommands(t *testing.T) {
+	tests := map[string]string{
+		"workflow plan": "workflow plan",
+		"mcp config":    "mcp config",
+	}
+
+	for query, wantCommand := range tests {
+		t.Run(query, func(t *testing.T) {
+			stdout, stderr, err := runCLIForDocsTest(t, "docs", "search", query, "--source", "commands", "--json", "--limit", "1")
+			if err != nil {
+				t.Fatalf("docs search commands %q returned error: %v", query, err)
+			}
+			if stderr != "" {
+				t.Fatalf("docs search commands %q wrote stderr: %q", query, stderr)
+			}
+
+			var got struct {
+				Results []whichMatch `json:"results"`
+			}
+			if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+				t.Fatalf("docs search commands %q emitted invalid JSON: %v\n%s", query, err, stdout)
+			}
+			if len(got.Results) != 1 {
+				t.Fatalf("docs search commands %q result count = %d, want 1: %#v", query, len(got.Results), got.Results)
+			}
+			if got.Results[0].Entry.Command != wantCommand {
+				t.Fatalf("docs search commands %q top command = %q, want %q", query, got.Results[0].Entry.Command, wantCommand)
+			}
+		})
+	}
+}
+
 func TestDocsSearchAPIJSONReturnsSearchDocsGuidance(t *testing.T) {
 	stdout, stderr, err := runCLIForDocsTest(t, "docs", "search", "create charge", "--source", "api", "--json")
 	if err != nil {
