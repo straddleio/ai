@@ -178,6 +178,125 @@ for (const payload of [output, transcript]) {
 }
 NODE
 
+node - "$mcp_path" <<'NODE'
+const { spawn } = require('node:child_process');
+const mcpPath = process.argv[2];
+const requiredShellOutTools = [
+  'analytics',
+  'benchmark_ramp',
+  'credentials_plan',
+  'docs_search',
+  'import',
+  'mcp_bundle',
+  'mcp_config',
+  'ops_guide',
+  'release_plan',
+  'sandbox_guide',
+  'setup_check',
+  'shipcheck_local',
+  'shipcheck_public',
+  'smoke_plan',
+  'smoke_run',
+  'sync',
+  'tail',
+  'workflow_archive',
+  'workflow_plan',
+  'workflow_status',
+];
+
+const child = spawn(mcpPath, {
+  stdio: ['pipe', 'pipe', 'pipe'],
+  env: {
+    PATH: process.env.PATH || '',
+    HOME: process.env.HOME || '',
+    TMPDIR: process.env.TMPDIR || '',
+  },
+});
+
+let stdout = '';
+let stderr = '';
+let done = false;
+
+const finish = (code, message) => {
+  if (done) return;
+  done = true;
+  clearTimeout(timer);
+  child.kill();
+  if (code !== 0) {
+    if (stderr.trim()) message += `\nMCP stderr:\n${stderr.trim()}`;
+    console.error(message);
+    process.exit(code);
+  }
+  process.exit(0);
+};
+
+const timer = setTimeout(() => finish(1, 'timed out waiting for MCP tools/list'), 5000);
+
+const send = (message) => {
+  child.stdin.write(`${JSON.stringify(message)}\n`);
+};
+
+child.stderr.on('data', (chunk) => {
+  stderr += chunk;
+});
+
+child.stdout.on('data', (chunk) => {
+  stdout += chunk;
+  for (;;) {
+    const index = stdout.indexOf('\n');
+    if (index < 0) break;
+    const line = stdout.slice(0, index).trim();
+    stdout = stdout.slice(index + 1);
+    if (!line) continue;
+    let message;
+    try {
+      message = JSON.parse(line);
+    } catch (error) {
+      finish(1, `invalid MCP JSON-RPC line: ${line}`);
+      return;
+    }
+    if (message.id === 1) {
+      send({ jsonrpc: '2.0', method: 'notifications/initialized', params: {} });
+      send({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
+    }
+    if (message.id === 2) {
+      if (message.error) {
+        finish(1, `MCP tools/list returned error: ${JSON.stringify(message.error)}`);
+        return;
+      }
+      const tools = message.result && Array.isArray(message.result.tools) ? message.result.tools : [];
+      const names = tools.map((tool) => tool && tool.name).filter(Boolean);
+      if (names.length !== 93) {
+        finish(1, `MCP tools/list returned ${names.length} tools, want 93`);
+        return;
+      }
+      const missing = requiredShellOutTools.filter((name) => !names.includes(name));
+      if (missing.length > 0) {
+        finish(1, `MCP tools/list missing shell-out tools: ${missing.join(', ')}`);
+        return;
+      }
+      finish(0, '');
+      return;
+    }
+  }
+});
+
+child.on('error', (error) => {
+  finish(1, `start MCP binary: ${error.message}`);
+});
+
+send({
+  jsonrpc: '2.0',
+  id: 1,
+  method: 'initialize',
+  params: {
+    protocolVersion: '2024-11-05',
+    capabilities: {},
+    clientInfo: { name: 'straddle-completion-audit', version: '0' },
+  },
+});
+NODE
+
 "$cli_path" shipcheck public --approval-template >"$approval_template"
 json_check "$approval_template" <<'NODE'
 const fs = require('node:fs');

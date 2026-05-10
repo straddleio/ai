@@ -555,17 +555,6 @@ straddle-pp-cli release plan signing --agent
 
 `release plan` covers `archives`, `compatibility`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `owner-decisions`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. The compatibility surface inventories the installed Stainless-generated `straddle` command and source tree as local evidence only before any rename, alias, replacement, or migration decision. The docs-support surface states that public docs and support are not approved yet and that public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. The naming surface states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and preview should keep `straddle-pp-cli` until compatibility review approves a replacement or migration plan. The owner-decisions surface turns the public-launch decision packet into machine-readable local output and states that no owner has approved public release, public command replacement, release channel, signing, desktop MCP packaging, credential posture, live smoke, docs/support scope, or operational workflow execution claims. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof; run `make package-readiness` separately when you need the preserved `dist/local/mcp-bundle` review directory. Public desktop MCP install remains future work. Local npm package assembly exists under `dist/npm/package`, but npm publication and public `npx` remain future work.
 
-For credential storage readiness guidance without reading or writing secrets:
-
-```bash
-straddle-pp-cli credentials plan --json
-straddle-pp-cli credentials plan packaged-client --json
-straddle-pp-cli credentials plan all --json
-straddle-pp-cli credentials plan keychain --agent
-```
-
-`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `packaged-client`, `launch`, and `all`. It is local-only guidance. It does not build packages, run binaries, read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that keychain-backed storage exists as opt-in preview support, and the `packaged-client` surface makes local built-binary smoke steps machine-readable for `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, including JSON-RPC `tools/list` only. Local packaged-client credential smoke evidence exists and passed on 2026-05-10, but it remains scoped to local built binaries and does not approve broad public launch. Broad public launch remains blocked and still needs owner/security approval, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
-
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash

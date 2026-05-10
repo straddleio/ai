@@ -664,6 +664,17 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckLocalProvenance' covers generator_repository and library_repository evidence and failure on unexpected generator repository. scripts/verify-completion-audit.sh now requires both upstream repository evidence strings in shipcheck local provenance output."
+    },
+    {
+      "id": "completion-audit-mcp-runtime-count",
+      "summary": "Require the completion audit to prove the full MCP runtime tool count and shell-out tool set.",
+      "reason": "The completion audit should catch regressions where tools/list still returns some tools but loses command-mirror tools that the docs and PR promise.",
+      "files": [
+        "scripts/verify-completion-audit.sh",
+        "README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "npm run validate, node scripts/validate-cli.js, go test -count=1 ./..., and make completion-audit cover the README cleanup plus direct packaged MCP tools/list verification for exactly 93 runtime tools and every command-mirror shell-out tool."
     }
   ]
 }
