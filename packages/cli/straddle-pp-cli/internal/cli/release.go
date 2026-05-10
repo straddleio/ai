@@ -128,7 +128,7 @@ func buildReleasePlanResponse(surface string) (releasePlanResponse, error) {
 			"Public docs and support are not approved yet.",
 			"Homebrew tap publishing is not approved or executed by this command.",
 			"No npm or npx distribution path exists yet.",
-			"Desktop MCP bundle and public MCP install remain future work.",
+			"Local desktop MCP bundle proof exists, but public MCP install remains future work.",
 			"Signing and notarization policy is unresolved for public macOS distribution.",
 		},
 	}
@@ -350,9 +350,10 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 		{
 			Name:    "mcp",
 			Title:   "MCP sibling distribution",
-			Summary: "Confirm the generated MCP sibling is included in local archive proof while desktop MCP packaging remains future work.",
+			Summary: "Confirm the generated MCP sibling is included in local archive proof and local desktop MCP bundle proof while public desktop MCP install remains blocked.",
 			LocalProofCommands: []string{
 				"make package-readiness",
+				"straddle-pp-cli mcp bundle --mcp-binary dist/local/straddle-pp-mcp --output dist/local/mcp-bundle --json",
 				"make release-snapshot",
 				"tar -tzf dist/straddle-pp-cli_*_darwin_*.tar.gz | grep straddle-pp-mcp",
 				"unzip -l dist/straddle-pp-cli_*_windows_*.zip | grep straddle-pp-mcp",
@@ -360,19 +361,22 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			},
 			PublicArtifactSurfaces: []string{
 				"MCP sibling binary inside future release archives",
-				"Future desktop MCP package or installer",
+				"Local desktop MCP bundle under dist for review",
+				"Future public desktop MCP package or installer",
 			},
 			RequiredFutureApprovals: []string{
 				"Approve whether public archives should include the MCP sibling on every platform.",
 				"Approve desktop MCP install and registration UX before documenting it as available.",
+				"Approve support boundaries before public docs describe desktop MCP install as supported.",
 			},
 			RequiredDecisions: []string{
 				"Decide whether the MCP sibling stays archive-only for the first public release.",
-				"Decide what desktop MCP bundle format, if any, Straddle will ship.",
+				"Decide whether the local desktop MCP bundle format is enough for a public preview or needs a different installer.",
 			},
 			Blockers: []string{
-				"MCP sibling exists and is archived in local snapshot proof, but there is no public desktop MCP bundle.",
+				"MCP sibling exists and is archived in local snapshot proof, and local desktop MCP bundle proof exists under dist.",
 				"Public MCP install and registration are future work.",
+				"Marketplace packaging, signing, notarization, and support approval remain unresolved.",
 			},
 		},
 		// PATCH: naming records the preview command and undecided public straddle replacement.

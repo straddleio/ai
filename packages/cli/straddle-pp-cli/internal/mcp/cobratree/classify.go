@@ -19,6 +19,11 @@ const (
 	// Without it, hosts like Claude Desktop default to "could write or
 	// delete" and demand permission per call.
 	ReadOnlyAnnotation = "mcp:read-only"
+	// DestructiveAnnotation, when set on a Cobra command to "true"/"1"/"yes",
+	// causes the runtime walker to register the resulting MCP tool with
+	// readOnlyHint=false and destructiveHint=true. Use for local write tools
+	// that are still safe to expose but must be explicit to MCP hosts.
+	DestructiveAnnotation = "mcp:destructive"
 )
 
 type commandKind int
@@ -104,6 +109,10 @@ func isMCPHidden(cmd *cobra.Command) bool {
 
 func isMCPReadOnly(cmd *cobra.Command) bool {
 	return annotationIsTrue(cmd, ReadOnlyAnnotation)
+}
+
+func isMCPDestructive(cmd *cobra.Command) bool {
+	return annotationIsTrue(cmd, DestructiveAnnotation)
 }
 
 func annotationIsTrue(cmd *cobra.Command, key string) bool {

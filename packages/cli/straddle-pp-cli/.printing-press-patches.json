@@ -407,6 +407,29 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheck|TestDocsSearchCommands' covers local JSON success, required command paths, required workflow names, docs command-search helper indexing, Printing Press/OpenAPI provenance success, packaged metadata discovery, missing config, checksum mismatch, missing source OpenAPI passing with recorded checksum evidence, strict missing-source failure, unexpected mcp_binary failure, packaged missing MCP sibling failure, transformed spec.json not being compared, optional fake MCP success, missing required MCP tool failure, --deliver rejection, and token literal rejection. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'Test.*Shipcheck|TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAll' covers shipcheck_local MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 90. make package-readiness now builds dist/local and runs the packaged CLI shipcheck against the packaged MCP binary."
+    },
+    {
+      "id": "mcp-bundle",
+      "summary": "Add a local desktop MCP bundle artifact command for the generated straddle-pp-mcp sibling.",
+      "reason": "The preview needs a verifiable local bundle directory with the MCP binary, manifest, and reviewable desktop config fragments while keeping public install, marketplace packaging, signing, notarization, support approval, and launch approval blocked.",
+      "files": [
+        "internal/cli/mcp.go",
+        "internal/cli/mcp_config_test.go",
+        "internal/cli/which.go",
+        "internal/cli/docs_test.go",
+        "internal/cli/shipcheck.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/cli/release.go",
+        "internal/cli/release_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "Makefile",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestMCP(Bundle|Config)|TestShipcheck|TestDocsSearchCommands|TestReleasePlan' covers mcp bundle success with a temp fake executable, STRADDLE_TOKEN non-leakage, unsafe input rejection, existing-output force behavior, docs command indexing, shipcheck command and MCP tool coverage, and release wording. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' covers runtime count 91, mcp_bundle shell-out metadata, and read-only hints for existing read-only shell-outs. make package-readiness builds dist/local, runs packaged shipcheck, and writes dist/local/mcp-bundle."
     }
   ]
 }

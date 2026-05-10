@@ -124,6 +124,7 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 // PATCH: credentials-plan verifies credentials_plan is included in runtime shell-out metadata.
 // PATCH: workflow-plan verifies workflow_plan is included in runtime shell-out metadata.
 // PATCH: mcp-config verifies mcp_config is included in runtime shell-out metadata.
+// PATCH: mcp-bundle verifies mcp_bundle is included in runtime shell-out metadata.
 // PATCH: shipcheck-local verifies shipcheck_local is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
@@ -149,6 +150,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 		"credentials_plan",
 		"docs_search",
 		"import",
+		"mcp_bundle",
 		"mcp_config",
 		"ops_guide",
 		"release_plan",
@@ -173,8 +175,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 90 {
-		t.Fatalf("runtime_tool_count = %d, want 90", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 91 {
+		t.Fatalf("runtime_tool_count = %d, want 91", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -213,6 +215,23 @@ func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 		if tool.Tool.Annotations.DestructiveHint == nil || *tool.Tool.Annotations.DestructiveHint {
 			t.Fatalf("%s destructiveHint = %v, want false", name, tool.Tool.Annotations.DestructiveHint)
 		}
+	}
+}
+
+func TestRegisterToolsMarksMCPBundleDestructive(t *testing.T) {
+	mcpServer := server.NewMCPServer("test", "0.0.0")
+	RegisterTools(mcpServer)
+
+	tools := mcpServer.ListTools()
+	tool, ok := tools["mcp_bundle"]
+	if !ok {
+		t.Fatalf("mcp_bundle MCP tool was not registered; tools = %#v", tools)
+	}
+	if tool.Tool.Annotations.ReadOnlyHint == nil || *tool.Tool.Annotations.ReadOnlyHint {
+		t.Fatalf("mcp_bundle readOnlyHint = %v, want false", tool.Tool.Annotations.ReadOnlyHint)
+	}
+	if tool.Tool.Annotations.DestructiveHint == nil || !*tool.Tool.Annotations.DestructiveHint {
+		t.Fatalf("mcp_bundle destructiveHint = %v, want true", tool.Tool.Annotations.DestructiveHint)
 	}
 }
 

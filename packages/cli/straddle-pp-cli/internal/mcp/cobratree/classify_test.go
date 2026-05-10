@@ -87,7 +87,14 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 		},
 		Run: func(*cobra.Command, []string) {},
 	}
-	mcp.AddCommand(mcpConfig)
+	mcpBundle := &cobra.Command{
+		Use: "bundle",
+		Annotations: map[string]string{
+			DestructiveAnnotation: "true",
+		},
+		Run: func(*cobra.Command, []string) {},
+	}
+	mcp.AddCommand(mcpConfig, mcpBundle)
 	workflow := &cobra.Command{Use: "workflow"}
 	workflowPlan := &cobra.Command{
 		Use: "plan [workflow]",
@@ -148,6 +155,15 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["mcp_config"]; !ok {
 		t.Fatalf("mcp_config shell-out tool was not registered; tools = %#v", tools)
+	}
+	if _, ok := tools["mcp_bundle"]; !ok {
+		t.Fatalf("mcp_bundle shell-out tool was not registered; tools = %#v", tools)
+	}
+	if tools["mcp_bundle"].Tool.Annotations.ReadOnlyHint == nil || *tools["mcp_bundle"].Tool.Annotations.ReadOnlyHint {
+		t.Fatalf("mcp_bundle readOnlyHint = %v, want false", tools["mcp_bundle"].Tool.Annotations.ReadOnlyHint)
+	}
+	if tools["mcp_bundle"].Tool.Annotations.DestructiveHint == nil || !*tools["mcp_bundle"].Tool.Annotations.DestructiveHint {
+		t.Fatalf("mcp_bundle destructiveHint = %v, want true", tools["mcp_bundle"].Tool.Annotations.DestructiveHint)
 	}
 	if _, ok := tools["workflow_plan"]; !ok {
 		t.Fatalf("workflow_plan shell-out tool was not registered; tools = %#v", tools)

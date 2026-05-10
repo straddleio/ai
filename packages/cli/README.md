@@ -12,7 +12,7 @@ The generated project includes the CLI first and an MCP sibling from the same Pr
 
 ## Current Contract
 
-This generated CLI is a local preview, not a published public launch artifact. Printing Press remains the source for the generated tree. There is no current public `npx` install path, pre-built binary, public-library release link, Hermes install path, or MCP package bundle for this Straddle preview. Those belong to a future publish and packaging slice.
+This generated CLI is a local preview, not a published public launch artifact. Printing Press remains the source for the generated tree. There is no current public `npx` install path, pre-built binary, public-library release link, Hermes install path, or public MCP package bundle for this Straddle preview. Those belong to a future publish and packaging slice.
 
 Current local build and install paths:
 
@@ -32,7 +32,7 @@ cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
 make package-readiness
 ```
 
-This builds `straddle-pp-cli` and the generated `straddle-pp-mcp` sibling into `dist/local/`, verifies both binaries exist, and runs a CLI help smoke. It is a local proof only. It does not publish release artifacts, upload archives, update a Homebrew tap, create an `npx` package, or produce a desktop MCP bundle.
+This builds `straddle-pp-cli` and the generated `straddle-pp-mcp` sibling into `dist/local/`, verifies both binaries exist, runs packaged shipcheck, and produces a local desktop MCP bundle under `dist/local/mcp-bundle`. It is a local proof only. It does not publish release artifacts, upload archives, update a Homebrew tap, create an `npx` package, install MCP, write user desktop config, or approve public desktop MCP support.
 
 GoReleaser archive validation is also available as a non-publishing local check:
 
@@ -67,6 +67,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 `straddle-pp-cli docs search <query>` is the docs lookup command. It defaults to unauthenticated product docs search through `https://docs.straddle.com/mcp`, supports `--endpoint` and `STRADDLE_DOCS_MCP_URL` only for loopback local tests, and keeps API or SDK reference guidance separate from the local synced-data `search` command. Use `--source commands` to search local generated command capabilities.
 
 `straddle-pp-cli mcp config [client] --binary <path> --json` is local-only MCP client config generation for the generated `straddle-pp-mcp` stdio sibling. Supported clients are `claude-desktop`, `codex`, `cursor`, `stdio`, and `all`; no client lists available clients and safety metadata. It defaults `--binary` to `straddle-pp-mcp`, rejects blank binary paths and token literals, prints config fragments only, names `STRADDLE_TOKEN` only in notes or env var name lists, and does not install, write desktop config files, read profiles, read secrets, call APIs, execute MCP, publish, sign, or approve launch. It reduces the local desktop setup blocker, but public desktop MCP packaging and install approval are still not done.
+
+`straddle-pp-cli mcp bundle --mcp-binary <path> --output <dir> --json` writes a local desktop MCP bundle artifact. It verifies the MCP binary exists and is a file, copies it into the bundle as `straddle-pp-mcp`, writes `manifest.json`, and writes reviewable config fragments for `claude-desktop`, `codex`, `cursor`, and `stdio`. The fragments name `STRADDLE_TOKEN` only as an env var name. It does not install, write user config, read profiles, read secrets, execute MCP, call APIs, publish, sign, notarize, or approve launch. Public desktop MCP install, marketplace packaging, signing, notarization, and support approval remain blocked.
 
 `straddle-pp-cli sandbox guide [scenario]` is a local help-only sandbox testing guide. It absorbs the previous `/sandbox-test` scenario list without executing writes, calling Straddle APIs, or calling the docs endpoint. Run `docs search` first before any separately approved live sandbox execution to verify current simulation parameters.
 
@@ -130,7 +132,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 89 because the MCP runtime also exposes 16 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 91 because the MCP runtime also exposes 18 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_bundle`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 

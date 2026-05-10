@@ -5,8 +5,14 @@
 package cli
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -44,13 +50,68 @@ type mcpConfigOptions struct {
 	binary string
 }
 
+type mcpBundleSafety struct {
+	LocalOnly                   bool `json:"local_only"`
+	WritesLocalBundle           bool `json:"writes_local_bundle"`
+	NamesEnvVarsOnly            bool `json:"names_env_vars_only"`
+	DoesNotInstall              bool `json:"does_not_install"`
+	DoesNotWriteUserConfig      bool `json:"does_not_write_user_config"`
+	DoesNotReadSecrets          bool `json:"does_not_read_secrets"`
+	DoesNotReadProfilesOrConfig bool `json:"does_not_read_profiles_or_config"`
+	DoesNotExecuteMCP           bool `json:"does_not_execute_mcp"`
+	DoesNotCallAPIs             bool `json:"does_not_call_apis"`
+	DoesNotPublish              bool `json:"does_not_publish"`
+	DoesNotSign                 bool `json:"does_not_sign"`
+	DoesNotNotarize             bool `json:"does_not_notarize"`
+	ApprovesLaunch              bool `json:"approves_launch"`
+}
+
+type mcpBundleBinaryEvidence struct {
+	SourcePath  string `json:"source_path"`
+	BundledPath string `json:"bundled_path"`
+	FileName    string `json:"file_name"`
+	SizeBytes   int64  `json:"size_bytes"`
+	Mode        string `json:"mode"`
+	SHA256      string `json:"sha256"`
+}
+
+type mcpBundleManifest struct {
+	SchemaVersion   int                     `json:"schema_version"`
+	Command         string                  `json:"command"`
+	BundleKind      string                  `json:"bundle_kind"`
+	Binary          mcpBundleBinaryEvidence `json:"binary"`
+	EnvVarNames     []string                `json:"env_var_names"`
+	ConfigFragments map[string]string       `json:"config_fragments"`
+	Safety          mcpBundleSafety         `json:"safety"`
+	Blockers        []string                `json:"blockers"`
+	Evidence        []string                `json:"evidence"`
+}
+
+type mcpBundleResponse struct {
+	Command      string          `json:"command"`
+	OutputPath   string          `json:"output_path"`
+	FilesWritten []string        `json:"files_written"`
+	Safety       mcpBundleSafety `json:"safety"`
+	Blockers     []string        `json:"blockers"`
+	Evidence     []string        `json:"evidence"`
+}
+
+type mcpBundleOptions struct {
+	mcpBinary string
+	output    string
+	force     bool
+}
+
+const mcpBundleBinaryMode os.FileMode = 0o755
+
 func newMCPcmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mcp",
-		Short: "Generate local MCP client configuration",
-		Long:  "Generate local MCP client configuration guidance for the generated straddle-pp-mcp sibling.",
+		Short: "Generate local MCP client configuration and bundles",
+		Long:  "Generate local MCP client configuration guidance and reviewable local desktop MCP bundle artifacts for the generated straddle-pp-mcp sibling.",
 	}
 	cmd.AddCommand(newMCPConfigCmd(flags))
+	cmd.AddCommand(newMCPBundleCmd(flags))
 	return cmd
 }
 
@@ -83,6 +144,38 @@ This command prints config fragments only. It does not install, write files, rea
 		},
 	}
 	cmd.Flags().StringVar(&opts.binary, "binary", opts.binary, "Path or command name for the generated straddle-pp-mcp stdio sibling")
+	return cmd
+}
+
+func newMCPBundleCmd(flags *rootFlags) *cobra.Command {
+	opts := mcpBundleOptions{
+		mcpBinary: "straddle-pp-mcp",
+		output:    filepath.Join("dist", "mcp-bundle"),
+	}
+	cmd := &cobra.Command{
+		Use:   "bundle",
+		Short: "Create a local desktop MCP bundle",
+		Long: `Create a local, reviewable desktop MCP bundle directory for the generated straddle-pp-mcp stdio sibling.
+
+This command copies a local MCP binary and writes manifest/config fragment files only. It does not install the bundle, write user or desktop config, read secrets, read profiles, execute MCP, call APIs, publish, sign, notarize, or approve public launch.`,
+		Example: `  straddle-pp-cli mcp bundle --mcp-binary ./dist/local/straddle-pp-mcp --output ./dist/mcp-bundle --json
+  straddle-pp-cli mcp bundle --mcp-binary ./bin/straddle-pp-mcp --output ./dist/mcp-bundle --force --json`,
+		Annotations: map[string]string{
+			"mcp:destructive":            "true",
+			localOnlyNoPreloadAnnotation: "true",
+		},
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			payload, err := buildMCPBundleResponse(opts)
+			if err != nil {
+				return usageErr(err)
+			}
+			return renderMCPBundleResponse(cmd, flags, payload)
+		},
+	}
+	cmd.Flags().StringVar(&opts.mcpBinary, "mcp-binary", opts.mcpBinary, "Path or command name for the generated straddle-pp-mcp stdio sibling to copy")
+	cmd.Flags().StringVar(&opts.output, "output", opts.output, "Output bundle directory")
+	cmd.Flags().BoolVar(&opts.force, "force", false, "Replace an existing output bundle directory")
 	return cmd
 }
 
@@ -264,6 +357,376 @@ func renderMCPConfigResponse(cmd *cobra.Command, flags *rootFlags, payload mcpCo
 		fmt.Fprintln(w, "Use --json for the machine-readable config fragment.")
 	}
 	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Blockers:")
+	for _, blocker := range payload.Blockers {
+		fmt.Fprintf(w, "  %s\n", blocker)
+	}
+	return nil
+}
+
+func buildMCPBundleResponse(opts mcpBundleOptions) (mcpBundleResponse, error) {
+	safety := defaultMCPBundleSafety()
+	blockers := defaultMCPBundleBlockers()
+	payload := mcpBundleResponse{
+		Command:  "mcp bundle",
+		Safety:   safety,
+		Blockers: blockers,
+	}
+
+	sourcePath, sourceInfo, err := validateMCPBundleBinary(opts.mcpBinary)
+	if err != nil {
+		return payload, err
+	}
+	outputPath, err := validateMCPBundleOutput(opts.output)
+	if err != nil {
+		return payload, err
+	}
+	payload.OutputPath = outputPath
+
+	if pathContains(outputPath, sourcePath) {
+		return payload, fmt.Errorf("output must not contain the mcp binary source: %s", sourcePath)
+	}
+	if err := prepareMCPBundleOutput(outputPath, opts.force); err != nil {
+		return payload, err
+	}
+
+	binaryPath := filepath.Join(outputPath, "straddle-pp-mcp")
+	binaryHash, err := copyMCPBundleBinary(sourcePath, binaryPath)
+	if err != nil {
+		return payload, err
+	}
+
+	configFragments := map[string]string{
+		"claude-desktop": "claude-desktop.json",
+		"codex":          "codex.json",
+		"cursor":         "cursor.json",
+		"stdio":          "stdio.json",
+	}
+	fragmentPaths := make([]string, 0, len(configFragments))
+	for _, client := range []string{"claude-desktop", "codex", "cursor", "stdio"} {
+		path := filepath.Join(outputPath, configFragments[client])
+		if err := writeMCPBundleJSONFile(path, mcpBundleConfigForClient(client, "./straddle-pp-mcp")); err != nil {
+			return payload, err
+		}
+		fragmentPaths = append(fragmentPaths, path)
+	}
+
+	evidence := []string{
+		"mcp binary exists and is a file: " + sourcePath,
+		"mcp binary copied into bundle as straddle-pp-mcp with executable mode 0755",
+		"manifest.json written",
+		"config fragments written for claude-desktop, codex, cursor, and stdio",
+		"config fragments name STRADDLE_TOKEN only as an env var name",
+		"no install, user config write, MCP execution, API call, publish, signing, notarization, or launch approval was performed",
+	}
+	manifestPath := filepath.Join(outputPath, "manifest.json")
+	manifest := mcpBundleManifest{
+		SchemaVersion: 1,
+		Command:       "mcp bundle",
+		BundleKind:    "straddle-local-desktop-mcp",
+		Binary: mcpBundleBinaryEvidence{
+			SourcePath:  sourcePath,
+			BundledPath: binaryPath,
+			FileName:    "straddle-pp-mcp",
+			SizeBytes:   sourceInfo.Size(),
+			Mode:        mcpBundleBinaryMode.String(),
+			SHA256:      binaryHash,
+		},
+		EnvVarNames:     []string{"STRADDLE_TOKEN"},
+		ConfigFragments: configFragments,
+		Safety:          safety,
+		Blockers:        blockers,
+		Evidence:        evidence,
+	}
+	if err := validateMCPBundleNoSecrets(manifest); err != nil {
+		return payload, err
+	}
+	if err := writeMCPBundleJSONFile(manifestPath, manifest); err != nil {
+		return payload, err
+	}
+
+	filesWritten := append([]string{binaryPath}, fragmentPaths...)
+	filesWritten = append(filesWritten, manifestPath)
+	payload.FilesWritten = filesWritten
+	payload.Evidence = evidence
+	if err := validateMCPBundleNoSecrets(payload); err != nil {
+		return payload, err
+	}
+	return payload, nil
+}
+
+func defaultMCPBundleSafety() mcpBundleSafety {
+	return mcpBundleSafety{
+		LocalOnly:                   true,
+		WritesLocalBundle:           true,
+		NamesEnvVarsOnly:            true,
+		DoesNotInstall:              true,
+		DoesNotWriteUserConfig:      true,
+		DoesNotReadSecrets:          true,
+		DoesNotReadProfilesOrConfig: true,
+		DoesNotExecuteMCP:           true,
+		DoesNotCallAPIs:             true,
+		DoesNotPublish:              true,
+		DoesNotSign:                 true,
+		DoesNotNotarize:             true,
+		ApprovesLaunch:              false,
+	}
+}
+
+func defaultMCPBundleBlockers() []string {
+	return []string{
+		"Public desktop MCP install and registration approval remains unresolved.",
+		"Marketplace packaging remains unresolved.",
+		"Signing remains unresolved.",
+		"Notarization remains unresolved.",
+		"Support approval remains unresolved.",
+		"Public launch remains blocked.",
+	}
+}
+
+func validateMCPBundleBinary(binary string) (string, os.FileInfo, error) {
+	trimmed := strings.TrimSpace(binary)
+	if trimmed == "" {
+		return "", nil, fmt.Errorf("mcp binary must not be blank")
+	}
+	if containsTokenLiteral(trimmed) {
+		return "", nil, fmt.Errorf("mcp binary must not contain token literals")
+	}
+	if containsSecretEnvAssignment(trimmed) {
+		return "", nil, fmt.Errorf("mcp binary must not contain secret environment assignments")
+	}
+
+	resolved := trimmed
+	if !strings.ContainsAny(trimmed, `/\`) {
+		found, err := exec.LookPath(trimmed)
+		if err != nil {
+			return "", nil, fmt.Errorf("mcp binary %q was not found", trimmed)
+		}
+		resolved = found
+	}
+	info, err := os.Stat(resolved)
+	if err != nil {
+		return "", nil, fmt.Errorf("mcp binary %q is not available: %w", trimmed, err)
+	}
+	if info.IsDir() {
+		return "", nil, fmt.Errorf("mcp binary must be a file, got directory %q", trimmed)
+	}
+	if !info.Mode().IsRegular() {
+		return "", nil, fmt.Errorf("mcp binary must be a regular file: %q", trimmed)
+	}
+	if info.Mode().Perm()&0o111 == 0 {
+		return "", nil, fmt.Errorf("mcp binary must be executable: %q", trimmed)
+	}
+	abs, err := filepath.Abs(resolved)
+	if err != nil {
+		return "", nil, fmt.Errorf("resolve mcp binary path: %w", err)
+	}
+	return abs, info, nil
+}
+
+func validateMCPBundleOutput(output string) (string, error) {
+	trimmed := strings.TrimSpace(output)
+	if trimmed == "" {
+		return "", fmt.Errorf("output must not be blank")
+	}
+	if containsTokenLiteral(trimmed) {
+		return "", fmt.Errorf("output must not contain token literals")
+	}
+	if containsSecretEnvAssignment(trimmed) {
+		return "", fmt.Errorf("output must not contain secret environment assignments")
+	}
+	if trimmed == "~" {
+		return "", fmt.Errorf("output must not be the home directory")
+	}
+	abs, err := filepath.Abs(trimmed)
+	if err != nil {
+		return "", fmt.Errorf("resolve output path: %w", err)
+	}
+	clean := filepath.Clean(abs)
+	if clean == "." || clean == string(filepath.Separator) {
+		return "", fmt.Errorf("output must not be the root directory")
+	}
+	if home, err := os.UserHomeDir(); err == nil && strings.TrimSpace(home) != "" {
+		homeAbs, homeErr := filepath.Abs(home)
+		if homeErr == nil && filepath.Clean(homeAbs) == clean {
+			return "", fmt.Errorf("output must not be the home directory")
+		}
+	}
+	return clean, nil
+}
+
+func prepareMCPBundleOutput(outputPath string, force bool) error {
+	if info, err := os.Stat(outputPath); err == nil {
+		if !info.IsDir() {
+			return fmt.Errorf("output exists and is not a directory: %s", outputPath)
+		}
+		if !force {
+			return fmt.Errorf("output already exists: %s; pass --force to replace it", outputPath)
+		}
+		if err := validateExistingMCPBundleOutput(outputPath); err != nil {
+			return err
+		}
+		if err := os.RemoveAll(outputPath); err != nil {
+			return fmt.Errorf("replace output directory: %w", err)
+		}
+	} else if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("inspect output directory: %w", err)
+	}
+	if err := os.MkdirAll(outputPath, 0o755); err != nil {
+		return fmt.Errorf("create output directory: %w", err)
+	}
+	return nil
+}
+
+func validateExistingMCPBundleOutput(outputPath string) error {
+	manifestPath := filepath.Join(outputPath, "manifest.json")
+	raw, err := os.ReadFile(manifestPath)
+	if err != nil {
+		return fmt.Errorf("output exists but is not a known mcp bundle; refusing to replace %s", outputPath)
+	}
+	var manifest struct {
+		SchemaVersion int    `json:"schema_version"`
+		Command       string `json:"command"`
+		BundleKind    string `json:"bundle_kind"`
+		Binary        struct {
+			FileName string `json:"file_name"`
+		} `json:"binary"`
+	}
+	if err := json.Unmarshal(raw, &manifest); err != nil {
+		return fmt.Errorf("output exists but has invalid mcp bundle manifest; refusing to replace %s", outputPath)
+	}
+	if manifest.SchemaVersion != 1 || manifest.Command != "mcp bundle" || manifest.BundleKind != "straddle-local-desktop-mcp" || manifest.Binary.FileName != "straddle-pp-mcp" {
+		return fmt.Errorf("output exists but is not a known mcp bundle; refusing to replace %s", outputPath)
+	}
+	return nil
+}
+
+func pathContains(parentPath string, childPath string) bool {
+	parent := filepath.Clean(parentPath)
+	child := filepath.Clean(childPath)
+	rel, err := filepath.Rel(parent, child)
+	if err != nil {
+		return false
+	}
+	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel))
+}
+
+func copyMCPBundleBinary(sourcePath string, targetPath string) (string, error) {
+	source, err := os.Open(sourcePath)
+	if err != nil {
+		return "", fmt.Errorf("open mcp binary: %w", err)
+	}
+	defer source.Close()
+
+	target, err := os.OpenFile(targetPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+	if err != nil {
+		return "", fmt.Errorf("create bundled mcp binary: %w", err)
+	}
+	hasher := sha256.New()
+	_, copyErr := io.Copy(io.MultiWriter(target, hasher), source)
+	closeErr := target.Close()
+	if copyErr != nil {
+		return "", fmt.Errorf("copy mcp binary: %w", copyErr)
+	}
+	if closeErr != nil {
+		return "", fmt.Errorf("close bundled mcp binary: %w", closeErr)
+	}
+	if err := os.Chmod(targetPath, mcpBundleBinaryMode); err != nil {
+		return "", fmt.Errorf("set bundled mcp binary mode: %w", err)
+	}
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
+func writeMCPBundleJSONFile(path string, value any) error {
+	raw, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal %s: %w", filepath.Base(path), err)
+	}
+	raw = append(raw, '\n')
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		return fmt.Errorf("write %s: %w", filepath.Base(path), err)
+	}
+	return nil
+}
+
+func mcpBundleConfigForClient(client string, binary string) any {
+	baseReview := map[string]any{
+		"env_var_names": []string{"STRADDLE_TOKEN"},
+		"notes": []string{
+			"Set STRADDLE_TOKEN through the client's secure environment or secret manager.",
+			"Do not paste token values into this fragment.",
+			"This fragment is review-only and is not installed by the bundle command.",
+		},
+	}
+	switch client {
+	case "claude-desktop", "cursor":
+		return map[string]any{
+			"config_kind": client + "_local_stdio_fragment",
+			"mcpServers": map[string]any{
+				"straddle": map[string]any{
+					"command":       binary,
+					"args":          []string{},
+					"env_var_names": []string{"STRADDLE_TOKEN"},
+				},
+			},
+			"review": baseReview,
+		}
+	case "codex":
+		return map[string]any{
+			"config_kind": "codex_local_stdio_fragment",
+			"add_command": []string{
+				"codex",
+				"mcp",
+				"add",
+				"straddle",
+				"--",
+				binary,
+			},
+			"toml":   fmt.Sprintf("[mcp_servers.straddle]\ncommand = %q\n", binary),
+			"review": baseReview,
+		}
+	case "stdio":
+		return map[string]any{
+			"config_kind":   "generic_stdio_fragment",
+			"command":       binary,
+			"args":          []string{},
+			"env_var_names": []string{"STRADDLE_TOKEN"},
+			"review":        baseReview,
+		}
+	default:
+		return nil
+	}
+}
+
+func validateMCPBundleNoSecrets(value any) error {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	text := string(raw)
+	if containsTokenLiteral(text) {
+		return fmt.Errorf("generated mcp bundle must not contain token literals")
+	}
+	if containsSecretEnvAssignment(text) {
+		return fmt.Errorf("generated mcp bundle must not contain secret environment assignments")
+	}
+	return nil
+}
+
+func renderMCPBundleResponse(cmd *cobra.Command, flags *rootFlags, payload mcpBundleResponse) error {
+	asJSON := flags.asJSON || flags.agent || !isTerminal(cmd.OutOrStdout())
+	if asJSON {
+		return printJSONFiltered(cmd.OutOrStdout(), payload, flags)
+	}
+
+	w := cmd.OutOrStdout()
+	fmt.Fprintln(w, "MCP bundle")
+	fmt.Fprintf(w, "Output: %s\n", payload.OutputPath)
+	fmt.Fprintln(w, "Files:")
+	for _, file := range payload.FilesWritten {
+		fmt.Fprintf(w, "  %s\n", file)
+	}
+	fmt.Fprintln(w, "Safety: local bundle files only. No install, user config writes, secret reads, API calls, MCP execution, publishing, signing, notarization, or launch approval.")
 	fmt.Fprintln(w, "Blockers:")
 	for _, blocker := range payload.Blockers {
 		fmt.Fprintf(w, "  %s\n", blocker)

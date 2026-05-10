@@ -7,6 +7,8 @@ package cli
 import (
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -248,5 +250,323 @@ func TestMCPConfigRejectsDeliverBeforeDelivery(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "mcp config does not support --deliver") {
 		t.Fatalf("deliver rejection should mention mcp config, got %v", err)
+	}
+}
+
+func TestMCPBundleJSONSuccessWritesLocalBundle(t *testing.T) {
+	t.Setenv("STRADDLE_TOKEN", "fixture-secret-token-never-print")
+
+	binary := writeMCPBundleFakeExecutable(t)
+	output := filepath.Join(t.TempDir(), "bundle")
+
+	stdout, stderr, err := runCLIForDocsTest(t, "mcp", "bundle", "--mcp-binary", binary, "--output", output, "--json")
+	if err != nil {
+		t.Fatalf("mcp bundle --json returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("mcp bundle wrote stderr: %q", stderr)
+	}
+
+	var got mcpBundleResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("mcp bundle --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Command != "mcp bundle" {
+		t.Fatalf("command = %q, want mcp bundle", got.Command)
+	}
+	if got.OutputPath != output {
+		t.Fatalf("output_path = %q, want %q", got.OutputPath, output)
+	}
+	if !got.Safety.LocalOnly || !got.Safety.WritesLocalBundle || !got.Safety.NamesEnvVarsOnly || !got.Safety.DoesNotReadSecrets || !got.Safety.DoesNotWriteUserConfig {
+		t.Fatalf("mcp bundle safety should prove local bundle-only behavior: %#v", got.Safety)
+	}
+	if got.Safety.DoesNotInstall != true || got.Safety.DoesNotExecuteMCP != true || got.Safety.DoesNotCallAPIs != true || got.Safety.DoesNotPublish != true || got.Safety.DoesNotSign != true || got.Safety.DoesNotNotarize != true {
+		t.Fatalf("mcp bundle safety should block install, MCP execution, APIs, publish, signing, and notarization: %#v", got.Safety)
+	}
+	if got.Safety.ApprovesLaunch {
+		t.Fatalf("mcp bundle must not approve launch: %#v", got.Safety)
+	}
+	for _, want := range []string{"straddle-pp-mcp", "manifest.json", "claude-desktop.json", "codex.json", "cursor.json", "stdio.json"} {
+		if !mcpBundleResponseIncludesFile(got.FilesWritten, want) {
+			t.Fatalf("files_written missing %q: %#v", want, got.FilesWritten)
+		}
+		if _, err := os.Stat(filepath.Join(output, want)); err != nil {
+			t.Fatalf("bundle file %s missing: %v", want, err)
+		}
+	}
+
+	var manifest mcpBundleManifest
+	rawManifest, err := os.ReadFile(filepath.Join(output, "manifest.json"))
+	if err != nil {
+		t.Fatalf("read manifest: %v", err)
+	}
+	if err := json.Unmarshal(rawManifest, &manifest); err != nil {
+		t.Fatalf("manifest should be JSON: %v\n%s", err, string(rawManifest))
+	}
+	if manifest.Command != "mcp bundle" || manifest.BundleKind != "straddle-local-desktop-mcp" {
+		t.Fatalf("unexpected manifest identity: %#v", manifest)
+	}
+	if manifest.Binary.FileName != "straddle-pp-mcp" || manifest.Binary.SHA256 == "" || manifest.Binary.SizeBytes == 0 {
+		t.Fatalf("manifest binary evidence incomplete: %#v", manifest.Binary)
+	}
+	if manifest.Binary.Mode != "-rwxr-xr-x" {
+		t.Fatalf("manifest binary mode = %q, want executable bundle mode", manifest.Binary.Mode)
+	}
+	info, err := os.Stat(filepath.Join(output, "straddle-pp-mcp"))
+	if err != nil {
+		t.Fatalf("stat bundled MCP binary: %v", err)
+	}
+	if info.Mode().Perm() != 0o755 {
+		t.Fatalf("bundled MCP binary mode = %s, want -rwxr-xr-x", info.Mode().Perm())
+	}
+	if strings.Join(manifest.EnvVarNames, ",") != "STRADDLE_TOKEN" {
+		t.Fatalf("manifest env_var_names = %#v, want STRADDLE_TOKEN", manifest.EnvVarNames)
+	}
+	for _, client := range []string{"claude-desktop", "codex", "cursor", "stdio"} {
+		if manifest.ConfigFragments[client] == "" {
+			t.Fatalf("manifest missing config fragment for %s: %#v", client, manifest.ConfigFragments)
+		}
+	}
+	assertMCPBundleDoesNotLeak(t, stdout, output, "fixture-secret-token-never-print")
+}
+
+func TestMCPBundleRejectsUnsafeInputs(t *testing.T) {
+	binary := writeMCPBundleFakeExecutable(t)
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{
+			name: "blank binary",
+			args: []string{"mcp", "bundle", "--mcp-binary", " ", "--output", filepath.Join(t.TempDir(), "bundle"), "--json"},
+			want: "mcp binary must not be blank",
+		},
+		{
+			name: "blank output",
+			args: []string{"mcp", "bundle", "--mcp-binary", binary, "--output", " ", "--json"},
+			want: "output must not be blank",
+		},
+		{
+			name: "token literal binary",
+			args: []string{"mcp", "bundle", "--mcp-binary", "Bearer fixture-secret-token", "--output", filepath.Join(t.TempDir(), "bundle"), "--json"},
+			want: "mcp binary must not contain token literals",
+		},
+		{
+			name: "secret env assignment output",
+			args: []string{"mcp", "bundle", "--mcp-binary", binary, "--output", "STRADDLE_TOKEN=fixture-secret-token", "--json"},
+			want: "output must not contain secret environment assignments",
+		},
+		{
+			name: "missing binary",
+			args: []string{"mcp", "bundle", "--mcp-binary", filepath.Join(t.TempDir(), "missing-mcp"), "--output", filepath.Join(t.TempDir(), "bundle"), "--json"},
+			want: "is not available",
+		},
+		{
+			name: "directory binary",
+			args: []string{"mcp", "bundle", "--mcp-binary", t.TempDir(), "--output", filepath.Join(t.TempDir(), "bundle"), "--json"},
+			want: "mcp binary must be a file",
+		},
+		{
+			name: "non executable binary",
+			args: []string{"mcp", "bundle", "--mcp-binary", writeMCPBundleFakeFile(t, 0o644), "--output", filepath.Join(t.TempDir(), "bundle"), "--json"},
+			want: "mcp binary must be executable",
+		},
+		{
+			name: "root output",
+			args: []string{"mcp", "bundle", "--mcp-binary", binary, "--output", string(filepath.Separator), "--json"},
+			want: "output must not be the root directory",
+		},
+		{
+			name: "home output",
+			args: []string{"mcp", "bundle", "--mcp-binary", binary, "--output", home, "--json"},
+			want: "output must not be the home directory",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := runCLIForDocsTest(t, tt.args...)
+			if err == nil {
+				t.Fatalf("mcp bundle should reject %s", tt.name)
+			}
+			var cliErr *cliError
+			if !errors.As(err, &cliErr) || cliErr.code != 2 {
+				t.Fatalf("%s should be a usage error, got %#v", tt.name, err)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("%s error should contain %q, got %v", tt.name, tt.want, err)
+			}
+		})
+	}
+}
+
+func TestMCPBundleRejectsExistingOutputWithoutForceAndRejectsUnsafeForce(t *testing.T) {
+	binary := writeMCPBundleFakeExecutable(t)
+	output := filepath.Join(t.TempDir(), "bundle")
+	if err := os.MkdirAll(output, 0o755); err != nil {
+		t.Fatalf("create existing output: %v", err)
+	}
+	marker := filepath.Join(output, "marker.txt")
+	if err := os.WriteFile(marker, []byte("keep"), 0o644); err != nil {
+		t.Fatalf("write marker: %v", err)
+	}
+
+	_, _, err := runCLIForDocsTest(t, "mcp", "bundle", "--mcp-binary", binary, "--output", output, "--json")
+	if err == nil {
+		t.Fatalf("mcp bundle should reject existing output without --force")
+	}
+	if !strings.Contains(err.Error(), "pass --force") {
+		t.Fatalf("existing output error should mention --force, got %v", err)
+	}
+	if _, statErr := os.Stat(marker); statErr != nil {
+		t.Fatalf("marker should remain after rejected bundle run: %v", statErr)
+	}
+
+	_, _, err = runCLIForDocsTest(t, "mcp", "bundle", "--mcp-binary", binary, "--output", output, "--force", "--json")
+	if err == nil {
+		t.Fatalf("mcp bundle --force should reject non-bundle output")
+	}
+	if !strings.Contains(err.Error(), "not a known mcp bundle") {
+		t.Fatalf("unsafe --force error should mention known bundle guard, got %v", err)
+	}
+	if _, statErr := os.Stat(marker); statErr != nil {
+		t.Fatalf("marker should remain after rejected --force run: %v", statErr)
+	}
+}
+
+func TestMCPBundleReplacesKnownBundleWithForce(t *testing.T) {
+	binary := writeMCPBundleFakeExecutable(t)
+	output := filepath.Join(t.TempDir(), "bundle")
+
+	if _, _, err := runCLIForDocsTest(t, "mcp", "bundle", "--mcp-binary", binary, "--output", output, "--json"); err != nil {
+		t.Fatalf("initial mcp bundle returned error: %v", err)
+	}
+	marker := filepath.Join(output, "marker.txt")
+	if err := os.WriteFile(marker, []byte("replace"), 0o644); err != nil {
+		t.Fatalf("write marker: %v", err)
+	}
+
+	stdout, stderr, err := runCLIForDocsTest(t, "mcp", "bundle", "--mcp-binary", binary, "--output", output, "--force", "--json")
+	if err != nil {
+		t.Fatalf("mcp bundle --force returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("mcp bundle --force wrote stderr: %q", stderr)
+	}
+	if _, statErr := os.Stat(marker); !os.IsNotExist(statErr) {
+		t.Fatalf("marker should be removed by --force, stat err=%v", statErr)
+	}
+	if _, statErr := os.Stat(filepath.Join(output, "manifest.json")); statErr != nil {
+		t.Fatalf("manifest should exist after --force: %v\n%s", statErr, stdout)
+	}
+}
+
+func TestMCPBundleRejectsOutputContainingSourceBinary(t *testing.T) {
+	root := t.TempDir()
+	binary := filepath.Join(root, "bundle", "straddle-pp-mcp")
+	if err := os.MkdirAll(filepath.Dir(binary), 0o755); err != nil {
+		t.Fatalf("create binary dir: %v", err)
+	}
+	if err := os.WriteFile(binary, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatalf("write fake MCP binary: %v", err)
+	}
+
+	_, _, err := runCLIForDocsTest(t, "mcp", "bundle", "--mcp-binary", binary, "--output", root, "--force", "--json")
+	if err == nil {
+		t.Fatalf("mcp bundle should reject output containing source binary")
+	}
+	if !strings.Contains(err.Error(), "output must not contain the mcp binary source") {
+		t.Fatalf("error should mention source containment, got %v", err)
+	}
+	if _, statErr := os.Stat(binary); statErr != nil {
+		t.Fatalf("source binary should remain after rejected run: %v", statErr)
+	}
+}
+
+func TestMCPBundleRejectsDeliverBeforeProfileLoad(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "mcp-bundle-delivery.json")
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	oldArgs := os.Args
+	t.Cleanup(func() {
+		os.Args = oldArgs
+	})
+	os.Args = []string{
+		"straddle-pp-cli",
+		"mcp",
+		"bundle",
+		"--deliver",
+		"file:" + target,
+		"--profile",
+		"missing-profile",
+	}
+
+	err := Execute()
+	if err == nil {
+		t.Fatalf("mcp bundle should reject --deliver")
+	}
+	if !strings.Contains(err.Error(), "mcp bundle does not support --deliver") {
+		t.Fatalf("error should explain --deliver is unsupported, got %v", err)
+	}
+	if _, statErr := os.Stat(target); !os.IsNotExist(statErr) {
+		t.Fatalf("mcp bundle should reject --deliver before writing output, stat err=%v", statErr)
+	}
+	if _, statErr := os.Stat(filepath.Join(home, ".straddle-pp-cli")); !os.IsNotExist(statErr) {
+		t.Fatalf("mcp bundle should reject --deliver before loading profile state, stat err=%v", statErr)
+	}
+}
+
+func writeMCPBundleFakeExecutable(t *testing.T) string {
+	t.Helper()
+	return writeMCPBundleFakeFile(t, 0o755)
+}
+
+func writeMCPBundleFakeFile(t *testing.T, mode os.FileMode) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "fake-straddle-pp-mcp")
+	if err := os.WriteFile(path, []byte("#!/bin/sh\nexit 0\n"), mode); err != nil {
+		t.Fatalf("write fake MCP binary: %v", err)
+	}
+	return path
+}
+
+func mcpBundleResponseIncludesFile(files []string, basename string) bool {
+	for _, file := range files {
+		if filepath.Base(file) == basename {
+			return true
+		}
+	}
+	return false
+}
+
+func assertMCPBundleDoesNotLeak(t *testing.T, stdout string, output string, secret string) {
+	t.Helper()
+	if strings.Contains(stdout, secret) || strings.Contains(stdout, "STRADDLE_TOKEN=") || strings.Contains(stdout, "Bearer ") || strings.Contains(stdout, "sk_live") || strings.Contains(stdout, "sk_test") {
+		t.Fatalf("mcp bundle leaked token-shaped stdout:\n%s", stdout)
+	}
+	err := filepath.WalkDir(output, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		text := string(raw)
+		if strings.Contains(text, secret) || strings.Contains(text, "STRADDLE_TOKEN=") || strings.Contains(text, "Bearer ") || strings.Contains(text, "sk_live") || strings.Contains(text, "sk_test") {
+			t.Fatalf("mcp bundle file %s leaked token-shaped content:\n%s", path, text)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("scan bundle for token leakage: %v", err)
 	}
 }

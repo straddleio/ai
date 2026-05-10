@@ -244,6 +244,7 @@ func TestDocsSearchCommandsIndexesLocalHelperCommands(t *testing.T) {
 	tests := map[string]string{
 		"workflow plan": "workflow plan",
 		"mcp config":    "mcp config",
+		"mcp bundle":    "mcp bundle",
 	}
 
 	for query, wantCommand := range tests {

@@ -202,6 +202,7 @@ func requiredShipcheckCommandPaths() []string {
 		"release plan",
 		"credentials plan",
 		"mcp config",
+		"mcp bundle",
 		"smoke plan",
 		"smoke run",
 		"customers list",
@@ -244,7 +245,7 @@ func checkShipcheckWorkflowPlans() shipcheckCheck {
 
 func checkShipcheckDocsCommandSearch() shipcheckCheck {
 	check := shipcheckCheck{Name: "docs_command_search", Passed: true}
-	for _, query := range []string{"workflow plan", "mcp config"} {
+	for _, query := range []string{"workflow plan", "mcp config", "mcp bundle"} {
 		matches := rankWhich(whichIndex, query, 1)
 		if len(matches) == 0 || matches[0].Entry.Command != query {
 			check.Passed = false
@@ -643,6 +644,7 @@ func runLocalMCPToolsList(ctx context.Context, binary string, clientName string)
 func requiredShipcheckMCPTools() []string {
 	return []string{
 		"mcp_config",
+		"mcp_bundle",
 		"docs_search",
 		"workflow_plan",
 		"release_plan",
