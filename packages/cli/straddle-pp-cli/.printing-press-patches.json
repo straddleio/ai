@@ -447,7 +447,29 @@
         "../README.md",
         ".printing-press-patches.json"
       ],
-      "validated_outcome": "make release-readiness runs Go tests, local package-readiness, GoReleaser config validation, local snapshot archive generation without publishing, archive content checks for straddle-pp-cli, straddle-pp-mcp, .printing-press.json, manifest.json, README.md, and LICENSE, checksum checks, Homebrew cask binary checks, current-platform archive extraction, archived shipcheck local against the archived MCP sibling, and archived mcp bundle generation. The GitHub validate workflow runs node validation, generated CLI validation, and make release-readiness."
+      "validated_outcome": "make release-readiness runs Go tests, local package-readiness, GoReleaser config validation, local snapshot archive generation without publishing, archive content checks for straddle-pp-cli, straddle-pp-mcp, .printing-press.json, manifest.json, README.md, and LICENSE, checksum checks, Homebrew cask binary checks, current-platform archive extraction, archived shipcheck local against the archived MCP sibling, archived mcp bundle generation, local npm package assembly, and npm pack --dry-run. The GitHub validate workflow runs node validation, generated CLI validation, and make release-readiness."
+    },
+    {
+      "id": "npm-package-readiness",
+      "summary": "Add non-publishing npm package assembly for the generated CLI and MCP sibling.",
+      "reason": "The preview needs a local npm/npx-style package proof without publishing to npm, reading npm credentials, approving the package name, or claiming public npx availability.",
+      "files": [
+        "npm/package.json",
+        "npm/README.md",
+        "npm/bin/straddle-pp-cli.js",
+        "npm/bin/straddle-pp-mcp.js",
+        "npm/lib/resolve-binary.js",
+        "scripts/build-npm-package.sh",
+        "scripts/verify-npm-package.sh",
+        "Makefile",
+        "internal/cli/release.go",
+        "internal/cli/release_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "make release-readiness assembles dist/npm/package from GoReleaser snapshot binaries for darwin, linux, and windows on x64 and arm64, copies README, LICENSE, manifest.json, and .printing-press.json, verifies private package metadata, checks every vendor binary pair, runs current-platform straddle-pp-cli through the node wrapper, runs shipcheck local against the bundled MCP sibling, runs a direct JSON-RPC initialize plus tools/list smoke through the MCP node wrapper, scans for token-shaped strings and publishing commands, and runs npm pack dry-run plus offline local tarball execution without publishing or reading npm credentials."
     }
   ]
 }

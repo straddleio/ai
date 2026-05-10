@@ -94,7 +94,8 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 		},
 		"npm": {
 			"make release-readiness",
-			"make release-check",
+			"node dist/npm/package/bin/straddle-pp-cli.js --version",
+			"sh scripts/verify-npm-package.sh dist/npm/package",
 		},
 		"owner-decisions": {
 			"straddle-pp-cli release plan owner-decisions --json",
@@ -173,8 +174,11 @@ func TestReleasePlanSpecialSurfacesStayHonest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("release plan npm --json returned error: %v", err)
 	}
-	if !strings.Contains(stdout, "No npm or npx path exists yet") {
-		t.Fatalf("npm surface should say no npm or npx path exists yet:\n%s", stdout)
+	if !strings.Contains(stdout, "Local npm package assembly exists only under dist") {
+		t.Fatalf("npm surface should say local npm package assembly is local-only:\n%s", stdout)
+	}
+	if !strings.Contains(stdout, "npx remains a future public install path") {
+		t.Fatalf("npm surface should keep public npx blocked until approval:\n%s", stdout)
 	}
 
 	stdout, _, err = runCLIForDocsTest(t, "release", "plan", "naming", "--json")

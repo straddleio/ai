@@ -431,16 +431,17 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 		{
 			Name:    "npm",
 			Title:   "npm and npx distribution",
-			Summary: "Document that npm and npx distribution are not available yet.",
+			Summary: "Validate local npm package assembly without publishing to npm or approving the package name.",
 			LocalProofCommands: []string{
 				"make release-readiness",
-				"make release-check",
-				"make release-snapshot",
+				"node dist/npm/package/bin/straddle-pp-cli.js --version",
+				"sh scripts/verify-npm-package.sh dist/npm/package",
 				"make clean",
 			},
 			PublicArtifactSurfaces: []string{
 				"Future npm package",
 				"Future npx launcher",
+				"Local npm package assembly under dist/npm/package",
 			},
 			RequiredFutureApprovals: []string{
 				"Approve package name, npm organization, ownership, token handling, provenance, and release automation.",
@@ -451,8 +452,13 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 				"Decide how npm distribution relates to Homebrew and direct archives.",
 			},
 			Blockers: []string{
-				"No npm or npx path exists yet.",
-				"No package metadata, npm publishing automation, or npm credential flow is implemented.",
+				"Local npm package assembly exists only under dist and is not published.",
+				"npm package name, npm organization, npm ownership, npm provenance, and release automation are not approved.",
+				"No npm publishing automation or npm credential flow is implemented.",
+			},
+			Notes: []string{
+				"The local npm package wraps bundled native binaries from the GoReleaser snapshot; it does not download binaries at install time.",
+				"npx remains a future public install path until npm publication is approved and executed.",
 			},
 		},
 		{

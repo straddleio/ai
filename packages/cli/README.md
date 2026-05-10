@@ -12,7 +12,7 @@ The generated project includes the CLI first and an MCP sibling from the same Pr
 
 ## Current Contract
 
-This generated CLI is a local preview, not a published public launch artifact. Printing Press remains the source for the generated tree. There is no current public `npx` install path, pre-built binary, public-library release link, Hermes install path, or public MCP package bundle for this Straddle preview. Those belong to a future publish and packaging slice.
+This generated CLI is a local preview, not a published public launch artifact. Printing Press remains the source for the generated tree. There is no current public `npx` install path, pre-built binary, public-library release link, Hermes install path, or public MCP package bundle for this Straddle preview. Local archive, Homebrew cask, MCP bundle, and private npm package assembly proofs exist under `dist/`, but public publication remains blocked.
 
 Current local build and install paths:
 
@@ -42,7 +42,7 @@ make release-readiness
 make clean
 ```
 
-`make release-readiness` is the canonical non-publishing release gate. It runs Go tests, local package-readiness, GoReleaser config validation, GoReleaser snapshot archive generation, archive and checksum verification, local cask binary checks, current-platform archive extraction, archived `shipcheck local`, and archived `mcp bundle`. The snapshot archives include `straddle-pp-cli`, `straddle-pp-mcp`, `.printing-press.json`, `manifest.json`, `README.md`, and `LICENSE`. It still writes only local `dist/` output and does not publish, upload, push, or write to a Homebrew tap. `make release-check` and `make release-snapshot` remain lower-level troubleshooting targets. Run `make clean` after inspection to remove generated artifacts.
+`make release-readiness` is the canonical non-publishing release gate. It runs Go tests, local package-readiness, GoReleaser config validation, GoReleaser snapshot archive generation, archive and checksum verification, local cask binary checks, current-platform archive extraction, archived `shipcheck local`, archived `mcp bundle`, and local npm package assembly plus verification. The npm verification checks private package metadata, bundled vendor binaries, current-platform CLI and MCP wrapper smokes, token-shaped strings, publishing-command strings, `npm pack --dry-run`, and offline local tarball execution. The snapshot archives include `straddle-pp-cli`, `straddle-pp-mcp`, `.printing-press.json`, `manifest.json`, `README.md`, and `LICENSE`. It still writes only local `dist/` output and does not publish, upload, push, publish to npm, or write to a Homebrew tap. `make release-check` and `make release-snapshot` remain lower-level troubleshooting targets. Run `make clean` after inspection to remove generated artifacts.
 
 Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. Command-specific local helpers that use `printJSONFiltered`, including `which --agent`, also use this target envelope. `agent-context --agent` uses the same envelope, with the existing v3 agent context object under `data`:
 
