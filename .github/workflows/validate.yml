@@ -19,7 +19,7 @@ jobs:
       - run: npm run sync
       - run: npm run validate
       - run: node scripts/validate-cli.js
-      - run: make release-readiness
+      - run: make completion-audit
         working-directory: packages/cli/straddle-pp-cli
       - if: always()
         run: make clean
