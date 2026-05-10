@@ -571,6 +571,20 @@
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublic' covers unchanged no-approval blockers, valid approval readiness, token literal rejection, missing and false approvals, unknown fields, evidence checks, and local_preview_commit mismatch."
     },
     {
+      "id": "public-release-candidate-workflow",
+      "summary": "Add a manual non-publishing release-candidate workflow.",
+      "reason": "After local preview passes and owners provide an approval JSON record, agents need an executable review artifact path that validates public readiness against the built CLI without publishing, signing, notarizing, calling Straddle APIs, executing MCP tools, or reading secrets.",
+      "files": [
+        "../../../.github/workflows/cli-release-candidate.yml",
+        "scripts/ci-public-release-candidate.sh",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "sh -n scripts/ci-public-release-candidate.sh, npm run sync, npm run validate, node scripts/validate-cli.js, make test, make release-readiness, Ruby YAML parse, and actionlint cover workflow syntax, helper syntax, plugin sync and validation, generated CLI validation, Go tests, non-publishing archive proof, and GitHub Actions linting. The approval success path requires a clean checkout so Go build metadata reports vcs.modified=false."
+    },
+    {
       "id": "completion-audit-discovery",
       "summary": "Make monitoring and ops helper commands resolve through local docs command search.",
       "reason": "The completion audit found that monitoring queries could resolve to unrelated generated endpoint commands even though monitoring is an explicit goal surface.",
