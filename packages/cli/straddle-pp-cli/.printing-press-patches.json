@@ -430,6 +430,24 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestMCP(Bundle|Config)|TestShipcheck|TestDocsSearchCommands|TestReleasePlan' covers mcp bundle success with a temp fake executable, STRADDLE_TOKEN non-leakage, unsafe input rejection, existing-output force behavior, docs command indexing, shipcheck command and MCP tool coverage, and release wording. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' covers runtime count 91, mcp_bundle shell-out metadata, and read-only hints for existing read-only shell-outs. make package-readiness builds dist/local, runs packaged shipcheck, and writes dist/local/mcp-bundle."
+    },
+    {
+      "id": "release-artifact-readiness",
+      "summary": "Add a non-publishing release-readiness gate for local snapshot archives and Homebrew cask output.",
+      "reason": "The local snapshot archives must carry Printing Press provenance metadata so an extracted public-preview archive can run shipcheck local against the archived MCP sibling before any public publication decision.",
+      "files": [
+        ".goreleaser.yaml",
+        "Makefile",
+        "../../../.github/workflows/validate.yml",
+        "scripts/verify-release-artifacts.sh",
+        "internal/cli/release.go",
+        "internal/cli/release_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "make release-readiness runs Go tests, local package-readiness, GoReleaser config validation, local snapshot archive generation without publishing, archive content checks for straddle-pp-cli, straddle-pp-mcp, .printing-press.json, manifest.json, README.md, and LICENSE, checksum checks, Homebrew cask binary checks, current-platform archive extraction, archived shipcheck local against the archived MCP sibling, and archived mcp bundle generation. The GitHub validate workflow runs node validation, generated CLI validation, and make release-readiness."
     }
   ]
 }

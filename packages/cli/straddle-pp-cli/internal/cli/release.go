@@ -214,8 +214,10 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Title:   "Local archive proof",
 			Summary: "Validate non-publishing archives and inspect their contents before any public artifact decision.",
 			LocalProofCommands: []string{
+				"make release-readiness",
 				"make release-check",
 				"make release-snapshot",
+				"sh scripts/verify-release-artifacts.sh dist",
 				"tar -tzf dist/straddle-pp-cli_*_darwin_*.tar.gz",
 				"unzip -l dist/straddle-pp-cli_*_windows_*.zip",
 				"make clean",
@@ -233,8 +235,12 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 				"Decide whether both straddle-pp-cli and straddle-pp-mcp ship in every public archive.",
 			},
 			Blockers: []string{
-				"Snapshot archives are local proof only and are not published.",
+				"Snapshot archives are local proof only and are not published, even when release-readiness passes.",
 				"Public release owner, artifact host, release notes, and checksum approval are still missing.",
+			},
+			Notes: []string{
+				"Release-readiness requires every archive to include straddle-pp-cli, straddle-pp-mcp, .printing-press.json, manifest.json, README.md, and LICENSE.",
+				"Release-readiness extracts the current-platform archive and runs shipcheck local against the archived MCP sibling.",
 			},
 		},
 		// PATCH: compatibility inventories current Stainless CLI behavior without approving public straddle replacement.
@@ -325,6 +331,7 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Title:   "Homebrew cask readiness",
 			Summary: "Validate local Homebrew cask generation without writing a tap.",
 			LocalProofCommands: []string{
+				"make release-readiness",
 				"make release-check",
 				"make release-snapshot",
 				"sed -n '1,220p' dist/homebrew/Casks/straddle-pp-cli.rb",
@@ -343,7 +350,7 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 				"Decide who owns tap credentials and review.",
 			},
 			Blockers: []string{
-				"Local cask output exists only under dist and is not pushed to a tap.",
+				"Release-readiness verifies the local cask includes both binary entries, but the cask output exists only under dist and is not pushed to a tap.",
 				"Homebrew publication and tap ownership are not approved.",
 			},
 		},
@@ -353,15 +360,16 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Summary: "Confirm the generated MCP sibling is included in local archive proof and local desktop MCP bundle proof while public desktop MCP install remains blocked.",
 			LocalProofCommands: []string{
 				"make package-readiness",
-				"straddle-pp-cli mcp bundle --mcp-binary dist/local/straddle-pp-mcp --output dist/local/mcp-bundle --json",
-				"make release-snapshot",
+				"find dist/local/mcp-bundle -maxdepth 1 -type f | sort",
+				"make clean",
+				"make release-readiness",
 				"tar -tzf dist/straddle-pp-cli_*_darwin_*.tar.gz | grep straddle-pp-mcp",
 				"unzip -l dist/straddle-pp-cli_*_windows_*.zip | grep straddle-pp-mcp",
 				"make clean",
 			},
 			PublicArtifactSurfaces: []string{
 				"MCP sibling binary inside future release archives",
-				"Local desktop MCP bundle under dist for review",
+				"Local desktop MCP bundle under dist/local from package-readiness for review",
 				"Future public desktop MCP package or installer",
 			},
 			RequiredFutureApprovals: []string{
@@ -374,7 +382,8 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 				"Decide whether the local desktop MCP bundle format is enough for a public preview or needs a different installer.",
 			},
 			Blockers: []string{
-				"MCP sibling exists and is archived in local snapshot proof, and local desktop MCP bundle proof exists under dist.",
+				"MCP sibling exists and is archived in local snapshot proof with provenance metadata.",
+				"make package-readiness writes dist/local/mcp-bundle for local desktop MCP bundle review; make release-readiness verifies archived MCP bundle generation from a temporary extraction and does not preserve dist/local.",
 				"Public MCP install and registration are future work.",
 				"Marketplace packaging, signing, notarization, and support approval remain unresolved.",
 			},
@@ -424,6 +433,7 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Title:   "npm and npx distribution",
 			Summary: "Document that npm and npx distribution are not available yet.",
 			LocalProofCommands: []string{
+				"make release-readiness",
 				"make release-check",
 				"make release-snapshot",
 				"make clean",
@@ -507,6 +517,7 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Title:   "Signing and notarization decision",
 			Summary: "Capture the unresolved signing and notarization decision before public macOS distribution.",
 			LocalProofCommands: []string{
+				"make release-readiness",
 				"make release-check",
 				"make release-snapshot",
 				"tar -tzf dist/straddle-pp-cli_*_darwin_*.tar.gz",

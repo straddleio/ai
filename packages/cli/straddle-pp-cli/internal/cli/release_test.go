@@ -59,8 +59,10 @@ func TestReleasePlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 	tests := map[string][]string{
 		"archives": {
+			"make release-readiness",
 			"make release-check",
 			"make release-snapshot",
+			"sh scripts/verify-release-artifacts.sh dist",
 			"make clean",
 		},
 		"compatibility": {
@@ -77,12 +79,13 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"straddle-pp-cli credentials plan launch --json",
 		},
 		"homebrew": {
+			"make release-readiness",
 			"make release-check",
 			"make release-snapshot",
 		},
 		"mcp": {
 			"make package-readiness",
-			"make release-snapshot",
+			"make release-readiness",
 		},
 		"naming": {
 			"straddle-pp-cli --help",
@@ -90,6 +93,7 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"straddle-pp-cli release plan naming --json",
 		},
 		"npm": {
+			"make release-readiness",
 			"make release-check",
 		},
 		"owner-decisions": {
@@ -101,6 +105,7 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"straddle-pp-cli credentials plan launch --json",
 		},
 		"signing": {
+			"make release-readiness",
 			"make release-check",
 			"make release-snapshot",
 		},

@@ -13,5 +13,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: packages/cli/straddle-pp-cli/go.mod
       - run: npm run sync
       - run: npm run validate
+      - run: node scripts/validate-cli.js
+      - run: make release-readiness
+        working-directory: packages/cli/straddle-pp-cli
+      - if: always()
+        run: make clean
+        working-directory: packages/cli/straddle-pp-cli

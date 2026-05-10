@@ -38,12 +38,11 @@ GoReleaser archive validation is also available as a non-publishing local check:
 
 ```bash
 cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
-make release-check
-make release-snapshot
+make release-readiness
 make clean
 ```
 
-`make release-check` runs `go run github.com/goreleaser/goreleaser/v2@latest check`. `make release-snapshot` runs `go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish`, which builds local snapshot archives for `darwin`, `linux`, and `windows` targets plus a local Homebrew cask under `dist/homebrew/Casks/`. The snapshot archives and cask include both `straddle-pp-cli` and `straddle-pp-mcp`. It still writes only local `dist/` output and does not publish, upload, push, or write to a Homebrew tap. Run `make clean` after inspection to remove generated artifacts.
+`make release-readiness` is the canonical non-publishing release gate. It runs Go tests, local package-readiness, GoReleaser config validation, GoReleaser snapshot archive generation, archive and checksum verification, local cask binary checks, current-platform archive extraction, archived `shipcheck local`, and archived `mcp bundle`. The snapshot archives include `straddle-pp-cli`, `straddle-pp-mcp`, `.printing-press.json`, `manifest.json`, `README.md`, and `LICENSE`. It still writes only local `dist/` output and does not publish, upload, push, or write to a Homebrew tap. `make release-check` and `make release-snapshot` remain lower-level troubleshooting targets. Run `make clean` after inspection to remove generated artifacts.
 
 Agent mode expands to `--json --compact --no-input --no-color --yes`. Provenance-backed generated list and read commands now emit the target envelope from the spec. Command-specific local helpers that use `printJSONFiltered`, including `which --agent`, also use this target envelope. `agent-context --agent` uses the same envelope, with the existing v3 agent context object under `data`:
 

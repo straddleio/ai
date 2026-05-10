@@ -37,6 +37,11 @@ archives:
       - straddle-pp-mcp
     formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - .printing-press.json
+      - manifest.json
     format_overrides:
       - goos: windows
         formats: [zip]
