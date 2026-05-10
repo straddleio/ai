@@ -56,7 +56,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | MCP runtime, not just source validation | Fresh JSON-RPC `tools/list` against a `/tmp` MCP build returned `tool_count: 87`, `workflow_plan.readOnlyHint: true`, `workflow_plan.destructiveHint: false`, `credentials_plan.readOnlyHint: true`, and `credentials_plan.destructiveHint: false`. | Done for preview |
 | Patch manifest | `.printing-press-patches.json` is valid JSON and catalogs safe-token, agent-output, docs-search, setup, sandbox, ops, smoke, release, credentials, and workflow-plan patches. | Done for preview |
 | Product review | `cli-plans/2026-05-09-straddle-cli-product-review.md` approves local preview and rejects public launch. `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md` now exists as the public-launch gate and also rejects approval until owner decisions and live smoke happen. | Done for local preview, blocked for public launch |
-| Subagent-driven process and review gates | The plan requires subagent-driven implementation plus spec and quality review before each slice. The latest naming and smoke-approval slices used implementer, spec review, quality review, verification, and commits. Durable repo evidence for all historical reviewer reports remains incomplete, so this cannot be treated as fully satisfied for the whole goal. | Partial |
+| Subagent-driven process and review gates | The plan requires subagent-driven implementation plus spec and quality review before each slice. `cli-plans/2026-05-10-straddle-cli-subagent-review-log.md` now records the workflow rule and recent committed slice evidence, including the latest docs-support review outcomes. Durable repo evidence for older historical reviewer reports may still be incomplete, so this cannot be treated as fully satisfied for the whole goal. | Partial |
 | Commit cadence | Recent history contains small commits for workflow planning, credential planning, MCP smoke, release planning, smoke planning, release validation, product review, package readiness, `39444c8 feat: add release naming plan`, and `8eac604 feat: add smoke approval plan`. | Partial |
 | Public launch | Docs repeatedly state this is a local preview, not a public launch artifact. | Not done |
 
@@ -140,7 +140,7 @@ These are blockers for claiming the activated goal is complete:
 6. Public docs and support are still not approved. `straddle-pp-cli release plan docs-support --json` now documents the missing docs owner approval, support owner, issue intake path, install path, command name, support boundaries, known limits, security wording, final docs review, and live smoke.
 7. The generated preview is still named `straddle-pp-cli`. `straddle-pp-cli release plan naming --json` now documents that `straddle` is not approved yet, but replacing or publishing the public `straddle` binary still needs an explicit naming and migration decision.
 8. Phase 5 live smoke remains not done.
-9. Durable subagent/review evidence for all historical slices is incomplete. Future slices should either commit reviewer summaries into the relevant audit artifact or keep the plan checklist partial.
+9. Durable subagent/review evidence for the recent committed slices now exists in `cli-plans/2026-05-10-straddle-cli-subagent-review-log.md`. Older historical slices may still lack complete reviewer evidence. Future slices must commit implementer, spec-review, quality-review, controller-verification, and commit evidence before selecting the next slice, or keep the checklist partial.
 
 ## Next Slice
 
