@@ -229,7 +229,7 @@ Not included unless Printing Press generates it by default:
 - Replacing Homebrew or public install channels.
 - Publishing a release.
 - Production API calls.
-- Full custom workflow commands for reconciliation, fraud monitoring, collections, and sandbox scenarios.
+- Live custom workflow execution for reconciliation, fraud monitoring, collections, and sandbox scenarios.
 - Manual generated-code overhaul.
 
 ## Completed Slice: CLI contract and honesty
@@ -247,6 +247,7 @@ Scope:
 - Add MCP smoke instructions that prove `straddle-pp-mcp` starts and exposes generated tools from the generated command tree.
 - Add one sandbox-safe walkthrough for setup plus read-only customer and payment exploration. The walkthrough must not make production calls.
 - Document the extension point for hand-authored commands as a patch layer. Use `// PATCH:` comments plus `.printing-press-patches.json`, because root registration is generated and can be overwritten.
+- Add `workflow plan [workflow]` under the generated `workflow` namespace as local-only structured command planning for reconciliation, fraud monitoring, collections, reporting, monitoring, and all.
 
 Boundaries:
 
@@ -270,6 +271,7 @@ Acceptance criteria:
 - MCP smoke docs build or run `straddle-pp-mcp` from the generated project and verify that generated tools are exposed without a separate MCP tree.
 - The walkthrough uses sandbox-safe setup and read-only customer and payment exploration only.
 - The patch layer is documented with `// PATCH:` comments and `.printing-press-patches.json`, and the docs explain why root registration should not be hand-edited.
+- `workflow plan [workflow]` returns safety metadata plus phases, steps, docs search topics, read-only CLI commands to inspect, dry-run commands where relevant, blocked write actions, and required approvals before live execution. It does not call Straddle APIs, docs endpoints, MCP tools, webhooks, sandbox, production, credentials, or write paths, and it does not approve live execution. It rejects `--deliver` and `--profile` before delivery or profile-store loading.
 - Spec and quality review gates pass before the slice is marked complete.
 
 Verification:
@@ -282,9 +284,10 @@ Verification:
 - Review generated README and SKILL docs for local preview, future release, MCP registration, and public launch wording.
 - Run the sandbox-safe walkthrough without production credentials or production API calls.
 - Run a text check for banned punctuation, banned terms, and emoji in the planning and CLI docs.
+- Run focused `workflow plan` CLI tests and MCP metadata tests, including `workflow_plan` read-only shell-out exposure and runtime count 87.
 
 ## Open Questions
 
 - Should the preview binary eventually be renamed from `straddle-pp-cli` to `straddle`, or should the Printing Press preview remain side-by-side until release?
 - Should secrets be stored through OS keychain in the first public replacement, or should the first replacement keep environment-variable auth only?
-- Which workflows are launch blockers: reconciliation, fraud monitoring, collections, sandbox testing, docs search, or all of them as staged follow-ups?
+- Which live workflow execution paths are launch blockers after local-only planning exists: reconciliation, fraud monitoring, collections, sandbox testing, docs search, or all of them as staged follow-ups?

@@ -710,6 +710,19 @@ straddle-pp-cli ops guide monitoring --json
 
 The command returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
+## Workflow Plan
+
+Use `workflow plan` for structured, local-only command plans for operational workflows. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`.
+
+```bash
+straddle-pp-cli workflow plan --json
+straddle-pp-cli workflow plan reconciliation --json
+straddle-pp-cli workflow plan monitoring --agent
+straddle-pp-cli workflow plan all --json
+```
+
+The command returns phases, steps, docs search topics, read-only CLI commands to inspect, dry-run command suggestions, blocked write actions, required approvals before live execution, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, read credentials, include token literals, write data, or approve live execution.
+
 ## Smoke Plan
 
 Use `smoke plan` for local-only planning before any approved read-only live smoke. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
@@ -776,7 +789,7 @@ cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
 go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli --help
 /tmp/straddle-pp-cli customers list --help
-/tmp/straddle-pp-cli payments list --help
+/tmp/straddle-pp-cli payments --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
 ```
@@ -897,7 +910,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 86 because the MCP runtime also exposes 13 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 87 because the MCP runtime also exposes 14 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

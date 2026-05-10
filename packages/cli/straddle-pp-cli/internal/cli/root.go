@@ -20,6 +20,8 @@ import (
 
 var version = "1.0.0"
 
+const localOnlyNoPreloadAnnotation = "straddle:local-only-no-preload"
+
 type rootFlags struct {
 	asJSON        bool
 	compact       bool
@@ -117,6 +119,15 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	rootCmd.PersistentFlags().Float64Var(&flags.rateLimit, "rate-limit", 0, "Max requests per second (0 to disable)")
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		if isLocalOnlyNoPreloadCommand(cmd) {
+			commandName := commandPathWithoutRoot(cmd)
+			if flags.deliverSpec != "" {
+				return usageErr(fmt.Errorf("%s does not support --deliver; use normal stdout, JSON, or agent output", commandName))
+			}
+			if flags.profileName != "" {
+				return usageErr(fmt.Errorf("%s does not support --profile; it does not load profiles, credentials, or config before printing local guidance", commandName))
+			}
+		}
 		if flags.deliverSpec != "" {
 			sink, err := ParseDeliverSink(flags.deliverSpec)
 			if err != nil {
@@ -228,6 +239,23 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 // PATCH: setup-check stays local-only even when --profile is present.
 func isSetupCheckCommand(cmd *cobra.Command) bool {
 	return cmd != nil && cmd.CommandPath() == cmd.Root().Name()+" setup check"
+}
+
+// PATCH: workflow-plan can opt out of root delivery/profile preload before any
+// state directory or credential-adjacent config is touched.
+func isLocalOnlyNoPreloadCommand(cmd *cobra.Command) bool {
+	return cmd != nil && strings.EqualFold(strings.TrimSpace(cmd.Annotations[localOnlyNoPreloadAnnotation]), "true")
+}
+
+func commandPathWithoutRoot(cmd *cobra.Command) string {
+	if cmd == nil {
+		return "command"
+	}
+	parts := strings.Fields(cmd.CommandPath())
+	if len(parts) <= 1 {
+		return cmd.Name()
+	}
+	return strings.Join(parts[1:], " ")
 }
 
 type aboutPayload struct {

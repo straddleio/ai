@@ -691,7 +691,7 @@ After each slice passes spec review, quality review, and verification, the contr
 **Verification:**
 
 - [x] Run focused credentials-plan CLI tests for surface list, each named surface, all surface, invalid surface, agent envelope, deliver rejection, and no token value leakage when `STRADDLE_TOKEN` is set.
-- [x] Run focused MCP tests for `credentials_plan` shell-out exposure, read-only metadata, and runtime count 86.
+- [x] Run focused MCP tests for `credentials_plan` shell-out exposure, read-only metadata, and the then-current runtime count.
 - [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
 - [x] Run `npm run validate`.
 - [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
@@ -701,6 +701,38 @@ After each slice passes spec review, quality review, and verification, the contr
 **Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, safe stdin auth, release honesty docs, and generated CLI auth config.
 
 **Files touched:** `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/credentials.go`, `packages/cli/straddle-pp-cli/internal/cli/credentials_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+
+#### Task 22: Add local structured workflow plan command
+
+**Status:** Implemented in the 2026-05-09 workflow-plan slice.
+
+**Description:** Add `straddle-pp-cli workflow plan [workflow]` under the existing `workflow` namespace. It reduces the richer workflow behavior gap by returning structured command plans for operational workflows without executing anything.
+
+**Acceptance criteria:**
+
+- [x] `workflow plan [workflow]` exists under the existing `workflow` command tree, so the MCP walker exposes it as `workflow_plan`.
+- [x] Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`.
+- [x] The command lists supported workflows when no workflow is provided.
+- [x] Named workflows return safety metadata and a `workflow_plan` with phases, steps, docs search topics, read-only CLI commands, dry-run commands where relevant, blocked write actions, and required approvals before live execution.
+- [x] `all` returns every concrete workflow plan.
+- [x] Safety metadata states guidance-only, local-only, no API calls, no docs endpoint calls, no MCP execution, no webhook posts, no sandbox, no production, no credential reads, no token literals, no writes, and no live execution approval.
+- [x] `workflow plan` rejects `--deliver` and `--profile` before delivery or profile-store loading.
+- [x] `workflow plan --agent` uses the target envelope through the existing local JSON helper path.
+- [x] MCP runtime exposure includes `workflow_plan` as a read-only Cobra shell-out tool.
+
+**Verification:**
+
+- [x] Run focused workflow-plan CLI tests for no-arg JSON, each named workflow, `all`, invalid workflow, agent envelope, deliver rejection, safety metadata, and no token literal leakage.
+- [x] Run focused MCP tests for `workflow_plan` shell-out exposure, read-only metadata, and runtime count 87.
+- [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
+- [x] Run `npm run validate`.
+- [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
+- [x] Run `git diff --check`.
+- [x] Run artifact cleanup find command.
+
+**Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, `ops guide` workflow terminology, and release/credential/live-smoke honesty docs.
+
+**Files touched:** `packages/cli/straddle-pp-cli/internal/cli/channel_workflow.go`, `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/workflow_plan_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-spec.md`.
 
 ## Risks and Mitigations
 
@@ -718,12 +750,13 @@ After each slice passes spec review, quality review, and verification, the contr
 | Product review is mistaken for public launch approval | High | Keep the product review decision split: local preview approved, public launch not approved. |
 | Smoke planning is mistaken for actual live smoke | High | Keep docs explicit: `smoke plan` only prints a future runbook and does not grant approval, execute MCP, call APIs, or use credentials. |
 | Credential storage planning is mistaken for secure-store implementation | High | Keep docs explicit: `credentials plan` prints local guidance only, no OS keychain or secure-store implementation exists yet, and launch still needs an explicit env/config-only or secure-store decision. |
+| Workflow planning is mistaken for live workflow execution | High | Keep docs explicit: `workflow plan` only prints local structured command plans and does not run API, docs, MCP, webhook, sandbox, production, credential, or write actions. |
 
 ## Open Questions
 
 - Should the preview eventually replace the public binary name `straddle`, or stay `straddle-pp-cli` until launch?
 - Should keychain credential storage be a launch blocker? Current planning says the blocker is the decision: approve env/config-only for first public release or implement OS secure storage.
-- Which approved live-read operational workflow should follow the local-only `ops guide` and `smoke plan` planning slices?
+- Which approved live-read operational workflow should follow the local-only `ops guide`, `workflow plan`, and `smoke plan` planning slices?
 - Who approves the credential scope for the first actual live read-only smoke?
 
 ## Completion Audit Checklist

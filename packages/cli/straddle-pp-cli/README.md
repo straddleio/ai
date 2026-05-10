@@ -46,6 +46,17 @@ straddle-pp-cli credentials plan keychain --agent
 
 `credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
 
+For structured workflow planning without executing anything:
+
+```bash
+straddle-pp-cli workflow plan --json
+straddle-pp-cli workflow plan reconciliation --json
+straddle-pp-cli workflow plan all --json
+straddle-pp-cli workflow plan monitoring --agent
+```
+
+`workflow plan` covers `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`. It returns phases, steps, docs search topics, read-only CLI commands to inspect, dry-run command suggestions, blocked write actions, and required approvals before live execution. It is local-only guidance. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, read credentials, include token literals, write data, or approve live execution.
+
 ### Generate an API Key
 
 Generate an API key from the Straddle Dashboard:
@@ -634,11 +645,13 @@ cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
 go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli --help
 /tmp/straddle-pp-cli customers list --help
-/tmp/straddle-pp-cli payments list --help
+/tmp/straddle-pp-cli payments --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
 /tmp/straddle-pp-cli smoke plan --json
 /tmp/straddle-pp-cli smoke plan all --json
+/tmp/straddle-pp-cli workflow plan --json
+/tmp/straddle-pp-cli workflow plan all --json
 ```
 
 Local-first setup checks:
@@ -894,7 +907,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 86 because the MCP runtime also exposes 13 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 87 because the MCP runtime also exposes 14 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 
@@ -937,6 +950,20 @@ straddle-pp-cli ops guide monitoring --json
 ```
 
 `ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+
+## Workflow Plan
+
+```bash
+straddle-pp-cli workflow plan --json
+straddle-pp-cli workflow plan reconciliation --json
+straddle-pp-cli workflow plan fraud-monitoring --agent
+straddle-pp-cli workflow plan collections --json
+straddle-pp-cli workflow plan reporting --json
+straddle-pp-cli workflow plan monitoring --json
+straddle-pp-cli workflow plan all --json
+```
+
+`workflow plan [workflow]` is local-only structured command planning. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`. It returns phases, steps, docs search topics, read-only CLI commands to inspect, dry-run command suggestions, blocked write actions, required approvals before live execution, and safety metadata. It does not execute those commands.
 
 ## Live-Smoke Planning
 

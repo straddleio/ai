@@ -278,7 +278,29 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
       ],
-      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestCredentialsPlan' covers surface list, named surfaces, all surfaces, invalid surface, agent envelope output, deliver rejection, and no token value leakage. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover credentials_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 86."
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestCredentialsPlan' covers surface list, named surfaces, all surfaces, invalid surface, agent envelope output, deliver rejection, and no token value leakage. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover credentials_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and the then-current runtime count."
+    },
+    {
+      "id": "workflow-plan",
+      "summary": "Add local-only structured workflow planning guidance for reconciliation, fraud monitoring, collections, reporting, monitoring, and all workflows.",
+      "reason": "The preview needs a structured command plan that is more agent-useful than prose-only ops guidance while still making no live calls, reading no credentials, executing no MCP tools, posting no webhooks, touching no sandbox or production environment, writing no data, and approving no live execution.",
+      "files": [
+        "internal/cli/channel_workflow.go",
+        "internal/cli/root.go",
+        "internal/cli/workflow_plan_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-spec.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestWorkflowPlan' covers workflow list, named workflows, all workflows, invalid workflow, agent envelope output, deliver rejection before profile preload, profile rejection before profile-store creation, safety metadata, and token literal leakage checks. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover workflow_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 87."
     }
   ]
 }
