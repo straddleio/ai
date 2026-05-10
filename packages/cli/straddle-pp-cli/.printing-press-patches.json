@@ -470,6 +470,19 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "make release-readiness assembles dist/npm/package from GoReleaser snapshot binaries for darwin, linux, and windows on x64 and arm64, copies README, LICENSE, manifest.json, and .printing-press.json, verifies private package metadata, checks every vendor binary pair, runs current-platform straddle-pp-cli through the node wrapper, runs shipcheck local against the bundled MCP sibling, runs a direct JSON-RPC initialize plus tools/list smoke through the MCP node wrapper, scans for token-shaped strings and publishing commands, and runs npm pack dry-run plus offline local tarball execution without publishing or reading npm credentials."
+    },
+    {
+      "id": "objective-surface-shipcheck",
+      "summary": "Make shipcheck local prove the explicit prompt-level CLI surfaces.",
+      "reason": "Completion should be based on executable evidence that the generated CLI exposes the requested Straddle surfaces, not on disposable plan docs.",
+      "files": [
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "README.md",
+        "SKILL.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckLocal(ObjectiveSurfaces|JSONSuccessWithoutMCP|CommandTreeRequiredPaths)' covers executable objective evidence for local word art presentation, agent output, setup, customers, payments, reconciliation data, fraud review, collections, reporting, monitoring, sandbox testing, docs search, MCP config, release readiness, and workflow plans for reconciliation, fraud-monitoring, collections, reporting, and monitoring."
     }
   ]
 }

@@ -64,6 +64,43 @@ func TestShipcheckLocalCommandTreeRequiredPaths(t *testing.T) {
 	}
 }
 
+func TestShipcheckLocalObjectiveSurfaces(t *testing.T) {
+	payload, err := buildShipcheckLocalResponse(RootCmd(), "")
+	if err != nil {
+		t.Fatalf("buildShipcheckLocalResponse returned error: %v", err)
+	}
+	check := shipcheckCheckByName(t, payload.Checks, "objective_surfaces")
+	if !check.Passed {
+		t.Fatalf("objective_surfaces check failed: %#v", check)
+	}
+	for _, want := range []string{
+		"presentation: about word art with local preview metadata",
+		"presentation command: about",
+		"agent-friendly output: agent-context",
+		"setup: setup check",
+		"customers: customers list",
+		"payments: payments",
+		"reconciliation data source: funding-events list",
+		"fraud review: customers review get-customer",
+		"collections: charges resubmit create",
+		"reporting: reports",
+		"monitoring: tail",
+		"sandbox testing: sandbox guide",
+		"docs search: docs search",
+		"MCP: mcp config",
+		"release readiness: release plan",
+		"workflow: reconciliation",
+		"workflow: fraud-monitoring",
+		"workflow: collections",
+		"workflow: reporting",
+		"workflow: monitoring",
+	} {
+		if !containsString(check.Evidence, want) {
+			t.Fatalf("objective surface evidence missing %q: %#v", want, check.Evidence)
+		}
+	}
+}
+
 func TestShipcheckLocalProvenanceSuccess(t *testing.T) {
 	packageDir, sourceHash := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
 

@@ -6,6 +6,7 @@ package cli
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -118,6 +119,7 @@ func buildShipcheckLocalResponse(root *cobra.Command, mcpBinary string) (shipche
 	}
 	payload.Checks = append(payload.Checks,
 		checkShipcheckCommandTree(root),
+		checkShipcheckObjectiveSurfaces(root),
 		checkShipcheckWorkflowPlans(),
 		checkShipcheckDocsCommandSearch(),
 		checkShipcheckProvenance(),
@@ -219,6 +221,88 @@ func shipcheckCommandPathExists(root *cobra.Command, path string) bool {
 	}
 	cmd, _, err := root.Find(strings.Fields(path))
 	return err == nil && cmd != nil && cmd.Runnable()
+}
+
+func checkShipcheckObjectiveSurfaces(root *cobra.Command) shipcheckCheck {
+	requiredCommands := map[string]string{
+		"agent-friendly output":      "agent-context",
+		"presentation command":       "about",
+		"setup":                      "setup check",
+		"customers":                  "customers list",
+		"payments":                   "payments",
+		"reconciliation data source": "funding-events list",
+		"fraud review":               "customers review get-customer",
+		"collections":                "charges resubmit create",
+		"reporting":                  "reports",
+		"monitoring":                 "tail",
+		"sandbox testing":            "sandbox guide",
+		"docs search":                "docs search",
+		"MCP":                        "mcp config",
+		"release readiness":          "release plan",
+	}
+
+	check := shipcheckCheck{Name: "objective_surfaces", Passed: true}
+	for label, path := range requiredCommands {
+		if !shipcheckCommandPathExists(root, path) {
+			check.Passed = false
+			check.Note = "missing explicit goal surface(s)"
+			check.Evidence = append(check.Evidence, "missing "+label+": "+path)
+			continue
+		}
+		check.Evidence = append(check.Evidence, label+": "+path)
+	}
+
+	about := buildAboutPayload()
+	if about.Status != "local preview" || about.GeneratedBy != "Printing Press generated" || about.MCPSibling != shipcheckExpectedMCPBinary {
+		check.Passed = false
+		check.Note = "about metadata does not prove local preview presentation"
+		check.Evidence = append(check.Evidence, "missing about metadata")
+	} else if shipcheckAboutWordArtRenders(about) {
+		check.Evidence = append(check.Evidence, "presentation: about word art with local preview metadata")
+	} else {
+		check.Passed = false
+		check.Note = "about human output does not render required word art"
+		check.Evidence = append(check.Evidence, "missing about word art")
+	}
+	if about.RequiresAuth || about.MakesAPICalls || about.WritesProduction {
+		check.Passed = false
+		check.Note = "about presentation must stay local and credential-free"
+		check.Evidence = append(check.Evidence, "about safety regression")
+	}
+
+	requiredWorkflows := map[string]bool{}
+	for _, name := range workflowPlanNames() {
+		requiredWorkflows[name] = true
+	}
+	for _, name := range []string{"reconciliation", "fraud-monitoring", "collections", "reporting", "monitoring"} {
+		if !requiredWorkflows[name] {
+			check.Passed = false
+			check.Note = "missing explicit workflow surface(s)"
+			check.Evidence = append(check.Evidence, "missing workflow: "+name)
+			continue
+		}
+		check.Evidence = append(check.Evidence, "workflow: "+name)
+	}
+
+	if check.Passed {
+		check.Note = "explicit goal surfaces are present in the executable CLI"
+	}
+	sort.Strings(check.Evidence)
+	return check
+}
+
+func shipcheckAboutWordArtRenders(payload aboutPayload) bool {
+	var output bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&output)
+	if err := printAboutHuman(cmd, payload); err != nil {
+		return false
+	}
+	rendered := output.String()
+	return strings.Contains(rendered, "  ____  _____ ____") &&
+		strings.Contains(rendered, "STRADDLE CLI") &&
+		strings.Contains(rendered, "Status: local preview") &&
+		strings.Contains(rendered, "Generator: Printing Press generated")
 }
 
 func checkShipcheckWorkflowPlans() shipcheckCheck {
