@@ -7,9 +7,14 @@ package cli
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -115,6 +120,7 @@ func buildShipcheckLocalResponse(root *cobra.Command, mcpBinary string) (shipche
 		checkShipcheckCommandTree(root),
 		checkShipcheckWorkflowPlans(),
 		checkShipcheckDocsCommandSearch(),
+		checkShipcheckProvenance(),
 		checkShipcheckSafetyContract(),
 	)
 
@@ -267,6 +273,269 @@ func checkShipcheckSafetyContract() shipcheckCheck {
 			"child process is not sandboxed by this command",
 		},
 	}
+}
+
+type shipcheckPrintingPressConfig struct {
+	PrintingPressVersion string `json:"printing_press_version"`
+	PrinterName          string `json:"printer_name"`
+	SpecURL              string `json:"spec_url"`
+	SpecPath             string `json:"spec_path"`
+	SpecChecksum         string `json:"spec_checksum"`
+	MCPBinary            string `json:"mcp_binary"`
+}
+
+const (
+	shipcheckDocsOpenAPIPath       = "sdks/straddle-docs/docs/api-reference/openapi.json"
+	shipcheckExpectedMCPBinary     = "straddle-pp-mcp"
+	shipcheckStrictProvenanceEnv   = "STRADDLE_PP_SHIPCHECK_STRICT_PROVENANCE"
+	shipcheckPackagedCLIBinaryName = "straddle-pp-cli"
+)
+
+func checkShipcheckProvenance() shipcheckCheck {
+	return checkShipcheckProvenanceFromDirs(shipcheckProvenanceSearchDirs())
+}
+
+func checkShipcheckProvenanceFromDirs(searchDirs []string) shipcheckCheck {
+	check := shipcheckCheck{Name: "provenance"}
+	configPath := findShipcheckPrintingPressConfig(searchDirs)
+	if configPath == "" {
+		check.Note = "missing .printing-press.json next to the CLI source/package"
+		return check
+	}
+
+	raw, err := os.ReadFile(configPath)
+	if err != nil {
+		check.Note = "read .printing-press.json: " + err.Error()
+		return check
+	}
+	var config shipcheckPrintingPressConfig
+	if err := json.Unmarshal(raw, &config); err != nil {
+		check.Note = "parse .printing-press.json: " + err.Error()
+		return check
+	}
+
+	generator := strings.TrimSpace(config.PrintingPressVersion)
+	if generator == "" {
+		check.Note = "printing_press_version is required"
+		return check
+	}
+	check.Evidence = append(check.Evidence, "generator: CLI Printing Press "+generator)
+	if printer := strings.TrimSpace(config.PrinterName); printer != "" {
+		check.Evidence = append(check.Evidence, "printer: "+printer)
+	}
+
+	docsSource := shipcheckDocsOpenAPISource(config)
+	if docsSource == "" {
+		check.Note = ".printing-press.json must point spec_path or spec_url at " + shipcheckDocsOpenAPIPath
+		check.Evidence = append(check.Evidence, "docs openapi: missing")
+		return check
+	}
+	check.Evidence = append(check.Evidence, "docs openapi: "+shipcheckDocsOpenAPIPath)
+
+	checksum := strings.TrimSpace(config.SpecChecksum)
+	if checksum == "" {
+		check.Note = "spec_checksum is required"
+		check.Evidence = append(check.Evidence, "checksum: missing")
+		return check
+	}
+	expectedHash, ok := strings.CutPrefix(checksum, "sha256:")
+	expectedHash = strings.TrimSpace(expectedHash)
+	if !ok || !shipcheckValidSHA256Hex(expectedHash) {
+		check.Note = "spec_checksum must use sha256:<64 hex characters>"
+		check.Evidence = append(check.Evidence, "checksum: invalid format")
+		return check
+	}
+
+	localSource := shipcheckLocalSourcePath(docsSource)
+	if localSource == "" {
+		check.Evidence = append(check.Evidence, "checksum: recorded sha256:"+expectedHash)
+		check.Evidence = append(check.Evidence, "checksum: source not local, not rehashed")
+	} else {
+		resolvedSource := resolveShipcheckSourcePath(configPath, localSource)
+		actualHash, err := sha256FileHex(resolvedSource)
+		if err != nil {
+			check.Evidence = append(check.Evidence, "checksum: recorded sha256:"+expectedHash)
+			check.Evidence = append(check.Evidence, "checksum: source unavailable, not rehashed")
+			if shipcheckStrictProvenance() {
+				check.Note = "source OpenAPI file missing or unreadable in strict provenance mode: " + resolvedSource
+				return check
+			}
+		} else {
+			if !strings.EqualFold(actualHash, expectedHash) {
+				check.Note = "source OpenAPI checksum mismatch"
+				check.Evidence = append(check.Evidence, "checksum: mismatch expected sha256:"+expectedHash+" got sha256:"+actualHash)
+				return check
+			}
+			check.Evidence = append(check.Evidence, "checksum: matched sha256:"+actualHash)
+		}
+	}
+
+	if !checkShipcheckMCPProvenance(configPath, config, &check) {
+		return check
+	}
+	check.Evidence = append(check.Evidence, "generated spec.json: not compared; source checksum is preserved in .printing-press.json")
+
+	check.Passed = true
+	if shipcheckEvidenceItemContains(check.Evidence, "checksum: source unavailable") || shipcheckEvidenceItemContains(check.Evidence, "checksum: source not local") {
+		check.Note = "Printing Press and docs OpenAPI provenance use recorded checksum evidence; local source was not rehashed"
+	} else {
+		check.Note = "Printing Press and docs OpenAPI provenance are locally verified"
+	}
+	return check
+}
+
+func shipcheckEvidenceItemContains(evidence []string, want string) bool {
+	for _, item := range evidence {
+		if strings.Contains(item, want) {
+			return true
+		}
+	}
+	return false
+}
+
+func shipcheckStrictProvenance() bool {
+	value := strings.TrimSpace(os.Getenv(shipcheckStrictProvenanceEnv))
+	return value != "" && value != "0" && !strings.EqualFold(value, "false")
+}
+
+func shipcheckValidSHA256Hex(value string) bool {
+	if len(value) != sha256.Size*2 {
+		return false
+	}
+	decoded, err := hex.DecodeString(value)
+	return err == nil && len(decoded) == sha256.Size
+}
+
+func checkShipcheckMCPProvenance(configPath string, config shipcheckPrintingPressConfig, check *shipcheckCheck) bool {
+	mcpSibling := strings.TrimSpace(config.MCPBinary)
+	if mcpSibling == "" {
+		check.Note = "mcp_binary is required"
+		check.Evidence = append(check.Evidence, "mcp sibling: missing")
+		return false
+	}
+	if mcpSibling != shipcheckExpectedMCPBinary {
+		check.Note = "mcp_binary must be " + shipcheckExpectedMCPBinary
+		check.Evidence = append(check.Evidence, "mcp sibling: unexpected "+filepath.Base(mcpSibling))
+		return false
+	}
+
+	configDir := filepath.Dir(configPath)
+	if shipcheckBinaryExists(configDir, shipcheckExpectedMCPBinary) {
+		check.Evidence = append(check.Evidence, "mcp sibling: "+shipcheckExpectedMCPBinary+" exists next to metadata")
+		return true
+	}
+	if shipcheckBinaryExists(configDir, shipcheckPackagedCLIBinaryName) {
+		check.Note = "packaged CLI is missing generated MCP sibling " + shipcheckExpectedMCPBinary
+		check.Evidence = append(check.Evidence, "mcp sibling: missing next to packaged CLI")
+		return false
+	}
+	check.Evidence = append(check.Evidence, "mcp sibling: "+shipcheckExpectedMCPBinary+" recorded")
+	return true
+}
+
+func shipcheckBinaryExists(dir string, name string) bool {
+	for _, candidate := range []string{name, name + ".exe"} {
+		info, err := os.Stat(filepath.Join(dir, candidate))
+		if err == nil && !info.IsDir() {
+			return true
+		}
+	}
+	return false
+}
+
+func shipcheckProvenanceSearchDirs() []string {
+	var cwd string
+	if cwd, err := os.Getwd(); err == nil {
+		cwd = cwd
+	}
+	var callerFile string
+	if _, file, _, ok := runtime.Caller(0); ok {
+		callerFile = file
+	}
+	var executablePath string
+	if executable, err := os.Executable(); err == nil {
+		executablePath = executable
+	}
+	return shipcheckProvenanceSearchDirsFrom(cwd, callerFile, executablePath)
+}
+
+func shipcheckProvenanceSearchDirsFrom(cwd string, callerFile string, executablePath string) []string {
+	var dirs []string
+	if executablePath != "" {
+		dirs = append(dirs, filepath.Dir(executablePath))
+	}
+	if cwd != "" {
+		dirs = append(dirs, cwd)
+	}
+	if callerFile != "" {
+		dirs = append(dirs, filepath.Dir(callerFile))
+	}
+	return dirs
+}
+
+func findShipcheckPrintingPressConfig(searchDirs []string) string {
+	seen := map[string]bool{}
+	for _, dir := range searchDirs {
+		for current := filepath.Clean(dir); current != "." && current != string(filepath.Separator); current = filepath.Dir(current) {
+			if seen[current] {
+				break
+			}
+			seen[current] = true
+			candidate := filepath.Join(current, ".printing-press.json")
+			if _, err := os.Stat(candidate); err == nil {
+				return candidate
+			}
+			if filepath.Dir(current) == current {
+				break
+			}
+		}
+	}
+	return ""
+}
+
+func shipcheckDocsOpenAPISource(config shipcheckPrintingPressConfig) string {
+	for _, candidate := range []string{config.SpecPath, config.SpecURL} {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == "" {
+			continue
+		}
+		if shipcheckPointsAtDocsOpenAPI(candidate) {
+			return candidate
+		}
+	}
+	return ""
+}
+
+func shipcheckPointsAtDocsOpenAPI(value string) bool {
+	normalized := filepath.ToSlash(strings.TrimSpace(value))
+	if index := strings.IndexAny(normalized, "?#"); index >= 0 {
+		normalized = normalized[:index]
+	}
+	normalized = strings.TrimSuffix(normalized, "/")
+	return normalized == shipcheckDocsOpenAPIPath || strings.HasSuffix(normalized, "/"+shipcheckDocsOpenAPIPath)
+}
+
+func shipcheckLocalSourcePath(value string) string {
+	if strings.Contains(value, "://") {
+		return ""
+	}
+	return value
+}
+
+func resolveShipcheckSourcePath(configPath string, sourcePath string) string {
+	if filepath.IsAbs(sourcePath) {
+		return sourcePath
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(configPath), sourcePath))
+}
+
+func sha256FileHex(path string) (string, error) {
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(contents)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 func checkShipcheckMCPTools(root *cobra.Command, binary string) (shipcheckCheck, error) {

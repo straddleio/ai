@@ -31,8 +31,10 @@ package-local:
 	mkdir -p "$(DIST_DIR)"
 	go build -trimpath -ldflags "-s -w" -o "$(DIST_DIR)/straddle-pp-cli" ./cmd/straddle-pp-cli
 	go build -trimpath -ldflags "-s -w" -o "$(DIST_DIR)/straddle-pp-mcp" ./cmd/straddle-pp-mcp
+	cp .printing-press.json "$(DIST_DIR)/.printing-press.json"
 	test -x "$(DIST_DIR)/straddle-pp-cli"
 	test -x "$(DIST_DIR)/straddle-pp-mcp"
+	test -f "$(DIST_DIR)/.printing-press.json"
 	"$(DIST_DIR)/straddle-pp-cli" --help >/dev/null
 	printf 'local package ready: %s\n' "$(DIST_DIR)"
 

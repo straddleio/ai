@@ -390,8 +390,8 @@
     },
     {
       "id": "shipcheck-local",
-      "summary": "Add an executable local shipcheck verifier for public-preview helper readiness.",
-      "reason": "The preview needs a credential-free command that proves the local CLI and optional local MCP surface are internally coherent without calling Straddle APIs, docs endpoints, GitHub, npm, Homebrew, publishing, signing, notarizing, reading secrets, delivering output, or writing production.",
+      "summary": "Add an executable local shipcheck verifier for public-preview helper readiness and Printing Press/OpenAPI provenance.",
+      "reason": "The preview needs a credential-free command that proves the local CLI, generated-source provenance, and optional local MCP surface are internally coherent without calling Straddle APIs, docs endpoints, GitHub, npm, Homebrew, publishing, signing, notarizing, reading secrets, delivering output, or writing production.",
       "files": [
         "internal/cli/root.go",
         "internal/cli/shipcheck.go",
@@ -403,9 +403,10 @@
         "internal/mcp/tools_test.go",
         "README.md",
         "SKILL.md",
+        "Makefile",
         ".printing-press-patches.json"
       ],
-      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheck|TestDocsSearchCommands' covers local JSON success, required command paths, required workflow names, docs command-search helper indexing, optional fake MCP success, missing required MCP tool failure, --deliver rejection, and token literal rejection. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'Test.*Shipcheck|TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAll' covers shipcheck_local MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 90."
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheck|TestDocsSearchCommands' covers local JSON success, required command paths, required workflow names, docs command-search helper indexing, Printing Press/OpenAPI provenance success, packaged metadata discovery, missing config, checksum mismatch, missing source OpenAPI passing with recorded checksum evidence, strict missing-source failure, unexpected mcp_binary failure, packaged missing MCP sibling failure, transformed spec.json not being compared, optional fake MCP success, missing required MCP tool failure, --deliver rejection, and token literal rejection. go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'Test.*Shipcheck|TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly|TestRegisterAll' covers shipcheck_local MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 90."
     }
   ]
 }

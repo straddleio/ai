@@ -33,7 +33,7 @@ cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
 make package-readiness
 ```
 
-This local check includes the CLI binary and the generated `straddle-pp-mcp` sibling. It does not publish archives, update a Homebrew tap, provide an `npx` package, or create a desktop MCP bundle.
+This local check includes the CLI binary, the generated `straddle-pp-mcp` sibling, and copied `.printing-press.json` provenance metadata. It does not publish archives, update a Homebrew tap, provide an `npx` package, or create a desktop MCP bundle.
 
 For local release archive validation, run GoReleaser in non-publishing snapshot mode:
 
@@ -91,7 +91,7 @@ straddle-pp-cli shipcheck local --json
 straddle-pp-cli shipcheck local --mcp-binary /tmp/straddle-pp-mcp --agent
 ```
 
-`shipcheck local` verifies the in-process CLI command tree, required workflow plan names, local docs command-search helper indexing, and safety metadata. With `--mcp-binary`, it runs a local child process and sends only stdio JSON-RPC `initialize` plus `tools/list`, requiring `mcp_config`, `docs_search`, `workflow_plan`, `release_plan`, `credentials_plan`, `smoke_run`, `setup_check`, and `shipcheck_local`. It rejects `--deliver` and token literals in `--mcp-binary`, and the child process receives an allowlisted environment. It does not publish, sign, notarize, or write production. It does not sandbox the child MCP process or prove that child process behavior beyond the MCP response.
+`shipcheck local` verifies the in-process CLI command tree, required workflow plan names, local docs command-search helper indexing, Printing Press/OpenAPI provenance, and safety metadata. The provenance check reads `.printing-press.json`, requires `printing_press_version`, the Straddle docs OpenAPI source path, `spec_checksum`, and `mcp_binary: "straddle-pp-mcp"`, then hashes the referenced source OpenAPI file when it exists locally. If that source file is unavailable in a clean clone or packaged `dist/local` directory, shipcheck passes with recorded checksum evidence; set `STRADDLE_PP_SHIPCHECK_STRICT_PROVENANCE=1` when you want missing source files to fail. When `.printing-press.json` sits next to a packaged `straddle-pp-cli`, shipcheck also requires the `straddle-pp-mcp` sibling to exist. `spec.json` is generated and transformed, so shipcheck does not require it to match the source checksum. With `--mcp-binary`, it runs a local child process and sends only stdio JSON-RPC `initialize` plus `tools/list`, requiring `mcp_config`, `docs_search`, `workflow_plan`, `release_plan`, `credentials_plan`, `smoke_run`, `setup_check`, and `shipcheck_local`. It rejects `--deliver` and token literals in `--mcp-binary`, and the child process receives an allowlisted environment. It does not publish, sign, notarize, or write production. It does not sandbox the child MCP process or prove that child process behavior beyond the MCP response.
 
 Or install from the local module into `$GOPATH/bin`:
 

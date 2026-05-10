@@ -5,6 +5,8 @@
 package cli
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"os"
@@ -59,6 +61,235 @@ func TestShipcheckLocalCommandTreeRequiredPaths(t *testing.T) {
 		if !containsString(check.Evidence, want) {
 			t.Fatalf("command_tree evidence missing %q: %#v", want, check.Evidence)
 		}
+	}
+}
+
+func TestShipcheckLocalProvenanceSuccess(t *testing.T) {
+	packageDir, sourceHash := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+
+	check := checkShipcheckProvenanceFromDirs([]string{filepath.Join(packageDir, "internal", "cli")})
+
+	if !check.Passed {
+		t.Fatalf("provenance check should pass: %#v", check)
+	}
+	for _, want := range []string{
+		"generator: CLI Printing Press 4.2.0",
+		"docs openapi: ",
+		"checksum: matched sha256:" + sourceHash,
+		"mcp sibling: straddle-pp-mcp",
+	} {
+		if !shipcheckEvidenceContains(check.Evidence, want) {
+			t.Fatalf("provenance evidence missing %q: %#v", want, check.Evidence)
+		}
+	}
+}
+
+func TestShipcheckLocalProvenancePackagedMetadataDiscovery(t *testing.T) {
+	packageDir, sourceHash := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	distDir := filepath.Join(packageDir, "dist", "local")
+	if err := os.MkdirAll(filepath.Join(distDir, "nested-run-dir"), 0o755); err != nil {
+		t.Fatalf("create packaged run dir: %v", err)
+	}
+	copyShipcheckFixtureFile(t, filepath.Join(packageDir, ".printing-press.json"), filepath.Join(distDir, ".printing-press.json"))
+	writeShipcheckExecutableFixture(t, filepath.Join(distDir, "straddle-pp-cli"))
+	writeShipcheckExecutableFixture(t, filepath.Join(distDir, "straddle-pp-mcp"))
+
+	check := checkShipcheckProvenanceFromDirs([]string{filepath.Join(distDir, "nested-run-dir")})
+
+	if !check.Passed {
+		t.Fatalf("packaged provenance check should pass from a trimpath-style package dir: %#v", check)
+	}
+	for _, want := range []string{
+		"checksum: matched sha256:" + sourceHash,
+		"mcp sibling: straddle-pp-mcp exists next to metadata",
+	} {
+		if !shipcheckEvidenceContains(check.Evidence, want) {
+			t.Fatalf("packaged provenance evidence missing %q: %#v", want, check.Evidence)
+		}
+	}
+}
+
+func TestShipcheckLocalProvenanceSearchDirsPreferExecutableDir(t *testing.T) {
+	dirs := shipcheckProvenanceSearchDirsFrom(
+		filepath.Join("repo", "packages", "cli", "straddle-pp-cli"),
+		filepath.Join("repo", "packages", "cli", "straddle-pp-cli", "internal", "cli", "shipcheck.go"),
+		filepath.Join("dist", "local", "straddle-pp-cli"),
+	)
+
+	want := []string{
+		filepath.Join("dist", "local"),
+		filepath.Join("repo", "packages", "cli", "straddle-pp-cli"),
+		filepath.Join("repo", "packages", "cli", "straddle-pp-cli", "internal", "cli"),
+	}
+	if len(dirs) != len(want) {
+		t.Fatalf("unexpected search dirs %#v", dirs)
+	}
+	for index := range want {
+		if dirs[index] != want[index] {
+			t.Fatalf("search dir %d = %q, want %q in %#v", index, dirs[index], want[index], dirs)
+		}
+	}
+}
+
+func TestShipcheckLocalProvenanceMissingConfigFails(t *testing.T) {
+	packageDir := filepath.Join(t.TempDir(), "packages", "cli", "straddle-pp-cli")
+	if err := os.MkdirAll(filepath.Join(packageDir, "internal", "cli"), 0o755); err != nil {
+		t.Fatalf("create fixture package dir: %v", err)
+	}
+
+	check := checkShipcheckProvenanceFromDirs([]string{filepath.Join(packageDir, "internal", "cli")})
+
+	if check.Passed {
+		t.Fatalf("provenance check should fail without .printing-press.json: %#v", check)
+	}
+	if !strings.Contains(check.Note, "missing .printing-press.json") {
+		t.Fatalf("missing config error should be clear, got %#v", check)
+	}
+}
+
+func TestShipcheckLocalProvenanceChecksumMismatchFails(t *testing.T) {
+	packageDir, sourceHash := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	writeShipcheckPrintingPressConfig(t, packageDir, shipcheckProvenanceFixtureConfig{
+		SourcePath: shipcheckProvenanceFixtureSourcePath(packageDir),
+		Checksum:   "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+	})
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if check.Passed {
+		t.Fatalf("provenance check should fail on checksum mismatch: %#v", check)
+	}
+	if !strings.Contains(check.Note, "checksum mismatch") {
+		t.Fatalf("checksum mismatch should be clear, got %#v", check)
+	}
+	if !shipcheckEvidenceContains(check.Evidence, "got sha256:"+sourceHash) {
+		t.Fatalf("checksum mismatch evidence should include actual source hash: %#v", check.Evidence)
+	}
+}
+
+func TestShipcheckLocalProvenanceInvalidChecksumFailsWithMissingSource(t *testing.T) {
+	packageDir, _ := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	sourcePath := shipcheckProvenanceFixtureSourcePath(packageDir)
+	if err := os.Remove(sourcePath); err != nil {
+		t.Fatalf("remove source OpenAPI fixture: %v", err)
+	}
+	writeShipcheckPrintingPressConfig(t, packageDir, shipcheckProvenanceFixtureConfig{
+		SourcePath: sourcePath,
+		Checksum:   "sha256:not-a-real-hash",
+	})
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if check.Passed {
+		t.Fatalf("invalid checksum should fail even when source is missing: %#v", check)
+	}
+	if !strings.Contains(check.Note, "sha256:<64 hex characters>") {
+		t.Fatalf("invalid checksum failure should be clear, got %#v", check)
+	}
+}
+
+func TestShipcheckLocalProvenanceRejectsBackupOpenAPIPath(t *testing.T) {
+	packageDir, sourceHash := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	writeShipcheckPrintingPressConfig(t, packageDir, shipcheckProvenanceFixtureConfig{
+		SourcePath: shipcheckProvenanceFixtureSourcePath(packageDir) + ".backup",
+		Checksum:   "sha256:" + sourceHash,
+	})
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if check.Passed {
+		t.Fatalf("backup OpenAPI path should not pass source identity validation: %#v", check)
+	}
+	if !strings.Contains(check.Note, "must point spec_path or spec_url") {
+		t.Fatalf("backup OpenAPI path failure should be clear, got %#v", check)
+	}
+}
+
+func TestShipcheckLocalProvenanceMissingSourcePassesWithRecordedChecksum(t *testing.T) {
+	packageDir, _ := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	sourcePath := shipcheckProvenanceFixtureSourcePath(packageDir)
+	if err := os.Remove(sourcePath); err != nil {
+		t.Fatalf("remove source OpenAPI fixture: %v", err)
+	}
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if !check.Passed {
+		t.Fatalf("missing source should not fail portable local readiness: %#v", check)
+	}
+	if !strings.Contains(check.Note, "recorded checksum evidence") {
+		t.Fatalf("missing source should be a recorded-checksum warning, got %#v", check)
+	}
+	if !shipcheckEvidenceContains(check.Evidence, "checksum: source unavailable") {
+		t.Fatalf("missing source evidence should be clear: %#v", check.Evidence)
+	}
+}
+
+func TestShipcheckLocalProvenanceMissingSourceFailsInStrictMode(t *testing.T) {
+	t.Setenv(shipcheckStrictProvenanceEnv, "1")
+	packageDir, _ := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	sourcePath := shipcheckProvenanceFixtureSourcePath(packageDir)
+	if err := os.Remove(sourcePath); err != nil {
+		t.Fatalf("remove source OpenAPI fixture: %v", err)
+	}
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if check.Passed {
+		t.Fatalf("strict provenance check should fail when source OpenAPI is absent: %#v", check)
+	}
+	if !strings.Contains(check.Note, "strict provenance mode") {
+		t.Fatalf("strict missing-source failure should be clear, got %#v", check)
+	}
+}
+
+func TestShipcheckLocalProvenanceUnexpectedMCPBinaryFails(t *testing.T) {
+	packageDir, sourceHash := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	writeShipcheckPrintingPressConfig(t, packageDir, shipcheckProvenanceFixtureConfig{
+		SourcePath: shipcheckProvenanceFixtureSourcePath(packageDir),
+		Checksum:   "sha256:" + sourceHash,
+		MCPBinary:  "other-mcp",
+	})
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if check.Passed {
+		t.Fatalf("provenance check should fail on unexpected mcp_binary: %#v", check)
+	}
+	if !strings.Contains(check.Note, "mcp_binary must be straddle-pp-mcp") {
+		t.Fatalf("unexpected mcp_binary should be clear, got %#v", check)
+	}
+}
+
+func TestShipcheckLocalProvenancePackagedMissingMCPBinaryFails(t *testing.T) {
+	packageDir, _ := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	distDir := filepath.Join(packageDir, "dist", "local")
+	if err := os.MkdirAll(distDir, 0o755); err != nil {
+		t.Fatalf("create packaged dir: %v", err)
+	}
+	copyShipcheckFixtureFile(t, filepath.Join(packageDir, ".printing-press.json"), filepath.Join(distDir, ".printing-press.json"))
+	writeShipcheckExecutableFixture(t, filepath.Join(distDir, "straddle-pp-cli"))
+
+	check := checkShipcheckProvenanceFromDirs([]string{distDir})
+
+	if check.Passed {
+		t.Fatalf("packaged provenance check should fail when MCP sibling is absent: %#v", check)
+	}
+	if !strings.Contains(check.Note, "missing generated MCP sibling") {
+		t.Fatalf("packaged missing MCP sibling should be clear, got %#v", check)
+	}
+}
+
+func TestShipcheckLocalProvenanceDoesNotCompareTransformedSpecJSON(t *testing.T) {
+	packageDir, _ := writeShipcheckProvenanceFixture(t, "source-openapi", "different-transformed-spec")
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if !check.Passed {
+		t.Fatalf("provenance check should pass without comparing generated spec.json: %#v", check)
+	}
+	if !shipcheckEvidenceContains(check.Evidence, "generated spec.json: not compared") {
+		t.Fatalf("provenance evidence should state transformed spec.json is not compared: %#v", check.Evidence)
 	}
 }
 
@@ -202,4 +433,93 @@ func shipcheckCheckByName(t *testing.T, checks []shipcheckCheck, name string) sh
 	}
 	t.Fatalf("missing check %q in %#v", name, checks)
 	return shipcheckCheck{}
+}
+
+type shipcheckProvenanceFixtureConfig struct {
+	SourcePath string
+	Checksum   string
+	MCPBinary  string
+}
+
+func writeShipcheckProvenanceFixture(t *testing.T, sourceOpenAPI string, transformedSpec string) (string, string) {
+	t.Helper()
+	tempDir := t.TempDir()
+	packageDir := filepath.Join(tempDir, "repo", "packages", "cli", "straddle-pp-cli")
+	if err := os.MkdirAll(filepath.Join(packageDir, "internal", "cli"), 0o755); err != nil {
+		t.Fatalf("create fixture package dir: %v", err)
+	}
+	sourcePath := shipcheckProvenanceFixtureSourcePath(packageDir)
+	if err := os.MkdirAll(filepath.Dir(sourcePath), 0o755); err != nil {
+		t.Fatalf("create fixture docs dir: %v", err)
+	}
+	if err := os.WriteFile(sourcePath, []byte(sourceOpenAPI), 0o644); err != nil {
+		t.Fatalf("write fixture source OpenAPI: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(packageDir, "spec.json"), []byte(transformedSpec), 0o644); err != nil {
+		t.Fatalf("write transformed spec fixture: %v", err)
+	}
+	sourceHash := sha256StringHex(sourceOpenAPI)
+	writeShipcheckPrintingPressConfig(t, packageDir, shipcheckProvenanceFixtureConfig{
+		SourcePath: sourcePath,
+		Checksum:   "sha256:" + sourceHash,
+	})
+	return packageDir, sourceHash
+}
+
+func shipcheckProvenanceFixtureSourcePath(packageDir string) string {
+	return filepath.Clean(filepath.Join(packageDir, "..", "..", "..", "straddle", "sdks", "straddle-docs", "docs", "api-reference", "openapi.json"))
+}
+
+func writeShipcheckPrintingPressConfig(t *testing.T, packageDir string, config shipcheckProvenanceFixtureConfig) {
+	t.Helper()
+	mcpBinary := config.MCPBinary
+	if mcpBinary == "" {
+		mcpBinary = "straddle-pp-mcp"
+	}
+	raw, err := json.MarshalIndent(map[string]any{
+		"printing_press_version": "4.2.0",
+		"printer_name":           "hello-keith",
+		"spec_path":              config.SourcePath,
+		"spec_url":               config.SourcePath,
+		"spec_checksum":          config.Checksum,
+		"mcp_binary":             mcpBinary,
+	}, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal fixture .printing-press.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(packageDir, ".printing-press.json"), raw, 0o644); err != nil {
+		t.Fatalf("write fixture .printing-press.json: %v", err)
+	}
+}
+
+func copyShipcheckFixtureFile(t *testing.T, source string, target string) {
+	t.Helper()
+	raw, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatalf("read fixture file %s: %v", source, err)
+	}
+	if err := os.WriteFile(target, raw, 0o644); err != nil {
+		t.Fatalf("copy fixture file to %s: %v", target, err)
+	}
+}
+
+func writeShipcheckExecutableFixture(t *testing.T, path string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatalf("write executable fixture %s: %v", path, err)
+	}
+}
+
+func sha256StringHex(value string) string {
+	sum := sha256.Sum256([]byte(value))
+	return hex.EncodeToString(sum[:])
+}
+
+func shipcheckEvidenceContains(evidence []string, want string) bool {
+	for _, item := range evidence {
+		if strings.Contains(item, want) {
+			return true
+		}
+	}
+	return false
 }
