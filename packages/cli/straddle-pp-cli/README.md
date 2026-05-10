@@ -632,6 +632,8 @@ straddle-pp-cli smoke plan all --agent
 
 `smoke plan [scope]` returns a runbook, docs lookup topics, dry-run command suggestions, and explicit safety metadata. The `approval` scope returns the required written approval packet fields, expected evidence, stop criteria, and transcript guidance before any future live run. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
 
+`smoke run <scope> --approval-file <path>` is the narrow executable follow-up for an already approved read-only smoke. The first slice supports only `setup` and `customers`. It refuses to run without a JSON approval file, rejects production-looking targets, rejects token literals in the approval file, blocks URL credentials, queries, and fragments, and prints only redacted evidence. `setup` performs local validation only. `customers` sends one `GET /v1/customers` request to the approved base URL. It attaches caller-supplied `STRADDLE_TOKEN` only when the approval file names `env:STRADDLE_TOKEN` and the target is trusted, such as `sandbox.straddle.com` or a local test server.
+
 ## Streaming Agent Contract
 
 This contract is implemented for `sync --agent` and real `tail --agent`.
@@ -931,7 +933,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 87 because the MCP runtime also exposes 14 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 88 because the MCP runtime also exposes 15 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 
@@ -1003,6 +1005,8 @@ straddle-pp-cli smoke plan all --agent
 ```
 
 `smoke plan [scope]` is local-only guidance for a future approved read-only smoke. It suggests commands such as `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP `tools/list` smoke guidance. `smoke plan approval --json` prints the required approval packet fields and local proof commands such as `smoke plan setup --json`, `smoke plan customers --json`, and `docs search sandbox --source commands --json`. Docs lookup topics are returned as query text, not as commands for this local-only runbook. It does not execute those commands.
+
+`smoke run <scope> --approval-file <path>` is approval-file gated and supports only `setup` and `customers` for this slice. `setup` is local only. `customers` makes one read-only `GET /v1/customers` request against the approved base URL. Keep approval files free of token literals. The runner uses caller-supplied `STRADDLE_TOKEN` only when the approval file names `env:STRADDLE_TOKEN` and the target is trusted.
 
 ## Configuration
 

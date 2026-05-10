@@ -283,6 +283,23 @@
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSmokePlan' covers approval scope listing, real local proof command resolution, structured approval packet fields, expected evidence, stop criteria, transcript guidance, all-scope expansion to six concrete plans, and token literal leakage checks."
     },
     {
+      "id": "smoke-run-approval-gated",
+      "summary": "Add an approval-file-gated smoke run surface for setup and customers.",
+      "reason": "The preview needs a narrow executable read-only smoke path that cannot run by default, rejects production-looking targets and token literals, and can be tested with local fake servers before any future approved live read.",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        ".printing-press-patches.json",
+        "internal/cli/smoke.go",
+        "internal/cli/smoke_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "../README.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSmoke' covers existing smoke plan behavior, approval-file requirements, production base URL rejection, scope mismatch, token literal rejection, unsupported run scopes, setup with no API call, and customers against a local fake server."
+    },
+    {
       "id": "release-plan",
     "summary": "Add local-only public-release readiness guidance for archives, compatibility, docs/support, Homebrew, MCP, naming, npm, owner decisions, signing, and all surfaces.",
     "reason": "The preview needs a safe runbook command that reduces the public-release distribution, current-CLI compatibility, docs, support, and owner-decision blockers without publishing, pushing, uploading, signing, notarizing, calling external services, executing MCP tools, reading secrets, replacing public straddle, approving support, approving workflow execution claims, or approving migration or alias plans.",

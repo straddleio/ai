@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +16,7 @@ import (
 )
 
 // PATCH: smoke-plan covers local-only approved live-smoke planning guidance and safety metadata.
+// PATCH: smoke-run-approval-gated covers approval gates and fake-server smoke execution.
 func TestSmokePlanNoArgJSONReturnsScopesAndSafety(t *testing.T) {
 	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "plan", "--json")
 	if err != nil {
@@ -346,6 +349,292 @@ func TestSmokePlanRejectsDeliverBeforeDelivery(t *testing.T) {
 	}
 }
 
+func TestSmokeRunMissingApprovalFileReturnsUsageError(t *testing.T) {
+	_, _, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--json")
+	if err == nil {
+		t.Fatalf("smoke run should require --approval-file")
+	}
+	var cliErr *cliError
+	if !errors.As(err, &cliErr) || cliErr.code != 2 {
+		t.Fatalf("missing approval file should be a usage error, got %#v", err)
+	}
+	if !strings.Contains(err.Error(), "approval-file") {
+		t.Fatalf("error should mention approval-file, got %v", err)
+	}
+}
+
+func TestSmokeRunRejectsProductionBaseURL(t *testing.T) {
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"base_url": "https://api.straddle.com",
+	})
+
+	_, _, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
+	if err == nil {
+		t.Fatalf("smoke run should reject production-looking base URLs")
+	}
+	if !strings.Contains(err.Error(), "production") {
+		t.Fatalf("error should explain production-looking base URL rejection, got %v", err)
+	}
+}
+
+func TestSmokeRunRejectsScopeMismatch(t *testing.T) {
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope": "customers",
+	})
+
+	_, _, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
+	if err == nil {
+		t.Fatalf("smoke run should reject approval scope mismatch")
+	}
+	if !strings.Contains(err.Error(), "allowed_scope") {
+		t.Fatalf("error should mention allowed_scope mismatch, got %v", err)
+	}
+}
+
+func TestSmokeRunRejectsTokenLiteralInApprovalFile(t *testing.T) {
+	tests := map[string]map[string]any{
+		"authorization_header": {
+			"authorization": "Bearer fixture-token-literal",
+		},
+		"plain_token_field": {
+			"token": "fixture-token-literal",
+		},
+	}
+
+	for name, overrides := range tests {
+		t.Run(name, func(t *testing.T) {
+			approvalPath := writeSmokeApprovalFile(t, overrides)
+
+			_, _, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
+			if err == nil {
+				t.Fatalf("smoke run should reject token literals in approval file")
+			}
+			if !strings.Contains(strings.ToLower(err.Error()), "token") {
+				t.Fatalf("error should mention token literal rejection, got %v", err)
+			}
+		})
+	}
+}
+
+func TestSmokeRunRejectsBaseURLWithCredentialBearingParts(t *testing.T) {
+	tests := map[string]string{
+		"fragment": "https://example.test#token",
+		"query":    "https://example.test?page=1",
+		"userinfo": "https://user:secret@example.test",
+	}
+
+	for name, baseURL := range tests {
+		t.Run(name, func(t *testing.T) {
+			approvalPath := writeSmokeApprovalFile(t, map[string]any{
+				"base_url": baseURL,
+			})
+
+			_, _, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
+			if err == nil {
+				t.Fatalf("smoke run should reject credential-bearing base_url %q", baseURL)
+			}
+			if !strings.Contains(err.Error(), "base_url") {
+				t.Fatalf("error should mention base_url rejection, got %v", err)
+			}
+		})
+	}
+}
+
+func TestSmokeRunRejectsUnsupportedFirstSliceScopes(t *testing.T) {
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{})
+
+	for _, scope := range []string{"all", "payments", "funding", "mcp"} {
+		t.Run(scope, func(t *testing.T) {
+			_, _, err := runCLIForDocsTest(t, "smoke", "run", scope, "--approval-file", approvalPath, "--json")
+			if err == nil {
+				t.Fatalf("smoke run should reject unsupported scope %q", scope)
+			}
+			if !strings.Contains(err.Error(), "supported run scopes are setup, customers") {
+				t.Fatalf("error should list supported run scopes, got %v", err)
+			}
+		})
+	}
+}
+
+func TestSmokeRunSetupDoesNotCallAPI(t *testing.T) {
+	var requestCount int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		t.Fatalf("setup smoke should not call API, got %s %s", r.Method, r.URL.Path)
+	}))
+	defer server.Close()
+
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope": "setup",
+		"base_url":      server.URL,
+	})
+
+	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "run", "setup", "--approval-file", approvalPath, "--json")
+	if err != nil {
+		t.Fatalf("smoke run setup returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("smoke run setup wrote stderr: %q", stderr)
+	}
+	if requestCount != 0 {
+		t.Fatalf("setup smoke should not call API, got %d requests", requestCount)
+	}
+
+	var got smokeRunResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("smoke run setup --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Command != "smoke run" || got.Scope != "setup" || !got.Approved || !got.ReadOnly {
+		t.Fatalf("wrong setup smoke response: %#v", got)
+	}
+	if got.BaseURL != server.URL {
+		t.Fatalf("base_url = %q, want %q", got.BaseURL, server.URL)
+	}
+	if len(got.Checks) != 1 || got.Checks[0].Name != "approval" || !got.Checks[0].Passed {
+		t.Fatalf("setup smoke should report local approval check only: %#v", got.Checks)
+	}
+	if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
+		t.Fatalf("smoke run setup should not print token values:\n%s", stdout)
+	}
+}
+
+func TestSmokeRunCustomersUsesLocalApprovedBaseURL(t *testing.T) {
+	t.Setenv("STRADDLE_TOKEN", "fixture-smoke-token")
+
+	var requestCount int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		if r.Method != http.MethodGet {
+			t.Fatalf("method: want GET, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/customers" {
+			t.Fatalf("path: want /v1/customers, got %s", r.URL.Path)
+		}
+		if got := r.Header.Get("Authorization"); got != "Bearer fixture-smoke-token" {
+			t.Fatalf("Authorization header was not set from STRADDLE_TOKEN, got %q", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":[{"id":"customer_123","name":"Fixture Customer"}]}`))
+	}))
+	defer server.Close()
+
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope": "customers",
+		"base_url":      server.URL,
+	})
+
+	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "run", "customers", "--approval-file", approvalPath, "--json")
+	if err != nil {
+		t.Fatalf("smoke run customers returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("smoke run customers wrote stderr: %q", stderr)
+	}
+	if requestCount != 1 {
+		t.Fatalf("customers smoke request count: want 1, got %d", requestCount)
+	}
+
+	var got smokeRunResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("smoke run customers --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Command != "smoke run" || got.Scope != "customers" || !got.Approved || !got.ReadOnly {
+		t.Fatalf("wrong customers smoke response: %#v", got)
+	}
+	if len(got.Checks) != 2 {
+		t.Fatalf("customers smoke should report approval and customers list checks: %#v", got.Checks)
+	}
+	if got.Checks[1].Name != "customers_list" || got.Checks[1].Method != http.MethodGet || got.Checks[1].Path != "/v1/customers" || got.Checks[1].StatusCode != http.StatusOK {
+		t.Fatalf("wrong customers list check: %#v", got.Checks[1])
+	}
+	if got.Checks[1].ObjectCount != 1 {
+		t.Fatalf("object_count = %d, want 1", got.Checks[1].ObjectCount)
+	}
+	if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
+		t.Fatalf("smoke run customers should not print token values:\n%s", stdout)
+	}
+}
+
+func TestSmokeRunCustomersDoesNotSendEnvTokenToUntrustedApprovedBaseURL(t *testing.T) {
+	t.Setenv("STRADDLE_TOKEN", "fixture-smoke-token")
+
+	var authorization string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authorization = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":[]}`))
+	}))
+	defer server.Close()
+
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope":     "customers",
+		"base_url":          "http://" + server.Listener.Addr().String(),
+		"credential_source": "manual-approved-fixture",
+	})
+
+	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "run", "customers", "--approval-file", approvalPath, "--json")
+	if err != nil {
+		t.Fatalf("smoke run customers returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("smoke run customers wrote stderr: %q", stderr)
+	}
+	if authorization != "" {
+		t.Fatalf("customers smoke should not forward STRADDLE_TOKEN unless credential_source and trusted host allow it, got %q", authorization)
+	}
+	if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
+		t.Fatalf("smoke run customers should not print token values:\n%s", stdout)
+	}
+}
+
+func TestSmokeRunEnvTokenRequiresEnvSourceAndTrustedBaseURL(t *testing.T) {
+	t.Setenv("STRADDLE_TOKEN", "fixture-smoke-token")
+
+	tests := []struct {
+		name     string
+		approval smokeApprovalFile
+		want     string
+	}{
+		{
+			name: "trusted sandbox env source",
+			approval: smokeApprovalFile{
+				BaseURL:          "https://sandbox.straddle.com",
+				CredentialSource: "env:STRADDLE_TOKEN",
+			},
+			want: "fixture-smoke-token",
+		},
+		{
+			name: "http sandbox env source",
+			approval: smokeApprovalFile{
+				BaseURL:          "http://sandbox.straddle.com",
+				CredentialSource: "env:STRADDLE_TOKEN",
+			},
+		},
+		{
+			name: "custom host env source",
+			approval: smokeApprovalFile{
+				BaseURL:          "https://example.test",
+				CredentialSource: "env:STRADDLE_TOKEN",
+			},
+		},
+		{
+			name: "trusted host non env source",
+			approval: smokeApprovalFile{
+				BaseURL:          "https://sandbox.straddle.com",
+				CredentialSource: "manual-approved-fixture",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := smokeRunEnvToken(tc.approval); got != tc.want {
+				t.Fatalf("smokeRunEnvToken() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func commandPathFromSuggestion(t *testing.T, suggestion string) []string {
 	t.Helper()
 
@@ -366,6 +655,38 @@ func commandPathFromSuggestion(t *testing.T, suggestion string) []string {
 	}
 	if len(path) == 0 {
 		t.Fatalf("suggestion should include a command path, got %q", suggestion)
+	}
+	return path
+}
+
+func writeSmokeApprovalFile(t *testing.T, overrides map[string]any) string {
+	t.Helper()
+
+	approval := map[string]any{
+		"approver":                   "Smoke Reviewer",
+		"environment":                "local-test",
+		"base_url":                   "http://127.0.0.1:1",
+		"credential_source":          "env:STRADDLE_TOKEN",
+		"allowed_scope":              "setup",
+		"read_only":                  true,
+		"transcript_path":            filepath.Join(t.TempDir(), "smoke-transcript.json"),
+		"stop_criteria_acknowledged": true,
+	}
+	for key, value := range overrides {
+		if value == nil {
+			delete(approval, key)
+			continue
+		}
+		approval[key] = value
+	}
+
+	data, err := json.Marshal(approval)
+	if err != nil {
+		t.Fatalf("marshal approval file: %v", err)
+	}
+	path := filepath.Join(t.TempDir(), "approval.json")
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatalf("write approval file: %v", err)
 	}
 	return path
 }

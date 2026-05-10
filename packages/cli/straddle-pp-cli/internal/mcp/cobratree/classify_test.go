@@ -53,7 +53,14 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 		},
 		Run: func(*cobra.Command, []string) {},
 	}
-	smoke.AddCommand(smokePlan)
+	smokeRun := &cobra.Command{
+		Use: "run [scope]",
+		Annotations: map[string]string{
+			ReadOnlyAnnotation: "true",
+		},
+		Run: func(*cobra.Command, []string) {},
+	}
+	smoke.AddCommand(smokePlan, smokeRun)
 	release := &cobra.Command{Use: "release"}
 	releasePlan := &cobra.Command{
 		Use: "plan [surface]",
@@ -111,6 +118,9 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["smoke_plan"]; !ok {
 		t.Fatalf("smoke_plan shell-out tool was not registered; tools = %#v", tools)
+	}
+	if _, ok := tools["smoke_run"]; !ok {
+		t.Fatalf("smoke_run shell-out tool was not registered; tools = %#v", tools)
 	}
 	if _, ok := tools["release_plan"]; !ok {
 		t.Fatalf("release_plan shell-out tool was not registered; tools = %#v", tools)

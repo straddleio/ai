@@ -1224,6 +1224,7 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 // PATCH: setup-check adds one Cobra shell-out runtime tool for local setup readiness.
 // PATCH: ops-guide adds one Cobra shell-out runtime tool for local operational workflow guidance.
 // PATCH: smoke-plan adds one Cobra shell-out runtime tool for local live-smoke planning guidance.
+// PATCH: smoke-run-approval-gated adds one Cobra shell-out runtime tool for approved read-only smoke execution.
 // PATCH: release-plan adds one Cobra shell-out runtime tool for local public-release readiness guidance.
 // PATCH: credentials-plan adds one Cobra shell-out runtime tool for local credential storage readiness guidance.
 // PATCH: workflow-plan adds one Cobra shell-out runtime tool for local structured workflow planning guidance.
@@ -1231,7 +1232,7 @@ const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 87
+	runtimeToolCount        = 88
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
@@ -1239,6 +1240,7 @@ const (
 // PATCH: setup-check records setup_check as a read-only Cobra shell-out runtime tool.
 // PATCH: ops-guide records ops_guide as a read-only Cobra shell-out runtime tool.
 // PATCH: smoke-plan records smoke_plan as a read-only Cobra shell-out runtime tool.
+// PATCH: smoke-run-approval-gated records smoke_run as a read-only Cobra shell-out runtime tool.
 // PATCH: release-plan records release_plan as a read-only Cobra shell-out runtime tool.
 // PATCH: credentials-plan records credentials_plan as a read-only Cobra shell-out runtime tool.
 // PATCH: workflow-plan records workflow_plan as a read-only Cobra shell-out runtime tool.
@@ -1252,6 +1254,7 @@ var runtimeShellOutTools = []string{
 	"sandbox_guide",
 	"setup_check",
 	"smoke_plan",
+	"smoke_run",
 	"sync",
 	"tail",
 	"workflow_archive",
