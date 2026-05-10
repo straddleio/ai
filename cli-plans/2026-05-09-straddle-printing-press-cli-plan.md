@@ -761,17 +761,19 @@ After each slice passes spec review, quality review, and verification, the contr
 
 ## Completion Audit Checklist
 
-- [ ] Spec file exists and covers objective, commands, structure, style, testing, boundaries, and success criteria.
-- [ ] Plan file exists and every task has acceptance criteria and verification.
-- [ ] Generated baseline exists from Printing Press.
-- [ ] CLI package docs exist.
-- [ ] Fast validation exists and passes.
-- [ ] Go verification is run or a concrete blocker is recorded.
-- [ ] Ramp comparison is documented as checklist only.
-- [ ] Stainless comparison is documented as reference only.
-- [ ] Spec review passes.
-- [ ] Code-quality review passes.
-- [ ] Each completed slice is committed in a small intended-files-only commit before the next implementation slice starts.
-- [ ] Phase 4 CLI contract and honesty slice is either completed and reviewed or explicitly still pending.
+- [x] Spec file exists and covers objective, commands, structure, style, testing, boundaries, and success criteria.
+- [x] Plan file exists and every task has acceptance criteria and verification.
+- [x] Generated baseline exists from Printing Press.
+- [x] CLI package docs exist.
+- [x] Fast validation exists and passes.
+- [x] Go verification is run or a concrete blocker is recorded.
+- [x] Ramp comparison is documented as checklist only.
+- [x] Stainless comparison is documented as reference only.
+- [ ] Spec review evidence is durably recorded for every completed slice.
+- [ ] Code-quality review evidence is durably recorded for every completed slice.
+- [x] Recent completed slices are committed in small intended-files-only commits before the next implementation slice starts.
+- [x] Phase 4 CLI contract and honesty slice is completed for local preview and explicitly still pending for public launch.
 - [x] Local-preview product review exists and does not claim public launch readiness.
+- [x] Dedicated completion audit exists at `cli-plans/2026-05-10-straddle-cli-completion-audit.md`.
+- [ ] Public launch blockers are resolved or explicitly excluded.
 - [ ] Final `git status --short` shows only intended changes.

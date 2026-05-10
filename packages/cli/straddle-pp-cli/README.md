@@ -85,7 +85,7 @@ Follow these guidelines to keep your API keys secure:
 3. **Rotate Keys Regularly:** Periodically rotate your API keys to reduce risk.
 4. **Monitor Usage:** Regularly review your API logs in the Dashboard for any suspicious activity.
 
-With authentication and environments configured, you can start making requests to Straddle's API. Keep reading to learn more. 
+With authentication and environments configured, you can start making requests to Straddle's API. Keep reading to learn more.
 
 
 # Idempotent Requests
@@ -178,7 +178,7 @@ straddle-pp-cli charges create --help
 
 Only use the generated key with a sandbox write call when a future implementation slice explicitly scopes that testing and a sandbox credential has been supplied through a secure secret flow.
 
-Idempotency is currently supported for **POST**, **PUT**, **PATCH** and **DELETE** requests only, and requires API key authentication. 
+Idempotency is currently supported for **POST**, **PUT**, **PATCH** and **DELETE** requests only, and requires API key authentication.
 
 
 # Response Structure
@@ -188,20 +188,20 @@ The Straddle API provides responses with consistent structure to ensure readabil
 - **Field Naming**
   - Use `snake_case` for all field names
   - Use descriptive full words, except common acronyms (e.g., `dob`, `SSN`)
-  
+
 - **Resource IDs**
   - All IDs are UUIDs for cross-system uniqueness and compatibility
-  
+
 - **Response Type (`response_type`)**
   - `"object"`: Single resource response
   - `"array"`: List of resources, typically paginated
   - `"error"`: Error response with details in `error` field
-  
+
 - **Primary Data (`data`)**
   - Contains main response payload
   - Holds resource(s) for `"object"` and `"array"` types
   - For `"error"` type, error details go in `error` field
-  
+
 - **Meta Information (`meta`)**
   - Standard fields:
     - `api_request_id`: Unique request identifier
@@ -460,7 +460,7 @@ Here's an example of a validation error response:
 ```
 
 - The error type is `validation_error`, indicating issues with the input data.
-- The `items` array provides specific details about which field caused the error. 
+- The `items` array provides specific details about which field caused the error.
 #
 
 ## Install
