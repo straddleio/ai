@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, local-preview product review completed, local-only live-smoke planning added, local-only release planning added, and a refreshed MCP runtime smoke completed after the command tree changed.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, local-preview product review completed, local-only live-smoke planning added, local-only release planning added, local-only credential storage planning added, and MCP metadata updated after the command tree changed.
 
 Score: 7.3 of 10 for the current preview slice.
 
-The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`, `straddle-pp-cli smoke plan [scope]` for future approved read-only smoke planning, `straddle-pp-cli release plan [surface]` for local-only public-release readiness planning, and a refreshed MCP `tools/list` runtime smoke from 2026-05-09 18:21 MDT. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed before this slice. The full public CLI goal is not complete. Public release, actual approved live smoke, public-launch product review, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`, `straddle-pp-cli smoke plan [scope]` for future approved read-only smoke planning, `straddle-pp-cli release plan [surface]` for local-only public-release readiness planning, and `straddle-pp-cli credentials plan [surface]` for local-only credential storage readiness planning. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed before this slice. The full public CLI goal is not complete. Public release, actual approved live smoke, public-launch product review, explicit env/config-only or secure-store approval, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -38,9 +38,9 @@ Local preview docs are honest
 
 Safe token path exists and is documented
 
-- Evidence: `auth set-token --stdin` is documented, with `STRADDLE_TOKEN` and custom config paths; docs say not to commit, print, log, or pass tokens through argv.
+- Evidence: `auth set-token --stdin` is documented, with `STRADDLE_TOKEN` and custom config paths; docs say not to commit, print, log, or pass tokens through argv. `credentials plan [surface]` now documents config-file auth, environment or secret-manager injection, MCP env injection, the missing OS keychain or secure-store implementation, and the launch decision set.
 - Status: Partial.
-- Missing work: Broader auth review, keychain or secure store decision, launch approval.
+- Missing work: Broader auth review, explicit env/config-only approval or OS secure storage implementation, launch approval.
 
 Agent envelopes are documented and covered for current local commands
 
@@ -50,13 +50,13 @@ Agent envelopes are documented and covered for current local commands
 
 Local dogfood commands exist for preview checks
 
-- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests. Later bounded slices added `smoke plan [scope]` as local-only planning for future approved read-only smoke and `release plan [surface]` as local-only public-release readiness guidance.
+- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests. Later bounded slices added `smoke plan [scope]` as local-only planning for future approved read-only smoke, `release plan [surface]` as local-only public-release readiness guidance, and `credentials plan [surface]` as local-only credential storage guidance.
 - Status: Partial.
 - Missing work: Public launch still needs packaging, public-launch product approval, and approved live smoke.
 
 MCP count semantics are resolved
 
-- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools. A local JSON-RPC `tools/list` smoke against `/tmp/straddle-pp-mcp` on 2026-05-09 18:21 MDT returned `tool_count: 85` and included `release_plan` with `readOnlyHint: true` and `destructiveHint: false`.
+- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools. Focused MCP tests now expect runtime count 86 and include `credentials_plan` with `readOnlyHint: true` and `destructiveHint: false`.
 - Status: Done for preview.
 - Missing work: Re-run runtime smoke after any future command tree change.
 
@@ -125,11 +125,13 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
   Status: Built and documented. Local-only runbook guidance, no live smoke execution or approval.
 - Release plan: `/tmp/straddle-pp-cli release plan all --json`.
   Status: Built and documented. Local-only public-release readiness guidance, no publishing, external calls, signing, notarization, MCP execution, or secrets.
+- Credentials plan: `/tmp/straddle-pp-cli credentials plan all --json`.
+  Status: Built and documented. Local-only credential storage readiness guidance, no secret reads, credential writes, API calls, docs calls, MCP execution, publishing, signing, notarization, or launch approval.
 - Generated command agent envelope: `/tmp/straddle-pp-cli customers list --dry-run --agent`.
   Status: Documented as target behavior. Use dry-run first, do not call the real API for this check.
 - Streaming agent envelope: use focused tests or local fake-server checks for `sync --agent` and real `tail --agent`.
   Status: Built and documented. Normal `--json` streaming remains raw NDJSON.
-- MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 85.
+- MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 86.
   Status: Documented. Confirms generated endpoint tools plus typed framework tools plus Cobra shell-out tools.
 - Local packaging readiness: `make package-readiness` from `packages/cli/straddle-pp-cli`.
   Status: Documented. Builds and verifies both local preview binaries, including the MCP sibling, without GoReleaser or publishing.

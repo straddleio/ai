@@ -120,6 +120,7 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 // PATCH: ops-guide verifies ops_guide is included in runtime shell-out metadata.
 // PATCH: smoke-plan verifies smoke_plan is included in runtime shell-out metadata.
 // PATCH: release-plan verifies release_plan is included in runtime shell-out metadata.
+// PATCH: credentials-plan verifies credentials_plan is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
 	if err != nil {
@@ -141,6 +142,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 
 	wantShellOutTools := []string{
 		"analytics",
+		"credentials_plan",
 		"docs_search",
 		"import",
 		"ops_guide",
@@ -163,8 +165,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 85 {
-		t.Fatalf("runtime_tool_count = %d, want 85", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 86 {
+		t.Fatalf("runtime_tool_count = %d, want 86", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -182,12 +184,13 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 // PATCH: ops-guide verifies the local ops guide shell-out is read-only.
 // PATCH: smoke-plan verifies the local smoke plan shell-out is read-only.
 // PATCH: release-plan verifies the local release plan shell-out is read-only.
+// PATCH: credentials-plan verifies the local credentials plan shell-out is read-only.
 func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	mcpServer := server.NewMCPServer("test", "0.0.0")
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	for _, name := range []string{"docs_search", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "smoke_plan"} {
+	for _, name := range []string{"credentials_plan", "docs_search", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "smoke_plan"} {
 		tool, ok := tools[name]
 		if !ok {
 			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)

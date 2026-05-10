@@ -258,6 +258,27 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestReleasePlan' covers surface list, named surfaces, all surfaces, invalid surface, agent envelope output, and deliver rejection. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover release_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 85."
+    },
+    {
+      "id": "credentials-plan",
+      "summary": "Add local-only credential storage readiness guidance for config, environment, MCP, keychain, launch, and all surfaces.",
+      "reason": "The preview needs a safe runbook command that reduces the auth launch blocker without reading secrets, printing secrets, writing credentials, calling services, executing MCP tools, or approving launch.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/credentials.go",
+        "internal/cli/credentials_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestCredentialsPlan' covers surface list, named surfaces, all surfaces, invalid surface, agent envelope output, deliver rejection, and no token value leakage. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover credentials_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 86."
     }
   ]
 }

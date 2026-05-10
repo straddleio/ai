@@ -56,6 +56,16 @@ straddle-pp-cli release plan signing --agent
 
 `release plan` covers `archives`, `homebrew`, `mcp`, `npm`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof, but desktop MCP packaging remains future work. No npm or npx path exists yet.
 
+For credential storage readiness guidance without reading or writing secrets:
+
+```bash
+straddle-pp-cli credentials plan --json
+straddle-pp-cli credentials plan all --json
+straddle-pp-cli credentials plan keychain --agent
+```
+
+`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
+
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash
@@ -887,7 +897,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 85 because the MCP runtime also exposes 12 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 86 because the MCP runtime also exposes 13 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

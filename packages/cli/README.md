@@ -124,7 +124,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 85 because the MCP runtime also exposes 12 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 86 because the MCP runtime also exposes 13 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -145,6 +145,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli smoke plan all --json
 /tmp/straddle-pp-cli release plan --json
 /tmp/straddle-pp-cli release plan all --json
+/tmp/straddle-pp-cli credentials plan --json
+/tmp/straddle-pp-cli credentials plan all --json
 ```
 
 Local-first setup checks:
@@ -201,6 +203,16 @@ The preview supports three credential paths:
 - A custom config file with `--config /path/to/config.toml`, including `auth set-token --stdin --config /path/to/config.toml` and `auth status --config /path/to/config.toml`.
 
 Do not commit tokens. Do not print tokens in logs. Do not pass tokens in argv.
+
+For credential storage launch readiness, use:
+
+```bash
+straddle-pp-cli credentials plan --json
+straddle-pp-cli credentials plan all --json
+straddle-pp-cli credentials plan keychain --agent
+```
+
+`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It says plainly that safe stdin config-file auth exists, environment and secret-manager injection are supported for shells, CI, and MCP launches, MCP environment injection is separate from CLI config-file auth, no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage. Desktop MCP public install remains future work.
 
 ## Regenerate
 
@@ -290,7 +302,7 @@ Do not copy Stainless architecture into this package.
 The generated baseline is not ready to replace the public CLI until these gaps are closed:
 
 - Installer and public release packaging are not done. A local `make package-readiness` proof builds both preview binaries, and a local GoReleaser snapshot has built archives that include both the CLI and MCP sibling, but neither path publishes anything.
-- Safe token input exists for config-file auth, but auth setup and token handling still need broader review before launch.
+- Safe token input exists for config-file auth, and `credentials plan [surface]` now documents config, environment, MCP, keychain, and launch decisions. The keychain or secure-store decision still blocks public launch readiness until Straddle approves env/config-only for first release or implements OS secure storage.
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
 - Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target Straddle envelope only for `--agent`; normal `--json` stays raw.
 - `about --agent` uses the target Straddle envelope for local preview status.
@@ -301,6 +313,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Reconciliation, fraud monitoring, collections, reporting, and monitoring now have the help-only `straddle-pp-cli ops guide [workflow]` terminal flow. Live execution, API reads, docs lookup, MCP execution, webhook posts, production writes, and full workflow engines remain out of scope.
 - Approved live-smoke planning now has the local-only `straddle-pp-cli smoke plan [scope]` terminal flow. It reduces the live-smoke blocker by making the future approved read-only runbook explicit, but it does not run live smoke or approve launch.
 - Public-release readiness now has the local-only `straddle-pp-cli release plan [surface]` terminal flow. It reduces the distribution decision blocker by making archive, Homebrew, MCP, npm, and signing decisions explicit, but it does not publish, approve launch, or solve distribution.
+- Credential storage readiness now has the local-only `straddle-pp-cli credentials plan [surface]` terminal flow. It reduces the auth launch blocker by making config, environment, MCP, keychain, and launch decisions explicit, but it does not read or write credentials and does not approve launch.
 
 ## Later Polish
 

@@ -665,6 +665,43 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Files touched:** `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/release.go`, `packages/cli/straddle-pp-cli/internal/cli/release_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-full-workflow.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
 
+#### Task 21: Add local credential storage readiness plan command
+
+**Status:** Implemented in the 2026-05-09 credentials-plan slice.
+
+**Description:** Add `straddle-pp-cli credentials plan [surface]` as local-only guidance for credential storage readiness. It reduces the auth launch blocker by making config, environment, MCP, keychain, and launch blockers explicit without reading, writing, or exposing secrets.
+
+**Acceptance criteria:**
+
+- [x] `credentials plan [surface]` exists under a new top-level `credentials` command tree instead of `auth`, so the MCP walker exposes it as `credentials_plan`.
+- [x] Supported surfaces are `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`.
+- [x] The command lists supported surfaces and top-level blockers when no surface is provided.
+- [x] Named surfaces return current support, local proof commands or local checks, launch decisions, blockers, and notes.
+- [x] `all` returns all concrete surface plans.
+- [x] Safety metadata states that the command is local-only guidance and does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch.
+- [x] `keychain` states that no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage.
+- [x] `mcp` distinguishes MCP `STRADDLE_TOKEN` environment injection from CLI config-file auth, and states desktop MCP public install remains future work.
+- [x] `config` states current config-file token setup uses `auth set-token --stdin`, config path can be customized, and launch-grade storage still needs approval.
+- [x] `environment` states env and secret-manager injection are supported for shells, CI, and MCP launches, and token values should not be printed, logged, committed, or passed through argv.
+- [x] `launch` summarizes the blocking decision set.
+- [x] `credentials plan` rejects `--deliver` before delivery.
+- [x] `credentials plan --agent` uses the target envelope through the existing local JSON helper path.
+- [x] MCP runtime exposure includes `credentials_plan` as a read-only Cobra shell-out tool.
+
+**Verification:**
+
+- [x] Run focused credentials-plan CLI tests for surface list, each named surface, all surface, invalid surface, agent envelope, deliver rejection, and no token value leakage when `STRADDLE_TOKEN` is set.
+- [x] Run focused MCP tests for `credentials_plan` shell-out exposure, read-only metadata, and runtime count 86.
+- [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
+- [x] Run `npm run validate`.
+- [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
+- [x] Run `git diff --check`.
+- [x] Run artifact cleanup find command.
+
+**Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, safe stdin auth, release honesty docs, and generated CLI auth config.
+
+**Files touched:** `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/credentials.go`, `packages/cli/straddle-pp-cli/internal/cli/credentials_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -680,11 +717,12 @@ After each slice passes spec review, quality review, and verification, the contr
 | Broad uncommitted slices become hard to review | High | After a slice passes spec review, quality review, and verification, stage only intended files and make a small commit before starting the next slice. Commit the current baseline in logical chunks: generated baseline first, then hand-authored docs, validation, plans, and audit updates. |
 | Product review is mistaken for public launch approval | High | Keep the product review decision split: local preview approved, public launch not approved. |
 | Smoke planning is mistaken for actual live smoke | High | Keep docs explicit: `smoke plan` only prints a future runbook and does not grant approval, execute MCP, call APIs, or use credentials. |
+| Credential storage planning is mistaken for secure-store implementation | High | Keep docs explicit: `credentials plan` prints local guidance only, no OS keychain or secure-store implementation exists yet, and launch still needs an explicit env/config-only or secure-store decision. |
 
 ## Open Questions
 
 - Should the preview eventually replace the public binary name `straddle`, or stay `straddle-pp-cli` until launch?
-- Should keychain credential storage be a launch blocker?
+- Should keychain credential storage be a launch blocker? Current planning says the blocker is the decision: approve env/config-only for first public release or implement OS secure storage.
 - Which approved live-read operational workflow should follow the local-only `ops guide` and `smoke plan` planning slices?
 - Who approves the credential scope for the first actual live read-only smoke?
 

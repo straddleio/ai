@@ -205,6 +205,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	// PATCH: release-plan adds local-only public-release readiness guidance
 	// without publishing, external service calls, MCP execution, signing, notarization, or secrets.
 	rootCmd.AddCommand(newReleaseCmd(flags))
+	// PATCH: credentials-plan adds local-only credential storage readiness guidance
+	// without reading secrets, writing credentials, calling services, executing MCP, or approving launch.
+	rootCmd.AddCommand(newCredentialsCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))
