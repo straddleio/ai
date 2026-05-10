@@ -8,7 +8,7 @@ Goal status: not complete.
 
 The repo now has a strong local preview of a Printing Press generated Straddle CLI and MCP sibling. It is generated from the Straddle OpenAPI spec, has agent-friendly output paths, local safety commands, workflow planning commands, release and credential planning commands, docs, validation, MCP runtime smoke proof, and a small commit history.
 
-It is not yet a public Straddle CLI launch. Public release artifacts are not published, no approved live read-only smoke has run, no public-launch product review exists, no decision has been made between env/config-only auth and OS secure storage, and practical operational workflows are still local planning guidance rather than proven live workflows.
+It is not yet a public Straddle CLI launch. Public release artifacts are not published, no approved live read-only smoke has run, the public-launch product review gate now exists and rejects approval, no decision has been made between env/config-only auth and OS secure storage, and practical operational workflows are still local planning guidance rather than proven live workflows.
 
 ## Objective Restated As Deliverables
 
@@ -52,7 +52,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Go tests | Fresh `go test -count=1 ./...` passed in `packages/cli/straddle-pp-cli`. | Done for preview |
 | MCP runtime, not just source validation | Fresh JSON-RPC `tools/list` against a `/tmp` MCP build returned `tool_count: 87`, `workflow_plan.readOnlyHint: true`, `workflow_plan.destructiveHint: false`, `credentials_plan.readOnlyHint: true`, and `credentials_plan.destructiveHint: false`. | Done for preview |
 | Patch manifest | `.printing-press-patches.json` is valid JSON and catalogs safe-token, agent-output, docs-search, setup, sandbox, ops, smoke, release, credentials, and workflow-plan patches. | Done for preview |
-| Product review | `cli-plans/2026-05-09-straddle-cli-product-review.md` approves local preview and rejects public launch. | Done for local preview |
+| Product review | `cli-plans/2026-05-09-straddle-cli-product-review.md` approves local preview and rejects public launch. `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md` now exists as the public-launch gate and also rejects approval until owner decisions and live smoke happen. | Done for local preview, blocked for public launch |
 | Subagent-driven process and review gates | The plan requires subagent-driven implementation plus spec and quality review before each slice. The current completion-audit slice is undergoing independent audit, spec review, and quality review. Durable repo evidence for all historical reviewer reports is incomplete, so this cannot be treated as fully satisfied for the whole goal. | Partial |
 | Commit cadence | Recent history contains small commits for workflow planning, credential planning, MCP smoke, release planning, smoke planning, release validation, product review, and package readiness. This audit slice is not complete until these files are committed after review and verification. | Partial |
 | Public launch | Docs repeatedly state this is a local preview, not a public launch artifact. | Not done |
@@ -126,7 +126,7 @@ These are blockers for claiming the activated goal is complete:
 
 1. Public release is not published. There is no public Homebrew tap update, `npx` package, release download, signed or notarized macOS path, desktop MCP package, or final public install doc.
 2. No approved live read-only smoke has run with scoped sandbox credentials and expected outputs.
-3. No public-launch product review has approved packaging, live smoke, docs, command name, support expectations, and MCP distribution.
+3. The public-launch product review gate exists at `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md`, but it rejects approval until owner decisions and approved live smoke happen.
 4. Credential launch posture is undecided. The repo needs either explicit approval for env/config-only first public release or an OS secure-store implementation.
 5. Operational workflows are still planning guidance. Reconciliation, fraud monitoring, collections, reporting, and monitoring have useful local plans, but no approved live read execution or workflow engines.
 6. The generated preview is still named `straddle-pp-cli`. Replacing or publishing the public `straddle` binary needs an explicit naming and migration decision.
