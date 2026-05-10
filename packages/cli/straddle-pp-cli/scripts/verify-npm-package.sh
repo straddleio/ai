@@ -53,6 +53,7 @@ require_executable "$current_mcp"
 
 node "$package_dir/bin/straddle-pp-cli.js" --version >/dev/null
 node "$package_dir/bin/straddle-pp-cli.js" shipcheck local --mcp-binary "$current_mcp" --json >/dev/null
+sh scripts/verify-public-shipcheck.sh "$package_dir/bin/straddle-pp-cli.js"
 node - "$package_dir/bin/straddle-pp-mcp.js" <<'NODE'
 const { spawn } = require('child_process');
 

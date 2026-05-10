@@ -532,7 +532,29 @@
         "../README.md",
         ".printing-press-patches.json"
       ],
-      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestOpsGuide|TestBenchmarkRamp', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, make release-readiness, and make package-readiness cover ops guide all, local-only ops safety, benchmark ramp direct word-art evidence, current MCP runtime count 92 with benchmark_ramp, generated CLI validation, snapshot archives, packaged shipcheck, MCP bundle, and local npm package proof."
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestOpsGuide|TestBenchmarkRamp', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, make release-readiness, and make package-readiness cover ops guide all, local-only ops safety, benchmark ramp direct word-art evidence, MCP runtime metadata including benchmark_ramp, generated CLI validation, snapshot archives, packaged shipcheck, MCP bundle, and local npm package proof."
+    },
+    {
+      "id": "public-shipcheck-gate",
+      "summary": "Add an executable public-launch blocker gate.",
+      "reason": "The local preview can be proven, but public release approvals are external blockers. Agents need one command that proves the local preview is done while refusing to claim public launch is ready.",
+      "files": [
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "internal/cli/which.go",
+        "internal/cli/docs_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "Makefile",
+        "scripts/verify-public-shipcheck.sh",
+        "scripts/verify-release-artifacts.sh",
+        "scripts/verify-npm-package.sh",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublic|TestShipcheckLocal|TestDocsSearchCommandsIndexesLocalHelperCommands', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, make package-readiness, packaged shipcheck public --json smoke, packaged MCP tools/list smoke, and make release-readiness cover shipcheck public JSON and agent output, intentional nonzero exit on missing approvals, local preview pass-through, docs command indexing, MCP runtime metadata count 93 with shipcheck_public, generated CLI validation, packaged shipcheck, MCP bundle, snapshot archives, and local npm package proof."
     }
   ]
 }

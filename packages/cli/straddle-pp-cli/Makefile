@@ -41,6 +41,7 @@ package-local:
 # PATCH: package-readiness runs the packaged CLI shipcheck against the packaged MCP sibling.
 package-readiness: package-local
 	"$(DIST_DIR)/straddle-pp-cli" shipcheck local --mcp-binary "$(DIST_DIR)/straddle-pp-mcp" --json >/dev/null
+	sh scripts/verify-public-shipcheck.sh "$(DIST_DIR)/straddle-pp-cli"
 	"$(DIST_DIR)/straddle-pp-cli" mcp bundle --mcp-binary "$(DIST_DIR)/straddle-pp-mcp" --output "$(DIST_DIR)/mcp-bundle" --json >/dev/null
 
 release-check:

@@ -109,6 +109,7 @@ var whichIndex = []whichEntry{
 	{Command: "smoke plan", Description: "Generate a local-only live-smoke runbook without API calls, docs calls, MCP execution, sandbox, or production access.", Group: "smoke", WhyItMatters: "Prepare approved read-only smoke checks before execution."},
 	{Command: "smoke run", Description: "Run explicitly approved read-only smoke checks, including optional local stdio MCP initialize plus tools/list.", Group: "smoke", WhyItMatters: "Execute narrow approved local or read-only proof after approval."},
 	{Command: "shipcheck local", Description: "Run local public-preview readiness checks without credentials, service calls, publishing, signing, notarization, or production writes.", Group: "shipcheck", WhyItMatters: "Executable local proof for agent and public-preview helper readiness."},
+	{Command: "shipcheck public", Description: "Run local preview checks and public-launch approval blockers without publishing, service calls, signing, notarization, or production writes.", Group: "shipcheck", WhyItMatters: "Confirm local proof is done while blocking public launch until approvals are recorded."},
 }
 
 // whichMatch pairs an index entry with its ranking score for a query.

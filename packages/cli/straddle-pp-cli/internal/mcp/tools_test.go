@@ -126,6 +126,7 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 // PATCH: mcp-config verifies mcp_config is included in runtime shell-out metadata.
 // PATCH: mcp-bundle verifies mcp_bundle is included in runtime shell-out metadata.
 // PATCH: shipcheck-local verifies shipcheck_local is included in runtime shell-out metadata.
+// PATCH: shipcheck-public verifies shipcheck_public is included in runtime shell-out metadata.
 // PATCH: ramp-benchmark verifies benchmark_ramp is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
@@ -159,6 +160,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 		"sandbox_guide",
 		"setup_check",
 		"shipcheck_local",
+		"shipcheck_public",
 		"smoke_plan",
 		"smoke_run",
 		"sync",
@@ -177,8 +179,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 92 {
-		t.Fatalf("runtime_tool_count = %d, want 92", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 93 {
+		t.Fatalf("runtime_tool_count = %d, want 93", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -201,13 +203,14 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 // PATCH: workflow-plan verifies the local workflow plan shell-out is read-only.
 // PATCH: mcp-config verifies the local MCP config generator shell-out is read-only.
 // PATCH: shipcheck-local verifies the local shipcheck verifier shell-out is read-only.
+// PATCH: shipcheck-public verifies the local public shipcheck blocker shell-out is read-only.
 // PATCH: ramp-benchmark verifies the local Ramp benchmark shell-out is read-only.
 func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	mcpServer := server.NewMCPServer("test", "0.0.0")
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	for _, name := range []string{"benchmark_ramp", "credentials_plan", "docs_search", "mcp_config", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "shipcheck_local", "smoke_plan", "smoke_run", "workflow_plan"} {
+	for _, name := range []string{"benchmark_ramp", "credentials_plan", "docs_search", "mcp_config", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "shipcheck_local", "shipcheck_public", "smoke_plan", "smoke_run", "workflow_plan"} {
 		tool, ok := tools[name]
 		if !ok {
 			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)

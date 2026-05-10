@@ -48,6 +48,116 @@ func TestShipcheckLocalJSONSuccessWithoutMCP(t *testing.T) {
 	}
 }
 
+func TestShipcheckPublicJSONBlocksPublicLaunchButProvesLocalPreview(t *testing.T) {
+	stdout, stderr, err := runCLIForDocsTest(t, "shipcheck", "public", "--json")
+	if err == nil {
+		t.Fatalf("shipcheck public should fail until public launch approvals are recorded")
+	}
+	if !strings.Contains(stderr, "owner_approval") {
+		t.Fatalf("shipcheck public stderr should name the first public blocker, got %q", stderr)
+	}
+
+	var got shipcheckPublicResponse
+	if unmarshalErr := json.Unmarshal([]byte(stdout), &got); unmarshalErr != nil {
+		t.Fatalf("shipcheck public --json emitted invalid JSON: %v\n%s", unmarshalErr, stdout)
+	}
+	if got.Command != "shipcheck public" || got.Ready || !got.LocalPreviewPassed || !got.LocalPreview.Passed {
+		t.Fatalf("wrong public shipcheck response: %#v", got)
+	}
+	for _, want := range []string{"local_preview", "owner_approval", "public_distribution", "docs_support", "desktop_mcp", "live_smoke", "signing_notarization"} {
+		check := shipcheckCheckByName(t, got.Checks, want)
+		if want == "local_preview" && !check.Passed {
+			t.Fatalf("local preview should pass inside public shipcheck: %#v", check)
+		}
+		if want != "local_preview" && check.Passed {
+			t.Fatalf("%s should block public readiness until approvals exist: %#v", want, check)
+		}
+	}
+	if !shipcheckEvidenceContains(shipcheckCheckByName(t, got.Checks, "owner_approval").Evidence, "release plan owner-decisions") {
+		t.Fatalf("owner approval blocker should point to release plan owner decisions: %#v", got.Checks)
+	}
+	if !shipcheckEvidenceContains(shipcheckCheckByName(t, got.Checks, "live_smoke").Evidence, "smoke plan approval") {
+		t.Fatalf("live smoke blocker should point to smoke plan approval: %#v", got.Checks)
+	}
+	if len(got.NextApprovalSteps) == 0 {
+		t.Fatalf("public shipcheck should include concrete approval steps: %#v", got)
+	}
+	if !got.Safety.LocalOnly || !got.Safety.CredentialFree || !got.Safety.NoAPICalls || !got.Safety.NoDocsEndpointCalls || !got.Safety.NoProductionWrites || !got.Safety.NoPublishing {
+		t.Fatalf("public shipcheck safety should prove local non-publishing execution: %#v", got.Safety)
+	}
+	if got.Safety.CallsGitHub || got.Safety.CallsNPM || got.Safety.CallsHomebrew || got.Safety.Publishes || got.Safety.Signs || got.Safety.Notarizes || got.Safety.ReadsSecrets {
+		t.Fatalf("public shipcheck safety should reject external release or secret surfaces: %#v", got.Safety)
+	}
+	if strings.Contains(strings.ToLower(stdout), "bearer ") || strings.Contains(stdout, "STRADDLE_TOKEN=") || strings.Contains(stdout, "sk_live") || strings.Contains(stdout, "sk_test") {
+		t.Fatalf("shipcheck public should not emit token literals:\n%s", stdout)
+	}
+}
+
+func TestShipcheckPublicAgentUsesTargetEnvelope(t *testing.T) {
+	stdout, stderr, err := runCLIForDocsTest(t, "shipcheck", "public", "--agent")
+	if err == nil {
+		t.Fatalf("shipcheck public --agent should fail until public launch approvals are recorded")
+	}
+	if !strings.Contains(stderr, "owner_approval") {
+		t.Fatalf("shipcheck public --agent stderr should name the first public blocker, got %q", stderr)
+	}
+
+	var got struct {
+		SchemaVersion string                  `json:"schema_version"`
+		Data          shipcheckPublicResponse `json:"data"`
+		Warnings      []string                `json:"warnings"`
+		Error         any                     `json:"error"`
+		Results       any                     `json:"results"`
+		Meta          any                     `json:"meta"`
+	}
+	if unmarshalErr := json.Unmarshal([]byte(stdout), &got); unmarshalErr != nil {
+		t.Fatalf("shipcheck public --agent emitted invalid JSON: %v\n%s", unmarshalErr, stdout)
+	}
+	if got.SchemaVersion != "1.0" || got.Error != nil || got.Warnings == nil || len(got.Warnings) != 0 {
+		t.Fatalf("wrong agent envelope: %#v", got)
+	}
+	if got.Results != nil || got.Meta != nil {
+		t.Fatalf("agent envelope should not include results/meta: %#v", got)
+	}
+	if got.Data.Command != "shipcheck public" || got.Data.Ready || !got.Data.LocalPreviewPassed {
+		t.Fatalf("agent envelope missing public shipcheck data: %#v", got.Data)
+	}
+}
+
+func TestShipcheckPublicRejectsDeliverBeforeDelivery(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "shipcheck-public-delivery.json")
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	oldArgs := os.Args
+	t.Cleanup(func() {
+		os.Args = oldArgs
+	})
+	os.Args = []string{
+		"straddle-pp-cli",
+		"shipcheck",
+		"public",
+		"--deliver",
+		"file:" + target,
+		"--profile",
+		"missing-profile",
+	}
+
+	err := Execute()
+	if err == nil {
+		t.Fatalf("shipcheck public should reject --deliver")
+	}
+	if !strings.Contains(err.Error(), "shipcheck public does not support --deliver") {
+		t.Fatalf("error should explain --deliver is unsupported, got %v", err)
+	}
+	if _, statErr := os.Stat(target); !os.IsNotExist(statErr) {
+		t.Fatalf("shipcheck public should reject --deliver before writing output, stat err=%v", statErr)
+	}
+	if _, statErr := os.Stat(filepath.Join(home, ".straddle-pp-cli")); !os.IsNotExist(statErr) {
+		t.Fatalf("shipcheck public should reject --deliver before loading profile state, stat err=%v", statErr)
+	}
+}
+
 func TestShipcheckLocalCommandTreeRequiredPaths(t *testing.T) {
 	payload, err := buildShipcheckLocalResponse(RootCmd(), "")
 	if err != nil {

@@ -65,6 +65,16 @@ type shipcheckLocalResponse struct {
 	Safety  shipcheckSafety  `json:"safety"`
 }
 
+type shipcheckPublicResponse struct {
+	Command            string                 `json:"command"`
+	Ready              bool                   `json:"ready"`
+	LocalPreviewPassed bool                   `json:"local_preview_passed"`
+	LocalPreview       shipcheckLocalResponse `json:"local_preview"`
+	Checks             []shipcheckCheck       `json:"checks"`
+	Safety             shipcheckSafety        `json:"safety"`
+	NextApprovalSteps  []string               `json:"next_approval_steps"`
+}
+
 func newShipcheckCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "shipcheck",
@@ -72,6 +82,7 @@ func newShipcheckCmd(flags *rootFlags) *cobra.Command {
 		Long:  "Verify local public-preview readiness without credentials, service calls, publishing, signing, notarization, or production writes.",
 	}
 	cmd.AddCommand(newShipcheckLocalCmd(flags))
+	cmd.AddCommand(newShipcheckPublicCmd(flags))
 	return cmd
 }
 
@@ -112,6 +123,41 @@ This verifier inspects the in-process CLI command tree, local workflow plan name
 	return cmd
 }
 
+func newShipcheckPublicCmd(flags *rootFlags) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "public",
+		Short: "Run public-launch readiness checks",
+		Long: `Run public-launch readiness checks.
+
+This verifier runs the local preview checks and then verifies whether required public launch approvals exist. It does not publish, push, upload, sign, notarize, call Straddle APIs, call docs endpoints, call GitHub, call npm, call Homebrew, execute MCP tools, read secrets, or write production.`,
+		Example: `  straddle-pp-cli shipcheck public
+  straddle-pp-cli shipcheck public --json
+  straddle-pp-cli shipcheck public --agent`,
+		Annotations: map[string]string{
+			"mcp:read-only":              "true",
+			localOnlyNoPreloadAnnotation: "true",
+		},
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if flags.deliverSpec != "" {
+				return usageErr(fmt.Errorf("shipcheck public does not support --deliver; use normal stdout, JSON, or agent output"))
+			}
+			payload, checkErr := buildShipcheckPublicResponse(cmd.Root())
+			if renderErr := renderShipcheckPublicResponse(cmd, flags, payload); renderErr != nil {
+				return renderErr
+			}
+			if checkErr != nil {
+				return checkErr
+			}
+			if !payload.Ready {
+				return apiErr(fmt.Errorf("shipcheck public failed"))
+			}
+			return nil
+		},
+	}
+	return cmd
+}
+
 func buildShipcheckLocalResponse(root *cobra.Command, mcpBinary string) (shipcheckLocalResponse, error) {
 	payload := shipcheckLocalResponse{
 		Command: "shipcheck local",
@@ -145,6 +191,104 @@ func buildShipcheckLocalResponse(root *cobra.Command, mcpBinary string) (shipche
 		}
 	}
 	return payload, firstErr
+}
+
+func buildShipcheckPublicResponse(root *cobra.Command) (shipcheckPublicResponse, error) {
+	local, localErr := buildShipcheckLocalResponse(root, "")
+	payload := shipcheckPublicResponse{
+		Command:            "shipcheck public",
+		LocalPreviewPassed: local.Passed,
+		LocalPreview:       local,
+		Safety:             defaultShipcheckSafety(false),
+		NextApprovalSteps: []string{
+			"Review `straddle-pp-cli release plan owner-decisions --json` with Straddle owners.",
+			"Approve or reject the public command name, public release channel, docs/support scope, signing and notarization posture, desktop MCP packaging, and live smoke scope.",
+			"Run `straddle-pp-cli smoke plan approval --json` before any live read-only smoke.",
+			"Keep public npm, npx, Homebrew, GitHub release, and desktop MCP install blocked until approvals are recorded outside this command.",
+		},
+	}
+	payload.Checks = append(payload.Checks, shipcheckCheck{
+		Name:   "local_preview",
+		Passed: local.Passed,
+		Note:   "local executable preview proof must pass before public launch",
+		Evidence: []string{
+			"shipcheck local",
+		},
+	})
+	payload.Checks = append(payload.Checks, publicLaunchBlockerChecks()...)
+
+	payload.Ready = true
+	var firstErr error
+	if localErr != nil {
+		firstErr = localErr
+	}
+	for _, check := range payload.Checks {
+		if !check.Passed {
+			payload.Ready = false
+			if firstErr == nil {
+				firstErr = apiErr(fmt.Errorf("shipcheck public failed check %q: %s", check.Name, check.Note))
+			}
+		}
+	}
+	return payload, firstErr
+}
+
+func publicLaunchBlockerChecks() []shipcheckCheck {
+	return []shipcheckCheck{
+		{
+			Name:   "owner_approval",
+			Passed: false,
+			Note:   "public release, command replacement, release channel, support scope, and workflow execution claims are not approved",
+			Evidence: []string{
+				"release plan owner-decisions",
+				"public launch approval not recorded in repo",
+			},
+		},
+		{
+			Name:   "public_distribution",
+			Passed: false,
+			Note:   "public npm, npx, Homebrew, and GitHub release publication are not approved or executed",
+			Evidence: []string{
+				"release plan npm",
+				"release plan homebrew",
+				"make release-readiness is local proof only",
+			},
+		},
+		{
+			Name:   "docs_support",
+			Passed: false,
+			Note:   "public docs and support ownership are not approved",
+			Evidence: []string{
+				"release plan docs-support",
+			},
+		},
+		{
+			Name:   "desktop_mcp",
+			Passed: false,
+			Note:   "local MCP config and bundle proof exist, but public desktop MCP install and packaging are not approved",
+			Evidence: []string{
+				"mcp config all",
+				"mcp bundle",
+				"release plan mcp",
+			},
+		},
+		{
+			Name:   "live_smoke",
+			Passed: false,
+			Note:   "approved live read-only smoke is not recorded",
+			Evidence: []string{
+				"smoke plan approval",
+			},
+		},
+		{
+			Name:   "signing_notarization",
+			Passed: false,
+			Note:   "signing and notarization posture is unresolved for public macOS distribution",
+			Evidence: []string{
+				"release plan signing",
+			},
+		},
+	}
 }
 
 func defaultShipcheckSafety(hasMCPBinary bool) shipcheckSafety {
@@ -209,6 +353,7 @@ func requiredShipcheckCommandPaths() []string {
 		"smoke plan",
 		"smoke run",
 		"customers list",
+		"shipcheck public",
 		"payments",
 		"charges get",
 		"payouts get",
@@ -738,6 +883,7 @@ func requiredShipcheckMCPTools() []string {
 		"smoke_run",
 		"setup_check",
 		"shipcheck_local",
+		"shipcheck_public",
 	}
 }
 
@@ -781,6 +927,42 @@ func renderShipcheckLocalResponse(cmd *cobra.Command, flags *rootFlags, payload 
 			fmt.Fprintf(w, " - %s", check.Note)
 		}
 		fmt.Fprintln(w)
+	}
+	return nil
+}
+
+func renderShipcheckPublicResponse(cmd *cobra.Command, flags *rootFlags, payload shipcheckPublicResponse) error {
+	asJSON := flags.asJSON || flags.agent || !isTerminal(cmd.OutOrStdout())
+	if asJSON {
+		return printJSONFiltered(cmd.OutOrStdout(), payload, flags)
+	}
+	w := cmd.OutOrStdout()
+	status := "blocked"
+	if payload.Ready {
+		status = "ready"
+	}
+	fmt.Fprintf(w, "Shipcheck public: %s\n", status)
+	localStatus := "failed"
+	if payload.LocalPreviewPassed {
+		localStatus = "passed"
+	}
+	fmt.Fprintf(w, "  local_preview: %s\n", localStatus)
+	for _, check := range payload.Checks {
+		checkStatus := "failed"
+		if check.Passed {
+			checkStatus = "passed"
+		}
+		fmt.Fprintf(w, "  %s: %s", check.Name, checkStatus)
+		if check.Note != "" {
+			fmt.Fprintf(w, " - %s", check.Note)
+		}
+		fmt.Fprintln(w)
+	}
+	if len(payload.NextApprovalSteps) > 0 {
+		fmt.Fprintln(w, "Next approval steps:")
+		for _, step := range payload.NextApprovalSteps {
+			fmt.Fprintf(w, "  - %s\n", step)
+		}
 	}
 	return nil
 }

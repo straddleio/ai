@@ -71,12 +71,13 @@ case "$goos" in
         platform_archive="$(find "$dist_dir" -maxdepth 1 -name "${project_name}_*_${goos}_${goarch}.tar.gz" | head -n 1)"
         test -n "$platform_archive" || fail "missing current-platform archive for ${goos}_${goarch}"
         extract_dir="$(mktemp -d)"
-        tar -xzf "$platform_archive" -C "$extract_dir"
-        chmod +x "$extract_dir/straddle-pp-cli" "$extract_dir/straddle-pp-mcp"
-        "$extract_dir/straddle-pp-cli" shipcheck local --mcp-binary "$extract_dir/straddle-pp-mcp" --json >/dev/null
-        "$extract_dir/straddle-pp-cli" mcp bundle --mcp-binary "$extract_dir/straddle-pp-mcp" --output "$extract_dir/mcp-bundle" --json >/dev/null
-        rm -rf "$extract_dir"
-        ;;
+		tar -xzf "$platform_archive" -C "$extract_dir"
+		chmod +x "$extract_dir/straddle-pp-cli" "$extract_dir/straddle-pp-mcp"
+		"$extract_dir/straddle-pp-cli" shipcheck local --mcp-binary "$extract_dir/straddle-pp-mcp" --json >/dev/null
+        sh scripts/verify-public-shipcheck.sh "$extract_dir/straddle-pp-cli"
+		"$extract_dir/straddle-pp-cli" mcp bundle --mcp-binary "$extract_dir/straddle-pp-mcp" --output "$extract_dir/mcp-bundle" --json >/dev/null
+		rm -rf "$extract_dir"
+		;;
     *)
         printf 'skipping executable archive smoke for %s_%s\n' "$goos" "$goarch"
         ;;

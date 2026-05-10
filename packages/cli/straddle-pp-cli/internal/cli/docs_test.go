@@ -242,10 +242,11 @@ func TestDocsSearchCommandsJSONUsesLocalCapabilityIndex(t *testing.T) {
 
 func TestDocsSearchCommandsIndexesLocalHelperCommands(t *testing.T) {
 	tests := map[string]string{
-		"workflow plan":  "workflow plan",
-		"mcp config":     "mcp config",
-		"mcp bundle":     "mcp bundle",
-		"benchmark ramp": "benchmark ramp",
+		"workflow plan":    "workflow plan",
+		"mcp config":       "mcp config",
+		"mcp bundle":       "mcp bundle",
+		"benchmark ramp":   "benchmark ramp",
+		"shipcheck public": "shipcheck public",
 	}
 
 	for query, wantCommand := range tests {
