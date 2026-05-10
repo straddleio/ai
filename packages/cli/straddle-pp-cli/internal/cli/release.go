@@ -127,7 +127,7 @@ func buildReleasePlanResponse(surface string) (releasePlanResponse, error) {
 			"No public release artifact has been published, uploaded, or pushed.",
 			"Public docs and support are not approved yet.",
 			"Homebrew tap publishing is not approved or executed by this command.",
-			"No npm or npx distribution path exists yet.",
+			"No public npm or npx distribution path is approved or published.",
 			"Local desktop MCP bundle proof exists, but public MCP install remains future work.",
 			"Signing and notarization policy is unresolved for public macOS distribution.",
 		},
