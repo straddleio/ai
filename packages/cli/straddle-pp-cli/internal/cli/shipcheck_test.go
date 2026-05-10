@@ -133,6 +133,79 @@ func TestShipcheckPublicApprovalFileMakesPublicReady(t *testing.T) {
 	}
 }
 
+func TestShipcheckPublicApprovalTemplatePrintsStrictCurrentCommitTemplate(t *testing.T) {
+	commit := "1111111111111111111111111111111111111111"
+	withShipcheckCleanCommit(t, commit)
+
+	stdout, stderr, err := runCLIForDocsTest(t, "shipcheck", "public", "--approval-template")
+	if err != nil {
+		t.Fatalf("shipcheck public --approval-template returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("shipcheck public --approval-template wrote stderr: %q", stderr)
+	}
+
+	var got shipcheckPublicApprovalFile
+	decoder := json.NewDecoder(strings.NewReader(stdout))
+	decoder.DisallowUnknownFields()
+	if decodeErr := decoder.Decode(&got); decodeErr != nil {
+		t.Fatalf("approval template should be strict JSON matching the approval file shape: %v\n%s", decodeErr, stdout)
+	}
+	if decoder.Decode(&struct{}{}) == nil {
+		t.Fatalf("approval template should contain exactly one JSON object:\n%s", stdout)
+	}
+	if got.Approver != "" || got.ApprovedAt != "" {
+		t.Fatalf("approval template should leave approver and approved_at empty for the reviewer: %#v", got)
+	}
+	if got.LocalPreviewCommit != commit {
+		t.Fatalf("approval template should include current local preview commit %q, got %#v", commit, got)
+	}
+	for _, name := range requiredShipcheckPublicApprovals() {
+		value := approvalValue(got, name)
+		if value == nil {
+			t.Fatalf("approval template missing approval field %s: %#v", name, got)
+		}
+		if *value {
+			t.Fatalf("approval template should not pre-approve %s: %#v", name, got)
+		}
+		if got.Evidence == nil {
+			t.Fatalf("approval template missing evidence object: %#v", got)
+		}
+		evidence, ok := got.Evidence[name]
+		if !ok {
+			t.Fatalf("approval template evidence missing key %s: %#v", name, got.Evidence)
+		}
+		if evidence != "" {
+			t.Fatalf("approval template evidence.%s should be empty for reviewer-supplied evidence, got %q", name, evidence)
+		}
+	}
+	if strings.Contains(stdout, "local_preview_passed") || strings.Contains(stdout, "checks") || strings.Contains(stdout, "next_approval_steps") {
+		t.Fatalf("approval template should not run or render public shipcheck response:\n%s", stdout)
+	}
+	if strings.Contains(strings.ToLower(stdout), "bearer ") || strings.Contains(stdout, "STRADDLE_TOKEN=") || strings.Contains(stdout, "sk_live") || strings.Contains(stdout, "sk_test") {
+		t.Fatalf("approval template should not emit token literals:\n%s", stdout)
+	}
+}
+
+func TestShipcheckPublicApprovalTemplateRejectsModifiedBuild(t *testing.T) {
+	commit := "1111111111111111111111111111111111111111"
+	withShipcheckCleanCommit(t, commit)
+	shipcheckReadBuildInfo = func() (*debug.BuildInfo, bool) {
+		return &debug.BuildInfo{Settings: []debug.BuildSetting{
+			{Key: "vcs.revision", Value: commit},
+			{Key: "vcs.modified", Value: "true"},
+		}}, true
+	}
+
+	_, _, err := runCLIForDocsTest(t, "shipcheck", "public", "--approval-template")
+	if err == nil {
+		t.Fatalf("shipcheck public --approval-template should reject modified build")
+	}
+	if !strings.Contains(strings.ToLower(err.Error()), "modified") {
+		t.Fatalf("modified build error should be clear, got %v", err)
+	}
+}
+
 func TestShipcheckPublicApprovalFileRejectsInvalidApprovals(t *testing.T) {
 	withShipcheckCleanCommit(t, "1111111111111111111111111111111111111111")
 	tests := []struct {

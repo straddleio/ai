@@ -141,6 +141,7 @@ This verifier inspects the in-process CLI command tree, local workflow plan name
 
 func newShipcheckPublicCmd(flags *rootFlags) *cobra.Command {
 	var approvalFile string
+	var approvalTemplate bool
 	cmd := &cobra.Command{
 		Use:   "public",
 		Short: "Run public-launch readiness checks",
@@ -149,6 +150,7 @@ func newShipcheckPublicCmd(flags *rootFlags) *cobra.Command {
 This verifier runs the local preview checks and then verifies whether required public launch approvals exist. An approval file is local validation only. It does not publish, push, upload, sign, notarize, call Straddle APIs, call docs endpoints, call GitHub, call npm, call Homebrew, execute MCP tools, read secrets, or write production.`,
 		Example: `  straddle-pp-cli shipcheck public
   straddle-pp-cli shipcheck public --json
+  straddle-pp-cli shipcheck public --approval-template
   straddle-pp-cli shipcheck public --approval-file ./public-launch-approval.json --json
   straddle-pp-cli shipcheck public --agent`,
 		Annotations: map[string]string{
@@ -159,6 +161,12 @@ This verifier runs the local preview checks and then verifies whether required p
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if flags.deliverSpec != "" {
 				return usageErr(fmt.Errorf("shipcheck public does not support --deliver; use normal stdout, JSON, or agent output"))
+			}
+			if approvalTemplate {
+				if strings.TrimSpace(approvalFile) != "" {
+					return usageErr(fmt.Errorf("shipcheck public --approval-template cannot be combined with --approval-file"))
+				}
+				return renderShipcheckPublicApprovalTemplate(cmd)
 			}
 			payload, checkErr := buildShipcheckPublicResponse(cmd.Root(), approvalFile)
 			if renderErr := renderShipcheckPublicResponse(cmd, flags, payload); renderErr != nil {
@@ -175,7 +183,43 @@ This verifier runs the local preview checks and then verifies whether required p
 	}
 	// PATCH: public-shipcheck-approval-file adds a strict local approval record gate without publishing or external calls.
 	cmd.Flags().StringVar(&approvalFile, "approval-file", "", "Local JSON file recording explicit public launch approvals; validates only and does not publish or call external services")
+	cmd.Flags().BoolVar(&approvalTemplate, "approval-template", false, "Print a strict JSON approval-file template for the current clean local preview commit; does not run checks, publish, call APIs, execute MCP, or read secrets")
 	return cmd
+}
+
+func renderShipcheckPublicApprovalTemplate(cmd *cobra.Command) error {
+	template, err := buildShipcheckPublicApprovalTemplate()
+	if err != nil {
+		return usageErr(fmt.Errorf("build approval template: %w", err))
+	}
+	encoder := json.NewEncoder(cmd.OutOrStdout())
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(template)
+}
+
+func buildShipcheckPublicApprovalTemplate() (shipcheckPublicApprovalFile, error) {
+	commit, err := currentShipcheckGitCommit()
+	if err != nil {
+		return shipcheckPublicApprovalFile{}, err
+	}
+	template := shipcheckPublicApprovalFile{
+		LocalPreviewCommit:  commit,
+		OwnerApproval:       boolPtr(false),
+		PublicDistribution:  boolPtr(false),
+		DocsSupport:         boolPtr(false),
+		DesktopMCP:          boolPtr(false),
+		LiveSmoke:           boolPtr(false),
+		SigningNotarization: boolPtr(false),
+		Evidence:            map[string]string{},
+	}
+	for _, name := range requiredShipcheckPublicApprovals() {
+		template.Evidence[name] = ""
+	}
+	return template, nil
+}
+
+func boolPtr(value bool) *bool {
+	return &value
 }
 
 func buildShipcheckLocalResponse(root *cobra.Command, mcpBinary string) (shipcheckLocalResponse, error) {

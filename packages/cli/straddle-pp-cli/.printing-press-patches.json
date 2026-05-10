@@ -571,6 +571,21 @@
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublic' covers unchanged no-approval blockers, valid approval readiness, token literal rejection, missing and false approvals, unknown fields, evidence checks, and local_preview_commit mismatch."
     },
     {
+      "id": "public-shipcheck-approval-template",
+      "summary": "Add a strict approval JSON template for shipcheck public.",
+      "reason": "Owners need a copyable approval-file shape bound to the current clean local preview commit without running local preview, publishing, calling APIs, executing MCP, reading secrets, signing, notarizing, or approving launch by default.",
+      "files": [
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "npm/README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublicApprovalTemplate' covers strict JSON shape, current local_preview_commit, false approval defaults, evidence keys for every public approval, no public shipcheck response rendering, token literal absence, and modified-build rejection."
+    },
+    {
       "id": "public-release-candidate-workflow",
       "summary": "Add a manual non-publishing release-candidate workflow.",
       "reason": "After local preview passes and owners provide an approval JSON record, agents need an executable review artifact path that validates public readiness against the built CLI without publishing, signing, notarizing, calling Straddle APIs, calling credential-bearing MCP tools, reading secrets, or uploading raw approval contents.",
