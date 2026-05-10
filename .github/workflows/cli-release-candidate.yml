@@ -11,6 +11,10 @@ on:
         description: "Review label for this public release candidate, letters, numbers, dots, underscores, and hyphens only"
         required: true
         type: string
+      candidate_ref:
+        description: "Git ref to check out for the candidate build. Defaults to the dispatched ref."
+        required: false
+        type: string
       approval_json:
         description: "Strict shipcheck public approval JSON. Do not include secrets. Use this or approval_json_base64, not both."
         required: false
@@ -34,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.candidate_ref || github.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
