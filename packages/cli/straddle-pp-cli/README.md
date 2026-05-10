@@ -474,6 +474,16 @@ make clean
 
 `make release-check` validates `.goreleaser.yaml`. `make release-snapshot` builds local snapshot archives and a local Homebrew cask, then skips publish. The archives and cask include both `straddle-pp-cli` and `straddle-pp-mcp`; they are local `dist/` artifacts only. `make clean` removes the generated output after inspection.
 
+For public-release readiness guidance without publishing or secrets:
+
+```bash
+straddle-pp-cli release plan --json
+straddle-pp-cli release plan all --json
+straddle-pp-cli release plan signing --agent
+```
+
+`release plan` covers `archives`, `homebrew`, `mcp`, `npm`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof, but desktop MCP packaging remains future work. No npm or npx path exists yet.
+
 Or install from the local module into `$GOPATH/bin`:
 
 ```bash
@@ -864,7 +874,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 84 because the MCP runtime also exposes 11 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 85 because the MCP runtime also exposes 12 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 

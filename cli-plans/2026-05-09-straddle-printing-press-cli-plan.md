@@ -630,6 +630,41 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Files touched:** `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/smoke.go`, `packages/cli/straddle-pp-cli/internal/cli/smoke_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-full-workflow.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
 
+#### Task 20: Add local public-release readiness plan command
+
+**Status:** Implemented in the 2026-05-09 release-plan slice.
+
+**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution decision blocker by making archive, Homebrew, MCP, npm, and signing blockers explicit without publishing or using secrets.
+
+**Acceptance criteria:**
+
+- [x] `release plan [surface]` exists under a `release` command tree.
+- [x] Supported surfaces are `archives`, `homebrew`, `mcp`, `npm`, `signing`, and `all`.
+- [x] The command lists supported surfaces when no surface is provided.
+- [x] Named surfaces return local proof commands, required future approvals, public artifact surfaces, and blockers.
+- [x] Local proof commands include `make release-check`, `make release-snapshot`, archive inspection, and `make clean` where relevant.
+- [x] Safety metadata states that the command is local-only guidance and does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets.
+- [x] `signing` explains signing and notarization are unresolved and required before public macOS distribution if Straddle chooses signed or notarized artifacts.
+- [x] `mcp` explains the MCP sibling exists and is archived, but desktop MCP bundle and public install remain future work.
+- [x] `npm` explains no npm or npx path exists yet.
+- [x] `release plan` rejects `--deliver` before delivery.
+- [x] `release plan --agent` uses the target envelope through the existing local JSON helper path.
+- [x] MCP runtime exposure includes `release_plan` as a read-only Cobra shell-out tool.
+
+**Verification:**
+
+- [x] Run focused release-plan CLI tests for surface list, named surfaces, all surface, invalid surface, agent envelope, and deliver rejection.
+- [x] Run focused MCP tests for `release_plan` shell-out exposure, read-only metadata, and runtime count 85.
+- [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
+- [x] Run `npm run validate`.
+- [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
+- [x] Run `git diff --check`.
+- [x] Run artifact cleanup find command.
+
+**Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, packaging readiness proof, GoReleaser snapshot proof, and release honesty docs.
+
+**Files touched:** `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/release.go`, `packages/cli/straddle-pp-cli/internal/cli/release_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-full-workflow.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

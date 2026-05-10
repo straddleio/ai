@@ -202,6 +202,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	// PATCH: smoke-plan adds local-only approved live-smoke planning guidance
 	// without calling Straddle APIs, docs endpoints, MCP, webhooks, sandbox, or production.
 	rootCmd.AddCommand(newSmokeCmd(flags))
+	// PATCH: release-plan adds local-only public-release readiness guidance
+	// without publishing, external service calls, MCP execution, signing, notarization, or secrets.
+	rootCmd.AddCommand(newReleaseCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))

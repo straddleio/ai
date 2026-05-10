@@ -50,13 +50,13 @@ Agent envelopes are documented and covered for current local commands
 
 Local dogfood commands exist for preview checks
 
-- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests. The next bounded slice added `smoke plan [scope]` as local-only planning for future approved read-only smoke.
+- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests. Later bounded slices added `smoke plan [scope]` as local-only planning for future approved read-only smoke and `release plan [surface]` as local-only public-release readiness guidance.
 - Status: Partial.
 - Missing work: Public launch still needs packaging, public-launch product approval, and approved live smoke.
 
 MCP count semantics are resolved
 
-- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` is expected to return 84 after `smoke_plan`, with 11 Cobra shell-out tools.
+- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` is expected to return 85 after `release_plan`, with 12 Cobra shell-out tools.
 - Status: Done for preview.
 - Missing work: Re-run runtime smoke after command tree changes.
 
@@ -123,11 +123,13 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
   Status: Built and documented. Local-only guidance, no live operation.
 - Smoke plan: `/tmp/straddle-pp-cli smoke plan all --json`.
   Status: Built and documented. Local-only runbook guidance, no live smoke execution or approval.
+- Release plan: `/tmp/straddle-pp-cli release plan all --json`.
+  Status: Built and documented. Local-only public-release readiness guidance, no publishing, external calls, signing, notarization, MCP execution, or secrets.
 - Generated command agent envelope: `/tmp/straddle-pp-cli customers list --dry-run --agent`.
   Status: Documented as target behavior. Use dry-run first, do not call the real API for this check.
 - Streaming agent envelope: use focused tests or local fake-server checks for `sync --agent` and real `tail --agent`.
   Status: Built and documented. Normal `--json` streaming remains raw NDJSON.
-- MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 84.
+- MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 85.
   Status: Documented. Confirms generated endpoint tools plus typed framework tools plus Cobra shell-out tools.
 - Local packaging readiness: `make package-readiness` from `packages/cli/straddle-pp-cli`.
   Status: Documented. Builds and verifies both local preview binaries, including the MCP sibling, without GoReleaser or publishing.
@@ -268,4 +270,4 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 - Ready for public CLI launch: no.
 - Ready for product packaging: partial local proof only, including non-publishing snapshot archive validation.
 - Ready for approved live smoke: no. A local runbook command exists, but no approved live smoke has run.
-- Next narrow work: get explicit smoke approval and credential scope, complete public-release distribution decisions, and decide whether the generated cask needs signing, notarization, or extra Homebrew metadata before publishing.
+- Next narrow work: get explicit smoke approval and credential scope, complete public-release distribution decisions surfaced by `release plan`, and decide whether the generated cask needs signing, notarization, or extra Homebrew metadata before publishing.

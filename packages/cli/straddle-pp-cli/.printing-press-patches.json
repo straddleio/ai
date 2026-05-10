@@ -236,6 +236,28 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSmokePlan' covers scope list, named scopes, real command resolution for command suggestions, all scope, invalid scope, agent envelope output, and deliver rejection. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover smoke_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 84."
+    },
+    {
+      "id": "release-plan",
+      "summary": "Add local-only public-release readiness guidance for archives, Homebrew, MCP, npm, signing, and all surfaces.",
+      "reason": "The preview needs a safe runbook command that reduces the public-release distribution decision blocker without publishing, pushing, uploading, signing, notarizing, calling external services, executing MCP tools, or reading secrets.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/release.go",
+        "internal/cli/release_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-full-workflow.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestReleasePlan' covers surface list, named surfaces, all surfaces, invalid surface, agent envelope output, and deliver rejection. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover release_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 85."
     }
   ]
 }
