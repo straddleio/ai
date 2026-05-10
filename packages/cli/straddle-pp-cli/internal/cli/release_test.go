@@ -29,7 +29,7 @@ func TestReleasePlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 	if got.Command != "release plan" {
 		t.Fatalf("command = %q, want release plan", got.Command)
 	}
-	wantSurfaces := []string{"archives", "homebrew", "mcp", "npm", "signing", "all"}
+	wantSurfaces := []string{"archives", "homebrew", "mcp", "naming", "npm", "signing", "all"}
 	if strings.Join(got.AvailableSurfaces, ",") != strings.Join(wantSurfaces, ",") {
 		t.Fatalf("available surfaces = %#v, want %#v", got.AvailableSurfaces, wantSurfaces)
 	}
@@ -55,6 +55,11 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 		"mcp": {
 			"make package-readiness",
 			"make release-snapshot",
+		},
+		"naming": {
+			"straddle-pp-cli --help",
+			"straddle-pp-cli about --json",
+			"straddle-pp-cli release plan naming --json",
 		},
 		"npm": {
 			"make release-check",
@@ -130,6 +135,17 @@ func TestReleasePlanSpecialSurfacesStayHonest(t *testing.T) {
 	if !strings.Contains(stdout, "No npm or npx path exists yet") {
 		t.Fatalf("npm surface should say no npm or npx path exists yet:\n%s", stdout)
 	}
+
+	stdout, _, err = runCLIForDocsTest(t, "release", "plan", "naming", "--json")
+	if err != nil {
+		t.Fatalf("release plan naming --json returned error: %v", err)
+	}
+	if !strings.Contains(stdout, "current preview command is straddle-pp-cli") {
+		t.Fatalf("naming surface should state the current preview command:\n%s", stdout)
+	}
+	if !strings.Contains(stdout, "public straddle command/binary is not approved yet") {
+		t.Fatalf("naming surface should state public straddle is not approved:\n%s", stdout)
+	}
 }
 
 func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
@@ -148,8 +164,8 @@ func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
 	if got.Surface != "all" {
 		t.Fatalf("surface = %q, want all", got.Surface)
 	}
-	if len(got.SurfacePlans) != 5 {
-		t.Fatalf("all surface should include five concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
+	if len(got.SurfacePlans) != 6 {
+		t.Fatalf("all surface should include six concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
 	}
 	if got.SurfacePlan != nil {
 		t.Fatalf("all surface should use surface_plans, not surface_plan: %#v", got.SurfacePlan)

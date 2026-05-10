@@ -634,12 +634,12 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Status:** Implemented in the 2026-05-09 release-plan slice.
 
-**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution decision blocker by making archive, Homebrew, MCP, npm, and signing blockers explicit without publishing or using secrets.
+**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution decision blocker by making archive, Homebrew, MCP, naming, npm, and signing blockers explicit without publishing or using secrets.
 
 **Acceptance criteria:**
 
 - [x] `release plan [surface]` exists under a `release` command tree.
-- [x] Supported surfaces are `archives`, `homebrew`, `mcp`, `npm`, `signing`, and `all`.
+- [x] Supported surfaces are `archives`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`.
 - [x] The command lists supported surfaces when no surface is provided.
 - [x] Named surfaces return local proof commands, required future approvals, public artifact surfaces, and blockers.
 - [x] Local proof commands include `make release-check`, `make release-snapshot`, archive inspection, and `make clean` where relevant.
@@ -654,7 +654,7 @@ After each slice passes spec review, quality review, and verification, the contr
 **Verification:**
 
 - [x] Run focused release-plan CLI tests for surface list, named surfaces, all surface, invalid surface, agent envelope, and deliver rejection.
-- [x] Run focused MCP tests for `release_plan` shell-out exposure, read-only metadata, and runtime count 85.
+- [x] Run focused MCP tests for `release_plan` shell-out exposure, read-only metadata, and the current MCP count validation.
 - [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
 - [x] Run `npm run validate`.
 - [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.

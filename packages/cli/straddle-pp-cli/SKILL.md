@@ -50,11 +50,12 @@ For public-release readiness guidance without publishing or secrets:
 
 ```bash
 straddle-pp-cli release plan --json
+straddle-pp-cli release plan naming --json
 straddle-pp-cli release plan all --json
 straddle-pp-cli release plan signing --agent
 ```
 
-`release plan` covers `archives`, `homebrew`, `mcp`, `npm`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof, but desktop MCP packaging remains future work. No npm or npx path exists yet.
+`release plan` covers `archives`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`. It prints local proof commands, required future approvals, public artifact surfaces, and blockers. It does not publish, push, upload, sign, notarize, call Straddle APIs, call GitHub APIs, call Homebrew, call npm, execute MCP tools, or read secrets. The naming surface states that the current preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved yet, and preview should keep `straddle-pp-cli` until compatibility review approves a replacement or migration plan. Signing and notarization remain unresolved before public macOS distribution if Straddle chooses signed or notarized artifacts. The MCP sibling exists and is included in local archive proof, but desktop MCP packaging remains future work. No npm or npx path exists yet.
 
 For credential storage readiness guidance without reading or writing secrets:
 

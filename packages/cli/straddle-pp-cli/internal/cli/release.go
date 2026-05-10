@@ -194,7 +194,7 @@ func renderReleasePlanResponse(cmd *cobra.Command, flags *rootFlags, payload rel
 }
 
 func releaseSurfaceNames() []string {
-	return []string{"archives", "homebrew", "mcp", "npm", "signing", "all"}
+	return []string{"archives", "homebrew", "mcp", "naming", "npm", "signing", "all"}
 }
 
 func releaseSurfacePlanByName(name string) (releaseSurfacePlan, bool) {
@@ -289,6 +289,46 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Blockers: []string{
 				"MCP sibling exists and is archived in local snapshot proof, but there is no public desktop MCP bundle.",
 				"Public MCP install and registration are future work.",
+			},
+		},
+		// PATCH: naming records the preview command and undecided public straddle replacement.
+		{
+			Name:    "naming",
+			Title:   "Public command naming decision",
+			Summary: "State that the current preview command is straddle-pp-cli and the public straddle command/binary is not approved yet.",
+			LocalProofCommands: []string{
+				"straddle-pp-cli --help",
+				"straddle-pp-cli about --json",
+				"straddle-pp-cli release plan naming --json",
+			},
+			PublicArtifactSurfaces: []string{
+				"Future public straddle binary or alias",
+				"Preview straddle-pp-cli binary",
+				"Installer docs",
+				"Homebrew, npx, and package naming",
+				"MCP binary naming",
+			},
+			RequiredFutureApprovals: []string{
+				"Product approval for public help/output and docs wording.",
+				"Support and issue intake ownership before public install docs mention a supported command.",
+			},
+			RequiredDecisions: []string{
+				"Decide whether the public binary remains preview-scoped as straddle-pp-cli or becomes straddle.",
+				"Complete an existing Straddle CLI behavior inventory and compatibility review.",
+				"Approve an alias, migration, and deprecation plan if replacing or aliasing an existing straddle command.",
+				"Recommended default: keep straddle-pp-cli for preview and reserve straddle for an explicit replacement or migration decision after compatibility review.",
+			},
+			Blockers: []string{
+				"Public binary name is undecided.",
+				"Existing Straddle CLI compatibility inventory is incomplete.",
+				"No migration or alias plan is approved.",
+				"Public install docs and support wording are not approved.",
+				"Live smoke is not approved or run.",
+			},
+			Notes: []string{
+				"The current preview command is straddle-pp-cli.",
+				"The public straddle command/binary is not approved yet.",
+				"The generated MCP sibling is currently named straddle-pp-mcp; public MCP binary naming still needs the same compatibility review.",
 			},
 		},
 		{

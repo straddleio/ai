@@ -129,7 +129,7 @@ These are blockers for claiming the activated goal is complete:
 3. The public-launch product review gate exists at `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md`, but it rejects approval until owner decisions and approved live smoke happen.
 4. Credential launch posture is still not approved for broad public launch. The repo now has opt-in preview keychain support, but still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 5. Operational workflows are still planning guidance. Reconciliation, fraud monitoring, collections, reporting, and monitoring have useful local plans, but no approved live read execution or workflow engines.
-6. The generated preview is still named `straddle-pp-cli`. Replacing or publishing the public `straddle` binary needs an explicit naming and migration decision.
+6. The generated preview is still named `straddle-pp-cli`. `straddle-pp-cli release plan naming --json` now documents that `straddle` is not approved yet, but replacing or publishing the public `straddle` binary still needs an explicit naming and migration decision.
 7. Phase 5 live smoke remains not done.
 8. Durable subagent/review evidence for all historical slices is incomplete. Future slices should either commit reviewer summaries into the relevant audit artifact or keep the plan checklist partial.
 
