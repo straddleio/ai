@@ -45,16 +45,18 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Reporting workflow | `ops guide reporting` and `workflow plan reporting` provide local guidance and structured phases. | Partial, no live report execution or exports |
 | Monitoring workflow | `ops guide monitoring` and `workflow plan monitoring` provide local guidance and structured phases. | Partial, no polling, alerting, or webhook delivery |
 | Sandbox testing | `sandbox guide` and `smoke plan` are local-only planning commands; docs require explicit approval and secure sandbox credentials before live work. | Partial, no live smoke |
+| Live smoke approval packet | `smoke plan approval --json` exists and prints required written approval fields, expected evidence, stop criteria, redaction guidance, and safe command suggestions. It is local-only and makes no API, docs, MCP, sandbox, or production calls. | Partial, reduces approval planning blocker, no live smoke |
 | Docs search | `docs search` separates product docs, command search, and API or SDK `search_docs` guidance. | Done for preview |
 | Safe token guidance | `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented; `credentials plan launch` reports no secret reads/writes and lists keychain preview support plus remaining launch approvals. | Partial, owner/security approval, packaged-client smoke, approved live read-only smoke, and docs wording open |
 | Release path | `make package-readiness`, `make release-check`, and `make release-snapshot` exist and prior scorecard evidence says local archives include both CLI and MCP. A 2026-05-10 keychain packaging smoke reran `make package-readiness` and `make release-check` after adding `go-keyring`, then cleaned local outputs. | Partial, no public publish, signing, notarization, packaged-client keychain smoke, or approved live smoke |
+| Release naming plan | `release plan naming --json` exists and records that the preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved, compatibility inventory is incomplete, and any alias, migration, or replacement plan still needs approval. | Partial, reduces naming decision blocker, no public command chosen |
 | Validation | Fresh `npm run validate` passed with `Summary: 0 errors`; generated artifact validation checks config, CLI main, README, SKILL, spec title, MCP main, `internal/mcp`, MCP typed counts, and endpoint count. | Done for preview |
 | Go tests | Fresh `go test -count=1 ./...` passed in `packages/cli/straddle-pp-cli`. | Done for preview |
 | MCP runtime, not just source validation | Fresh JSON-RPC `tools/list` against a `/tmp` MCP build returned `tool_count: 87`, `workflow_plan.readOnlyHint: true`, `workflow_plan.destructiveHint: false`, `credentials_plan.readOnlyHint: true`, and `credentials_plan.destructiveHint: false`. | Done for preview |
 | Patch manifest | `.printing-press-patches.json` is valid JSON and catalogs safe-token, agent-output, docs-search, setup, sandbox, ops, smoke, release, credentials, and workflow-plan patches. | Done for preview |
 | Product review | `cli-plans/2026-05-09-straddle-cli-product-review.md` approves local preview and rejects public launch. `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md` now exists as the public-launch gate and also rejects approval until owner decisions and live smoke happen. | Done for local preview, blocked for public launch |
-| Subagent-driven process and review gates | The plan requires subagent-driven implementation plus spec and quality review before each slice. The current completion-audit slice is undergoing independent audit, spec review, and quality review. Durable repo evidence for all historical reviewer reports is incomplete, so this cannot be treated as fully satisfied for the whole goal. | Partial |
-| Commit cadence | Recent history contains small commits for workflow planning, credential planning, MCP smoke, release planning, smoke planning, release validation, product review, and package readiness. This audit slice is not complete until these files are committed after review and verification. | Partial |
+| Subagent-driven process and review gates | The plan requires subagent-driven implementation plus spec and quality review before each slice. The latest naming and smoke-approval slices used implementer, spec review, quality review, verification, and commits. Durable repo evidence for all historical reviewer reports remains incomplete, so this cannot be treated as fully satisfied for the whole goal. | Partial |
+| Commit cadence | Recent history contains small commits for workflow planning, credential planning, MCP smoke, release planning, smoke planning, release validation, product review, package readiness, `39444c8 feat: add release naming plan`, and `8eac604 feat: add smoke approval plan`. | Partial |
 | Public launch | Docs repeatedly state this is a local preview, not a public launch artifact. | Not done |
 
 ## Fresh Verification
@@ -109,6 +111,8 @@ go build -o /tmp/straddle-pp-cli-audit ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli-audit about --agent
 /tmp/straddle-pp-cli-audit workflow plan all --json
 /tmp/straddle-pp-cli-audit credentials plan launch --json
+/tmp/straddle-pp-cli-audit release plan naming --json
+/tmp/straddle-pp-cli-audit smoke plan approval --json
 rm -f /tmp/straddle-pp-cli-audit
 ```
 
@@ -118,6 +122,8 @@ Observed summaries:
 {"name":"about","schema_version":"1.0","error":null,"data.command":"about","data.status":"local preview"}
 {"name":"workflow","workflow_count":5,"first_workflow":"reconciliation"}
 {"name":"credentials","surface":"launch","blockers":["Owner/security approval is missing.","Packaged-client smoke is missing.","Public docs wording is missing.","Desktop MCP public install remains future work."]}
+{"name":"release","surface":"naming","current_preview":"straddle-pp-cli","public_straddle_approved":false,"blockers":["Public binary name is undecided.","Existing Straddle CLI compatibility inventory is incomplete.","No migration or alias plan is approved.","Public install docs and support wording are not approved.","Live smoke is not approved or run."]}
+{"name":"smoke","scope":"approval","requires_explicit_approval":true,"requires_secure_credential_flow":true,"no_live_execution_in_command":true,"evidence":["redacted command","exit code","endpoint or tool name","environment classification","object count or empty-list proof","no token exposure"]}
 ```
 
 ## Missing Work

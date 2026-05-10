@@ -20,6 +20,8 @@ This artifact does not approve public launch, publishing, signing, notarization,
 
 The reviewed evidence says Printing Press `4.2.0` generated `straddle-pp-cli` and `straddle-pp-mcp` from the Straddle OpenAPI source. The latest completion audit records passing local validation, passing Go tests, credential-free CLI smoke, and credential-free MCP `tools/list` smoke with `tool_count: 87`. It also records no public publish, no approved live read-only smoke, no signed or notarized macOS distribution, no desktop MCP package, and no final launch decision for credential storage.
 
+The latest local surfaces reduce planning ambiguity but do not approve launch. `release plan naming --json` records that `straddle-pp-cli` is still the preview command and that the public `straddle` binary is not approved. `smoke plan approval --json` records the approval packet fields, expected evidence, stop criteria, and redaction guidance required before any future live read-only smoke.
+
 Ramp remains a benchmark only. Stainless remains a downstream behavior reference only. Printing Press remains the generator foundation.
 
 ## Decision
@@ -37,6 +39,7 @@ It is not good enough for public users because the required launch decisions and
 - CLI preview path: `packages/cli/straddle-pp-cli`.
 - Generated binaries can be built locally from `cmd/straddle-pp-cli` and `cmd/straddle-pp-mcp`.
 - `about`, `setup check`, `docs search`, `sandbox guide`, `ops guide`, `workflow plan`, `smoke plan`, `release plan`, and `credentials plan` are documented as local or planning surfaces.
+- `release plan naming --json` and `smoke plan approval --json` provide local evidence for the remaining naming and live-smoke approval decisions without choosing the public command, running smoke, publishing, signing, notarizing, or approving support docs.
 - Agent-mode envelopes are documented for generated list and read paths plus local helper paths covered by the completion audit.
 - Local validation and generated Go tests are part of the current evidence set.
 - Local archive readiness exists through non-publishing checks, including local archives that contain both CLI and MCP sibling binaries.
