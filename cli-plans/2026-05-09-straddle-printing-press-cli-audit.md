@@ -40,12 +40,12 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
 | Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, ops guide, smoke plan, and release plan, but approved live workflow execution and full workflow engines have not been built. |
-| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, local GoReleaser archive validation, local-preview product review, live-smoke planning, and public-release readiness planning exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` now expects 85 with 12 Cobra shell-out tools including `docs_search`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, and `smoke_plan`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
+| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, local GoReleaser archive validation, local-preview product review, live-smoke planning, public-release readiness planning, and a refreshed local MCP runtime smoke exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and local JSON-RPC `tools/list` returned 85 with `release_plan` marked `readOnlyHint: true` and `destructiveHint: false`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
 
-Captured on `2026-05-09 00:35 MDT`.
+Captured on `2026-05-09 00:35 MDT`, with MCP runtime smoke refreshed on `2026-05-09 18:21 MDT`.
 
 Root validation:
 

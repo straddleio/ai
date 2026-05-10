@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, local-preview product review completed, and local-only live-smoke planning added.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, local-preview product review completed, local-only live-smoke planning added, local-only release planning added, and a refreshed MCP runtime smoke completed after the command tree changed.
 
-Score: 7.2 of 10 for the current preview slice.
+Score: 7.3 of 10 for the current preview slice.
 
-The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`, and `straddle-pp-cli smoke plan [scope]` for future approved read-only smoke planning. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed before this slice. The full public CLI goal is not complete. Public release, actual approved live smoke, public-launch product review, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`, `straddle-pp-cli smoke plan [scope]` for future approved read-only smoke planning, `straddle-pp-cli release plan [surface]` for local-only public-release readiness planning, and a refreshed MCP `tools/list` runtime smoke from 2026-05-09 18:21 MDT. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed before this slice. The full public CLI goal is not complete. Public release, actual approved live smoke, public-launch product review, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -56,9 +56,9 @@ Local dogfood commands exist for preview checks
 
 MCP count semantics are resolved
 
-- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` is expected to return 85 after `release_plan`, with 12 Cobra shell-out tools.
+- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools. A local JSON-RPC `tools/list` smoke against `/tmp/straddle-pp-mcp` on 2026-05-09 18:21 MDT returned `tool_count: 85` and included `release_plan` with `readOnlyHint: true` and `destructiveHint: false`.
 - Status: Done for preview.
-- Missing work: Re-run runtime smoke after command tree changes.
+- Missing work: Re-run runtime smoke after any future command tree change.
 
 Patch manifest is valid and documented
 
@@ -212,6 +212,20 @@ Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the gener
 | `/tmp/straddle-pp-cli-product-review ops guide --json` | Pass | Returned local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring. |
 | `/tmp/straddle-pp-cli-product-review customers list --dry-run --agent` | Pass | Emitted one target JSON envelope with `data.dry_run: true` and no human request preview text. |
 | JSON-RPC `tools/list` smoke against `/tmp/straddle-pp-mcp-product-review` | Pass | Returned tool count 83 and included `setup_check`, `docs_search`, `sandbox_guide`, and `ops_guide`. |
+
+## MCP Runtime Smoke Refresh Results
+
+Run time: 2026-05-09 18:21 MDT.
+
+Run from `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli`.
+
+This run only built a local MCP binary in `/tmp`, sent JSON-RPC `initialize` and `tools/list`, inspected the returned tool metadata, and removed the temporary binary. It did not call Straddle APIs, docs endpoints, GitHub, Homebrew, npm, publishing, signing, notarization, secrets, or business MCP tools.
+
+| Command | Result | Observed output |
+|---------|--------|-----------------|
+| `go build -o /tmp/straddle-pp-mcp ./cmd/straddle-pp-mcp` | Pass | No output. |
+| Local JSON-RPC `initialize` plus `tools/list` against `/tmp/straddle-pp-mcp` | Pass | Returned `{ "ok": true, "tool_count": 85, "release_plan": { "name": "release_plan", "readOnlyHint": true, "destructiveHint": false, "openWorldHint": true } }`. |
+| `rm -f /tmp/straddle-pp-mcp && test ! -e /tmp/straddle-pp-mcp` | Pass | Temp binary removed. |
 
 ## Verification Commands
 
