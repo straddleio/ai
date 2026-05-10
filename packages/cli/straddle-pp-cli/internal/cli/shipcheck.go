@@ -12,10 +12,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"time"
@@ -75,6 +77,20 @@ type shipcheckPublicResponse struct {
 	NextApprovalSteps  []string               `json:"next_approval_steps"`
 }
 
+// PATCH: public-shipcheck-approval-file validates explicit local launch approvals without publishing or external service calls.
+type shipcheckPublicApprovalFile struct {
+	Approver            string            `json:"approver"`
+	ApprovedAt          string            `json:"approved_at"`
+	LocalPreviewCommit  string            `json:"local_preview_commit"`
+	OwnerApproval       *bool             `json:"owner_approval"`
+	PublicDistribution  *bool             `json:"public_distribution"`
+	DocsSupport         *bool             `json:"docs_support"`
+	DesktopMCP          *bool             `json:"desktop_mcp"`
+	LiveSmoke           *bool             `json:"live_smoke"`
+	SigningNotarization *bool             `json:"signing_notarization"`
+	Evidence            map[string]string `json:"evidence"`
+}
+
 func newShipcheckCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "shipcheck",
@@ -124,14 +140,16 @@ This verifier inspects the in-process CLI command tree, local workflow plan name
 }
 
 func newShipcheckPublicCmd(flags *rootFlags) *cobra.Command {
+	var approvalFile string
 	cmd := &cobra.Command{
 		Use:   "public",
 		Short: "Run public-launch readiness checks",
 		Long: `Run public-launch readiness checks.
 
-This verifier runs the local preview checks and then verifies whether required public launch approvals exist. It does not publish, push, upload, sign, notarize, call Straddle APIs, call docs endpoints, call GitHub, call npm, call Homebrew, execute MCP tools, read secrets, or write production.`,
+This verifier runs the local preview checks and then verifies whether required public launch approvals exist. An approval file is local validation only. It does not publish, push, upload, sign, notarize, call Straddle APIs, call docs endpoints, call GitHub, call npm, call Homebrew, execute MCP tools, read secrets, or write production.`,
 		Example: `  straddle-pp-cli shipcheck public
   straddle-pp-cli shipcheck public --json
+  straddle-pp-cli shipcheck public --approval-file ./public-launch-approval.json --json
   straddle-pp-cli shipcheck public --agent`,
 		Annotations: map[string]string{
 			"mcp:read-only":              "true",
@@ -142,7 +160,7 @@ This verifier runs the local preview checks and then verifies whether required p
 			if flags.deliverSpec != "" {
 				return usageErr(fmt.Errorf("shipcheck public does not support --deliver; use normal stdout, JSON, or agent output"))
 			}
-			payload, checkErr := buildShipcheckPublicResponse(cmd.Root())
+			payload, checkErr := buildShipcheckPublicResponse(cmd.Root(), approvalFile)
 			if renderErr := renderShipcheckPublicResponse(cmd, flags, payload); renderErr != nil {
 				return renderErr
 			}
@@ -155,6 +173,8 @@ This verifier runs the local preview checks and then verifies whether required p
 			return nil
 		},
 	}
+	// PATCH: public-shipcheck-approval-file adds a strict local approval record gate without publishing or external calls.
+	cmd.Flags().StringVar(&approvalFile, "approval-file", "", "Local JSON file recording explicit public launch approvals; validates only and does not publish or call external services")
 	return cmd
 }
 
@@ -193,7 +213,7 @@ func buildShipcheckLocalResponse(root *cobra.Command, mcpBinary string) (shipche
 	return payload, firstErr
 }
 
-func buildShipcheckPublicResponse(root *cobra.Command) (shipcheckPublicResponse, error) {
+func buildShipcheckPublicResponse(root *cobra.Command, approvalFile string) (shipcheckPublicResponse, error) {
 	local, localErr := buildShipcheckLocalResponse(root, "")
 	payload := shipcheckPublicResponse{
 		Command:            "shipcheck public",
@@ -215,7 +235,20 @@ func buildShipcheckPublicResponse(root *cobra.Command) (shipcheckPublicResponse,
 			"shipcheck local",
 		},
 	})
-	payload.Checks = append(payload.Checks, publicLaunchBlockerChecks()...)
+
+	publicChecks := publicLaunchBlockerChecks()
+	if strings.TrimSpace(approvalFile) != "" {
+		approvalCheck, approval, approvalErr := checkShipcheckPublicApprovalFile(approvalFile)
+		payload.Checks = append(payload.Checks, approvalCheck)
+		if approvalErr == nil {
+			publicChecks = approvePublicLaunchChecks(publicChecks, approval)
+			payload.NextApprovalSteps = nil
+		}
+		if approvalErr != nil && localErr == nil {
+			localErr = approvalErr
+		}
+	}
+	payload.Checks = append(payload.Checks, publicChecks...)
 
 	payload.Ready = true
 	var firstErr error
@@ -231,6 +264,310 @@ func buildShipcheckPublicResponse(root *cobra.Command) (shipcheckPublicResponse,
 		}
 	}
 	return payload, firstErr
+}
+
+func checkShipcheckPublicApprovalFile(path string) (shipcheckCheck, shipcheckPublicApprovalFile, error) {
+	check := shipcheckCheck{
+		Name: "approval_file",
+		Note: "local approval-file validation only; no publishing, API calls, GitHub, npm, Homebrew, MCP execution, signing, notarization, or secrets",
+	}
+	approval, err := loadShipcheckPublicApprovalFile(path)
+	if err != nil {
+		check.Note = err.Error()
+		return check, shipcheckPublicApprovalFile{}, err
+	}
+	if err := validateShipcheckPublicApproval(approval); err != nil {
+		check.Note = err.Error()
+		return check, shipcheckPublicApprovalFile{}, err
+	}
+	check.Passed = true
+	check.Evidence = []string{
+		"approval file validated locally",
+		"approved by " + strings.TrimSpace(approval.Approver),
+		"approved_at " + strings.TrimSpace(approval.ApprovedAt),
+		"local_preview_commit " + strings.TrimSpace(approval.LocalPreviewCommit),
+	}
+	return check, approval, nil
+}
+
+func loadShipcheckPublicApprovalFile(path string) (shipcheckPublicApprovalFile, error) {
+	if strings.TrimSpace(path) == "" {
+		return shipcheckPublicApprovalFile{}, usageErr(fmt.Errorf("shipcheck public requires --approval-file when approval validation is requested"))
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return shipcheckPublicApprovalFile{}, usageErr(fmt.Errorf("read approval file: %w", err))
+	}
+	if err := rejectShipcheckPublicApprovalTokenLiterals(raw); err != nil {
+		return shipcheckPublicApprovalFile{}, usageErr(err)
+	}
+
+	var approval shipcheckPublicApprovalFile
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&approval); err != nil {
+		return shipcheckPublicApprovalFile{}, usageErr(fmt.Errorf("approval file must be strict JSON: %w", err))
+	}
+	if decoder.Decode(&struct{}{}) != io.EOF {
+		return shipcheckPublicApprovalFile{}, usageErr(fmt.Errorf("approval file must contain one JSON object"))
+	}
+	return approval, nil
+}
+
+func rejectShipcheckPublicApprovalTokenLiterals(raw []byte) error {
+	var value any
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return fmt.Errorf("approval file must be JSON: %w", err)
+	}
+	if smokeApprovalHasTokenLiteral(value, "") {
+		return fmt.Errorf("approval file must not contain token literals or bearer credentials")
+	}
+	return nil
+}
+
+func validateShipcheckPublicApproval(approval shipcheckPublicApprovalFile) error {
+	var missing []string
+	if strings.TrimSpace(approval.Approver) == "" {
+		missing = append(missing, "approver")
+	}
+	if strings.TrimSpace(approval.ApprovedAt) == "" {
+		missing = append(missing, "approved_at")
+	} else if _, err := time.Parse(time.RFC3339, strings.TrimSpace(approval.ApprovedAt)); err != nil {
+		return usageErr(fmt.Errorf("approval file approved_at must be RFC3339: %w", err))
+	}
+	if strings.TrimSpace(approval.LocalPreviewCommit) == "" {
+		missing = append(missing, "local_preview_commit")
+	}
+	if approval.Evidence == nil {
+		missing = append(missing, "evidence")
+	}
+	for _, name := range requiredShipcheckPublicApprovals() {
+		if approvalValue(approval, name) == nil {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		return usageErr(fmt.Errorf("approval file missing required field(s): %s", strings.Join(missing, ", ")))
+	}
+
+	for name := range approval.Evidence {
+		if !isRequiredShipcheckPublicApproval(name) {
+			return usageErr(fmt.Errorf("approval file evidence contains unknown field %q", name))
+		}
+	}
+	for _, name := range requiredShipcheckPublicApprovals() {
+		value := approvalValue(approval, name)
+		if value == nil || !*value {
+			return usageErr(fmt.Errorf("approval file must set %s true", name))
+		}
+		if strings.TrimSpace(approval.Evidence[name]) == "" {
+			return usageErr(fmt.Errorf("approval file evidence.%s must be a non-empty string", name))
+		}
+	}
+
+	currentCommit, err := currentShipcheckGitCommit()
+	if err != nil {
+		return usageErr(fmt.Errorf("determine current git commit for approval validation: %w", err))
+	}
+	if !strings.EqualFold(strings.TrimSpace(approval.LocalPreviewCommit), currentCommit) {
+		return usageErr(fmt.Errorf("approval file local_preview_commit %q does not match current git commit %q", approval.LocalPreviewCommit, currentCommit))
+	}
+	return nil
+}
+
+func approvalValue(approval shipcheckPublicApprovalFile, name string) *bool {
+	switch name {
+	case "owner_approval":
+		return approval.OwnerApproval
+	case "public_distribution":
+		return approval.PublicDistribution
+	case "docs_support":
+		return approval.DocsSupport
+	case "desktop_mcp":
+		return approval.DesktopMCP
+	case "live_smoke":
+		return approval.LiveSmoke
+	case "signing_notarization":
+		return approval.SigningNotarization
+	default:
+		return nil
+	}
+}
+
+func isRequiredShipcheckPublicApproval(name string) bool {
+	for _, required := range requiredShipcheckPublicApprovals() {
+		if name == required {
+			return true
+		}
+	}
+	return false
+}
+
+func approvePublicLaunchChecks(checks []shipcheckCheck, approval shipcheckPublicApprovalFile) []shipcheckCheck {
+	approved := make([]shipcheckCheck, 0, len(checks))
+	for _, check := range checks {
+		evidence := strings.TrimSpace(approval.Evidence[check.Name])
+		if evidence != "" {
+			check.Passed = true
+			check.Note = "approved locally by " + strings.TrimSpace(approval.Approver) + " at " + strings.TrimSpace(approval.ApprovedAt)
+			check.Evidence = append([]string{
+				"approved by " + strings.TrimSpace(approval.Approver),
+				"local_preview_commit " + strings.TrimSpace(approval.LocalPreviewCommit),
+			}, evidence)
+		}
+		approved = append(approved, check)
+	}
+	return approved
+}
+
+func requiredShipcheckPublicApprovals() []string {
+	return []string{
+		"owner_approval",
+		"public_distribution",
+		"docs_support",
+		"desktop_mcp",
+		"live_smoke",
+		"signing_notarization",
+	}
+}
+
+var shipcheckReadBuildInfo = debug.ReadBuildInfo
+var shipcheckWorktreeModified = defaultShipcheckWorktreeModified
+
+func currentShipcheckGitCommit() (string, error) {
+	if info, ok := shipcheckReadBuildInfo(); ok {
+		var revision string
+		for _, setting := range info.Settings {
+			switch setting.Key {
+			case "vcs.modified":
+				if strings.EqualFold(strings.TrimSpace(setting.Value), "true") {
+					return "", fmt.Errorf("current binary was built from a modified worktree")
+				}
+			case "vcs.revision":
+				revision = strings.TrimSpace(setting.Value)
+			}
+		}
+		if shipcheckValidSHA1Hex(revision) {
+			return revision, nil
+		}
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	worktree, gitDir, err := findShipcheckGitWorktreeAndDir(cwd)
+	if err != nil {
+		return "", err
+	}
+	modified, err := shipcheckWorktreeModified(worktree)
+	if err != nil {
+		return "", err
+	}
+	if modified {
+		return "", fmt.Errorf("current git worktree has uncommitted tracked changes")
+	}
+	head, err := os.ReadFile(filepath.Join(gitDir, "HEAD"))
+	if err != nil {
+		return "", err
+	}
+	value := strings.TrimSpace(string(head))
+	if commit := strings.TrimSpace(value); shipcheckValidSHA1Hex(commit) {
+		return commit, nil
+	}
+	ref, ok := strings.CutPrefix(value, "ref:")
+	if !ok {
+		return "", fmt.Errorf("git HEAD is neither a commit nor a ref")
+	}
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return "", fmt.Errorf("git HEAD ref is blank")
+	}
+	if commit, err := readShipcheckGitRef(gitDir, ref); err == nil {
+		return commit, nil
+	}
+	return readShipcheckPackedGitRef(gitDir, ref)
+}
+
+func findShipcheckGitDir(start string) (string, error) {
+	_, gitDir, err := findShipcheckGitWorktreeAndDir(start)
+	return gitDir, err
+}
+
+func findShipcheckGitWorktreeAndDir(start string) (string, string, error) {
+	for current := filepath.Clean(start); current != "." && current != string(filepath.Separator); current = filepath.Dir(current) {
+		candidate := filepath.Join(current, ".git")
+		info, err := os.Stat(candidate)
+		if err == nil && info.IsDir() {
+			return current, candidate, nil
+		}
+		if err == nil && !info.IsDir() {
+			raw, readErr := os.ReadFile(candidate)
+			if readErr != nil {
+				return "", "", readErr
+			}
+			gitDir, ok := strings.CutPrefix(strings.TrimSpace(string(raw)), "gitdir:")
+			if !ok {
+				return "", "", fmt.Errorf("%s is not a gitdir file", candidate)
+			}
+			gitDir = strings.TrimSpace(gitDir)
+			if filepath.IsAbs(gitDir) {
+				return current, filepath.Clean(gitDir), nil
+			}
+			return current, filepath.Clean(filepath.Join(current, gitDir)), nil
+		}
+		if filepath.Dir(current) == current {
+			break
+		}
+	}
+	return "", "", fmt.Errorf("no .git directory found from %s", start)
+}
+
+func defaultShipcheckWorktreeModified(worktree string) (bool, error) {
+	cmd := exec.Command("git", "-C", worktree, "status", "--porcelain", "--untracked-files=no")
+	output, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+	return strings.TrimSpace(string(output)) != "", nil
+}
+
+func readShipcheckGitRef(gitDir string, ref string) (string, error) {
+	raw, err := os.ReadFile(filepath.Join(gitDir, filepath.FromSlash(ref)))
+	if err != nil {
+		return "", err
+	}
+	commit := strings.TrimSpace(string(raw))
+	if !shipcheckValidSHA1Hex(commit) {
+		return "", fmt.Errorf("git ref %s does not contain a 40-character commit", ref)
+	}
+	return commit, nil
+}
+
+func readShipcheckPackedGitRef(gitDir string, ref string) (string, error) {
+	raw, err := os.ReadFile(filepath.Join(gitDir, "packed-refs"))
+	if err != nil {
+		return "", err
+	}
+	for _, line := range strings.Split(string(raw), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "^") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) == 2 && fields[1] == ref && shipcheckValidSHA1Hex(fields[0]) {
+			return fields[0], nil
+		}
+	}
+	return "", fmt.Errorf("git ref %s not found", ref)
+}
+
+func shipcheckValidSHA1Hex(value string) bool {
+	if len(value) != 40 {
+		return false
+	}
+	_, err := hex.DecodeString(value)
+	return err == nil
 }
 
 func publicLaunchBlockerChecks() []shipcheckCheck {

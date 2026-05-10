@@ -557,6 +557,20 @@
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublic|TestShipcheckLocal|TestDocsSearchCommandsIndexesLocalHelperCommands', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, make package-readiness, packaged shipcheck public --json smoke, packaged MCP tools/list smoke, and make release-readiness cover shipcheck public JSON and agent output, intentional nonzero exit on missing approvals, local preview pass-through, docs command indexing, MCP runtime metadata count 93 with shipcheck_public, generated CLI validation, packaged shipcheck, MCP bundle, snapshot archives, and local npm package proof."
     },
     {
+      "id": "public-shipcheck-approval-file",
+      "summary": "Add strict local approval-file validation for shipcheck public.",
+      "reason": "Public launch readiness needs an explicit local approval record that can clear the existing public blockers only after local preview passes, while still doing no publishing, external service calls, MCP execution, signing, notarization, or secret reads.",
+      "files": [
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublic' covers unchanged no-approval blockers, valid approval readiness, token literal rejection, missing and false approvals, unknown fields, evidence checks, and local_preview_commit mismatch."
+    },
+    {
       "id": "completion-audit-discovery",
       "summary": "Make monitoring and ops helper commands resolve through local docs command search.",
       "reason": "The completion audit found that monitoring queries could resolve to unrelated generated endpoint commands even though monitoring is an explicit goal surface.",
