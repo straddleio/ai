@@ -517,6 +517,22 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestBenchmarkRamp|TestDocsSearchCommandsIndexesLocalHelperCommands|TestShipcheckLocal(ObjectiveSurfaces|CommandTreeRequiredPaths)', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, and make release-readiness cover benchmark ramp JSON, agent envelope, local-only safety, token non-leakage, public blockers, docs command indexing, shipcheck objective evidence, MCP context metadata, read-only MCP registration, generated CLI validation, snapshot archives, packaged shipcheck, MCP bundle, and local npm package proof."
+    },
+    {
+      "id": "completion-audit-cleanup",
+      "summary": "Close local completion-audit gaps for ops aggregation, benchmark word-art proof, and MCP runtime docs.",
+      "reason": "The completion audit found local issues that could be fixed without owner approval: ops guide lacked an explicit all selector, benchmark ramp only implied word-art proof, and docs still described the previous MCP runtime tool count.",
+      "files": [
+        "internal/cli/ops.go",
+        "internal/cli/ops_test.go",
+        "internal/cli/benchmark.go",
+        "internal/cli/benchmark_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestOpsGuide|TestBenchmarkRamp', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, make release-readiness, and make package-readiness cover ops guide all, local-only ops safety, benchmark ramp direct word-art evidence, current MCP runtime count 92 with benchmark_ramp, generated CLI validation, snapshot archives, packaged shipcheck, MCP bundle, and local npm package proof."
     }
   ]
 }

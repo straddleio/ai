@@ -108,7 +108,7 @@ straddle-pp-cli benchmark ramp --json
 straddle-pp-cli benchmark ramp --agent
 ```
 
-`benchmark ramp` is local-only comparison output for the Ramp CLI and MCP reference. It returns dimensions for OpenAPI command coverage, agent output, MCP readiness, docs discovery, credential guidance, presentation polish, operational workflows, and distribution readiness. It does not browse Ramp, call Straddle APIs, call docs endpoints, execute MCP, read secrets, write credentials, publish, or approve launch.
+`benchmark ramp` is local-only comparison output for the Ramp CLI and MCP reference. It returns dimensions for OpenAPI command coverage, agent output, MCP readiness, docs discovery, credential guidance, presentation polish including Straddle ASCII word art, operational workflows, and distribution readiness. It does not browse Ramp, call Straddle APIs, call docs endpoints, execute MCP, read secrets, write credentials, publish, or approve launch.
 
 Or install from the local module into `$GOPATH/bin`:
 
@@ -750,11 +750,12 @@ Before any separately approved live sandbox execution, run `docs search` to veri
 
 ## Ops Guide
 
-Use `ops guide` for local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`.
+Use `ops guide` for local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`.
 
 ```bash
 straddle-pp-cli ops guide --json
 straddle-pp-cli ops guide reconciliation --json
+straddle-pp-cli ops guide all --json
 straddle-pp-cli ops guide fraud-monitoring --agent
 straddle-pp-cli ops guide collections --json
 straddle-pp-cli ops guide reporting --json
@@ -966,7 +967,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 91 because the MCP runtime also exposes 18 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_bundle`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 92 because the MCP runtime also exposes 19 Cobra shell-out tools: `analytics`, `benchmark_ramp`, `credentials_plan`, `docs_search`, `import`, `mcp_bundle`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Generate local config fragments with `straddle-pp-cli mcp config [client] --binary /tmp/straddle-pp-mcp --json` for `claude-desktop`, `codex`, `cursor`, `stdio`, or `all`. This prints config only and does not install, write config files, read secrets, execute MCP, or approve public desktop MCP packaging. Generate a local reviewable bundle artifact with `straddle-pp-cli mcp bundle --mcp-binary /tmp/straddle-pp-mcp --output dist/mcp-bundle --json`; this writes only local bundle files and still does not install, write user config, read secrets, execute MCP, publish, sign, notarize, or approve support or launch. Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

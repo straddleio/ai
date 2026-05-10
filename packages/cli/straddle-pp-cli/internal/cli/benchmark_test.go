@@ -57,6 +57,13 @@ func TestBenchmarkRampJSONLocalOnly(t *testing.T) {
 			t.Fatalf("dimension %q should have reference, evidence, and status: %#v", name, dimension)
 		}
 	}
+	presentation, ok := benchmarkRampDimensionByName(got, "Presentation polish")
+	if !ok {
+		t.Fatalf("missing presentation polish dimension")
+	}
+	if !strings.Contains(strings.Join(presentation.StraddleEvidence, " "), "word art") {
+		t.Fatalf("presentation polish should directly cite word art proof: %#v", presentation.StraddleEvidence)
+	}
 }
 
 func TestBenchmarkRampHumanOutputShowsBlockers(t *testing.T) {

@@ -76,6 +76,34 @@ func TestOpsGuideNamedWorkflowsIncludeDocsQueriesAndSteps(t *testing.T) {
 	}
 }
 
+func TestOpsGuideAllJSONReturnsAllWorkflows(t *testing.T) {
+	stdout, stderr, err := runCLIForDocsTest(t, "ops", "guide", "all", "--json")
+	if err != nil {
+		t.Fatalf("ops guide all --json returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("ops guide all wrote stderr: %q", stderr)
+	}
+
+	var got opsGuideResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("ops guide all --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Command != "ops guide" || got.Workflow != "all" {
+		t.Fatalf("wrong all-workflows response: %#v", got)
+	}
+	wantWorkflows := []string{"reconciliation", "fraud-monitoring", "collections", "reporting", "monitoring"}
+	if gotNames := opsWorkflowNamesFromGuides(got.AvailableWorkflows); strings.Join(gotNames, ",") != strings.Join(wantWorkflows, ",") {
+		t.Fatalf("workflow names = %#v, want %#v", gotNames, wantWorkflows)
+	}
+	if got.WorkflowGuide != nil {
+		t.Fatalf("ops guide all should return aggregate workflows, not one workflow guide: %#v", got.WorkflowGuide)
+	}
+	if got.Safety.MakesAPICalls || got.Safety.CallsDocsEndpoint || got.Safety.ExecutesMCP || got.Safety.PostsWebhook || got.Safety.WritesProduction {
+		t.Fatalf("ops guide all should stay local guidance only: %#v", got.Safety)
+	}
+}
+
 func TestOpsGuideInvalidWorkflowReturnsUsageError(t *testing.T) {
 	_, _, err := runCLIForDocsTest(t, "ops", "guide", "not-a-workflow", "--json")
 	if err == nil {

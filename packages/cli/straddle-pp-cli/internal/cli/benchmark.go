@@ -170,7 +170,7 @@ func buildBenchmarkRampResponse() benchmarkRampResponse {
 				RampReference: "The first CLI screen should feel intentional, with strong naming, clear setup guidance, and memorable terminal presentation.",
 				StraddleEvidence: []string{
 					"straddle-pp-cli --help",
-					"straddle-pp-cli about",
+					"straddle-pp-cli about # renders Straddle ASCII word art",
 					"straddle-pp-cli benchmark ramp",
 				},
 				Status: "local-proof",

@@ -57,6 +57,7 @@ func newOpsGuideCmd(flags *rootFlags) *cobra.Command {
 This command prints guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring. It does not call Straddle APIs, does not call the docs endpoint, does not execute MCP tools, does not post webhooks, and does not write production data.`,
 		Example: `  straddle-pp-cli ops guide
   straddle-pp-cli ops guide reconciliation --json
+  straddle-pp-cli ops guide all --json
   straddle-pp-cli ops guide fraud-monitoring --agent
   straddle-pp-cli ops guide reporting --json
   straddle-pp-cli ops guide monitoring --json`,
@@ -101,10 +102,15 @@ func buildOpsGuideResponse(workflow string) (opsGuideResponse, error) {
 		payload.AvailableWorkflows = opsWorkflowGuides()
 		return payload, nil
 	}
+	if workflow == "all" {
+		payload.Workflow = workflow
+		payload.AvailableWorkflows = opsWorkflowGuides()
+		return payload, nil
+	}
 
 	guide, ok := opsWorkflowByName(workflow)
 	if !ok {
-		return payload, fmt.Errorf("invalid ops workflow %q: supported workflows are %s", workflow, strings.Join(opsWorkflowNames(), ", "))
+		return payload, fmt.Errorf("invalid ops workflow %q: supported workflows are %s", workflow, strings.Join(opsWorkflowNamesWithAll(), ", "))
 	}
 	payload.Workflow = guide.Name
 	payload.WorkflowGuide = &guide
@@ -119,7 +125,11 @@ func renderOpsGuideResponse(cmd *cobra.Command, flags *rootFlags, payload opsGui
 
 	w := cmd.OutOrStdout()
 	if payload.WorkflowGuide == nil {
-		fmt.Fprintln(w, "Ops guide")
+		if payload.Workflow == "all" {
+			fmt.Fprintln(w, "Ops guide: all")
+		} else {
+			fmt.Fprintln(w, "Ops guide")
+		}
 		fmt.Fprintln(w, "Safety: guidance-only, no API calls, no docs calls, no MCP execution, no webhook posts, no production writes.")
 		fmt.Fprintln(w, "Verify current docs before any live operational execution.")
 		fmt.Fprintln(w)
@@ -142,6 +152,12 @@ func renderOpsGuideResponse(cmd *cobra.Command, flags *rootFlags, payload opsGui
 		fmt.Fprintf(w, "%d. %s\n", i+1, step)
 	}
 	return nil
+}
+
+func opsWorkflowNamesWithAll() []string {
+	names := opsWorkflowNames()
+	names = append(names, "all")
+	return names
 }
 
 func opsWorkflowNames() []string {

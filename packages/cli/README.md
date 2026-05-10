@@ -71,7 +71,7 @@ The root `straddle-pp-cli --help` screen and `straddle-pp-cli about` both print 
 
 `straddle-pp-cli sandbox guide [scenario]` is a local help-only sandbox testing guide. It absorbs the previous `/sandbox-test` scenario list without executing writes, calling Straddle APIs, or calling the docs endpoint. Run `docs search` first before any separately approved live sandbox execution to verify current simulation parameters.
 
-`straddle-pp-cli ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`. It lists docs lookup queries and CLI surfaces to inspect, but it does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+`straddle-pp-cli ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`. It lists docs lookup queries and CLI surfaces to inspect, but it does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
 `straddle-pp-cli workflow plan [workflow]` is local-only structured command planning for `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, or `all`. It turns the same workflow areas into phases, steps, docs search topics, read-only CLI commands, dry-run command suggestions, blocked write actions, and required approvals. It does not call Straddle APIs, docs endpoints, MCP tools, webhooks, sandbox, production, credentials, or write paths, and it does not approve live execution.
 
@@ -131,7 +131,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 91 because the MCP runtime also exposes 18 Cobra shell-out tools: `analytics`, `credentials_plan`, `docs_search`, `import`, `mcp_bundle`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 92 because the MCP runtime also exposes 19 Cobra shell-out tools: `analytics`, `benchmark_ramp`, `credentials_plan`, `docs_search`, `import`, `mcp_bundle`, `mcp_config`, `ops_guide`, `release_plan`, `sandbox_guide`, `setup_check`, `shipcheck_local`, `smoke_plan`, `smoke_run`, `sync`, `tail`, `workflow_archive`, `workflow_plan`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -303,7 +303,7 @@ straddle-pp-cli benchmark ramp --json
 straddle-pp-cli benchmark ramp --agent
 ```
 
-`benchmark ramp` returns local evidence for CLI coverage, agent output, MCP readiness, docs discovery, credential guidance, presentation polish, operational workflows, and release readiness. It does not browse Ramp, call Straddle APIs, call docs endpoints, execute MCP, read secrets, write credentials, publish, or approve launch. Public npm, npx, Homebrew, GitHub release, docs, support, and public desktop MCP install remain approval blockers.
+`benchmark ramp` returns local evidence for CLI coverage, agent output, MCP readiness, docs discovery, credential guidance, presentation polish including Straddle ASCII word art, operational workflows, and release readiness. It does not browse Ramp, call Straddle APIs, call docs endpoints, execute MCP, read secrets, write credentials, publish, or approve launch. Public npm, npx, Homebrew, GitHub release, docs, support, and public desktop MCP install remain approval blockers.
 
 Compare the preview against Ramp for:
 
