@@ -35,6 +35,22 @@ Every implementation slice must complete these gates before the controller selec
 
 ## Latest Slice Review Detail
 
+### Current CLI compatibility inventory slice
+
+What changed:
+
+- Added `cli-plans/2026-05-10-straddle-cli-current-cli-compatibility-inventory.md`.
+- Recorded local compatibility evidence for the installed Stainless-generated `straddle` command and the Printing Press preview `straddle-pp-cli`.
+- Updated the completion audit, public launch decision packet, and public launch product review to reference the new inventory without approving replacement, migration, support wording, docs wording, live smoke, or public launch.
+
+Evidence:
+
+- Implementer built `/tmp/straddle-pp-cli-compat`, captured installed `straddle` version `0.1.0`, inspected installed and preview help, verified `charges create` and `customers list` exist in both CLIs, captured `release plan compatibility --json`, and removed the temporary binary.
+- Implementer confirmed the Stainless CLI source remote is `https://github.com/stainless-sdks/straddle-cli` and found the Stainless marker in the source README.
+- Spec review approved the artifact and cross-links.
+- Quality review approved the scope, launch boundaries, and token-safety wording.
+- Controller verification covered formatting, unsafe added-line scans, and repository status before commit.
+
 ### Commit `c1eb35d docs: record packaged credential smoke`
 
 What changed:
