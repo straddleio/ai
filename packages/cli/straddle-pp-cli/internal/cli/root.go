@@ -199,6 +199,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	// PATCH: ops-guide adds local-only operational workflow guidance without
 	// calling Straddle APIs, docs endpoints, MCP, webhooks, or production.
 	rootCmd.AddCommand(newOpsCmd(flags))
+	// PATCH: smoke-plan adds local-only approved live-smoke planning guidance
+	// without calling Straddle APIs, docs endpoints, MCP, webhooks, sandbox, or production.
+	rootCmd.AddCommand(newSmokeCmd(flags))
 	rootCmd.AddCommand(newSyncCmd(flags))
 	rootCmd.AddCommand(newTailCmd(flags))
 	rootCmd.AddCommand(newAnalyticsCmd(flags))

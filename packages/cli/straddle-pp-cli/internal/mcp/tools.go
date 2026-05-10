@@ -1223,17 +1223,19 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 // PATCH: sandbox-guide adds one Cobra shell-out runtime tool for help-only sandbox guidance.
 // PATCH: setup-check adds one Cobra shell-out runtime tool for local setup readiness.
 // PATCH: ops-guide adds one Cobra shell-out runtime tool for local operational workflow guidance.
+// PATCH: smoke-plan adds one Cobra shell-out runtime tool for local live-smoke planning guidance.
 const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 83
+	runtimeToolCount        = 84
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
 // PATCH: sandbox-guide records sandbox_guide as a read-only Cobra shell-out runtime tool.
 // PATCH: setup-check records setup_check as a read-only Cobra shell-out runtime tool.
 // PATCH: ops-guide records ops_guide as a read-only Cobra shell-out runtime tool.
+// PATCH: smoke-plan records smoke_plan as a read-only Cobra shell-out runtime tool.
 var runtimeShellOutTools = []string{
 	"analytics",
 	"docs_search",
@@ -1241,6 +1243,7 @@ var runtimeShellOutTools = []string{
 	"ops_guide",
 	"sandbox_guide",
 	"setup_check",
+	"smoke_plan",
 	"sync",
 	"tail",
 	"workflow_archive",

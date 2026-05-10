@@ -213,7 +213,29 @@
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
         "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
       ],
-      "validated_outcome": "go test -count=1 ./internal/cli -run 'Test.*Ops' covers the five-workflow list, named workflow coverage including reporting and monitoring, invalid workflow, agent envelope output, and deliver rejection. The current narrow update does not touch MCP registration or count files because ops_guide already exists and runtime tools/list should remain 83. jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json validates the patch manifest."
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'Test.*Ops' covers the five-workflow list, named workflow coverage including reporting and monitoring, invalid workflow, agent envelope output, and deliver rejection. jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json validates the patch manifest."
+    },
+    {
+      "id": "smoke-plan",
+      "summary": "Add local-only live-smoke planning guidance for setup, customers, payments, funding, MCP, and all scopes.",
+      "reason": "The preview needs a safe runbook generator for a future approved read-only smoke without making live calls, executing MCP tools, touching sandbox or production, or implying approval.",
+      "files": [
+        "internal/cli/root.go",
+        "internal/cli/smoke.go",
+        "internal/cli/smoke_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-full-workflow.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSmokePlan' covers scope list, named scopes, real command resolution for command suggestions, all scope, invalid scope, agent envelope output, and deliver rejection. go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly' and go test -count=1 ./internal/mcp/cobratree -run 'TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch' cover smoke_plan MCP shell-out exposure, readOnlyHint, destructiveHint false, and runtime count 84."
     }
   ]
 }

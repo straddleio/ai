@@ -70,6 +70,8 @@ The target envelope does not include a provenance field, so the old `meta` objec
 
 `straddle-pp-cli ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`. It lists docs lookup queries and CLI surfaces to inspect, but it does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
+`straddle-pp-cli smoke plan [scope]` is local-only live-smoke planning guidance for `setup`, `customers`, `payments`, `funding`, `mcp`, or `all`. It prints a runbook for a future approved read-only smoke, including safety metadata, docs lookup topics, and dry-run command suggestions. It does not call Straddle APIs, docs endpoints, MCP tools, webhooks, sandbox, or production, and it does not approve or run live smoke.
+
 ## Streaming Agent Contract
 
 This contract is implemented for `sync --agent` and real `tail --agent`.
@@ -120,7 +122,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 83 because the MCP runtime also exposes 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 84 because the MCP runtime also exposes 11 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Sandbox-Safe Walkthrough
 
@@ -137,6 +139,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli charges get --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
+/tmp/straddle-pp-cli smoke plan --json
+/tmp/straddle-pp-cli smoke plan all --json
 ```
 
 Local-first setup checks:
@@ -291,6 +295,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Setup, customers, and payments workflows need end-to-end examples beyond the sandbox-safe read-only walkthrough.
 - Sandbox testing now has the help-only `straddle-pp-cli sandbox guide [scenario]` terminal flow. Live writes remain out of scope.
 - Reconciliation, fraud monitoring, collections, reporting, and monitoring now have the help-only `straddle-pp-cli ops guide [workflow]` terminal flow. Live execution, API reads, docs lookup, MCP execution, webhook posts, production writes, and full workflow engines remain out of scope.
+- Approved live-smoke planning now has the local-only `straddle-pp-cli smoke plan [scope]` terminal flow. It reduces the live-smoke blocker by making the future approved read-only runbook explicit, but it does not run live smoke or approve launch.
 
 ## Later Polish
 
@@ -301,3 +306,4 @@ These gaps should stay visible, but they do not block the first public replaceme
 - Docs parity and examples need review beyond the launch-critical setup, customer, payment, sandbox, and docs-search paths.
 - Word art and presentation polish are partially done through `about`; richer product review remains open.
 - The reconciliation, fraud monitoring, collections, reporting, and monitoring workflows have local-only `ops guide` planning guidance, but still need practical command review, approved live-read paths, and staged follow-up plans before launch.
+- Approved live-smoke planning now exists, but the actual approved live read-only smoke with secure credentials has not been run.

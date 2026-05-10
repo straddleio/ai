@@ -118,6 +118,7 @@ func TestMakeAPIHandlerAuthErrorsUseSafeTokenGuidance(t *testing.T) {
 // PATCH: sandbox-guide verifies sandbox_guide is included in runtime shell-out metadata.
 // PATCH: setup-check verifies setup_check is included in runtime shell-out metadata.
 // PATCH: ops-guide verifies ops_guide is included in runtime shell-out metadata.
+// PATCH: smoke-plan verifies smoke_plan is included in runtime shell-out metadata.
 func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	result, err := handleContext(context.Background(), mcplib.CallToolRequest{})
 	if err != nil {
@@ -144,6 +145,7 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 		"ops_guide",
 		"sandbox_guide",
 		"setup_check",
+		"smoke_plan",
 		"sync",
 		"tail",
 		"workflow_archive",
@@ -159,8 +161,8 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 	if got.TypedToolCount != 73 {
 		t.Fatalf("typed_tool_count = %d, want 73", got.TypedToolCount)
 	}
-	if got.RuntimeToolCount != 83 {
-		t.Fatalf("runtime_tool_count = %d, want 83", got.RuntimeToolCount)
+	if got.RuntimeToolCount != 84 {
+		t.Fatalf("runtime_tool_count = %d, want 84", got.RuntimeToolCount)
 	}
 	if got.ToolCount != got.RuntimeToolCount {
 		t.Fatalf("tool_count = %d, want runtime_tool_count %d", got.ToolCount, got.RuntimeToolCount)
@@ -176,12 +178,13 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 // PATCH: sandbox-guide verifies the help-only sandbox guide shell-out is read-only.
 // PATCH: setup-check verifies the local setup check shell-out is read-only.
 // PATCH: ops-guide verifies the local ops guide shell-out is read-only.
+// PATCH: smoke-plan verifies the local smoke plan shell-out is read-only.
 func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	mcpServer := server.NewMCPServer("test", "0.0.0")
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	for _, name := range []string{"docs_search", "ops_guide", "sandbox_guide", "setup_check"} {
+	for _, name := range []string{"docs_search", "ops_guide", "sandbox_guide", "setup_check", "smoke_plan"} {
 		tool, ok := tools[name]
 		if !ok {
 			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)

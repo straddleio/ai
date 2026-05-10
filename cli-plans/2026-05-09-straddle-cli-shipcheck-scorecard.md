@@ -4,11 +4,11 @@ Date: 2026-05-09
 
 ## Verdict
 
-Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, and local-preview product review completed.
+Shipcheck status: Partial, with fresh Phase 4 local dogfood completed, a local packaging readiness proof added, local GoReleaser archive validation completed, local-preview product review completed, and local-only live-smoke planning added.
 
-Score: 7.1 of 10 for the current preview slice.
+Score: 7.2 of 10 for the current preview slice.
 
-The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, and a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed. The full public CLI goal is not complete. Public release, approved live smoke, public-launch product review, and richer live workflow behavior remain open.
+The scorecard now has a fresh local dogfood run from 2026-05-09 16:40 MDT, a packaging readiness slice from 2026-05-09, local GoReleaser archive validation from 2026-05-09 17:25 MDT, a product review artifact at `cli-plans/2026-05-09-straddle-cli-product-review.md`, and `straddle-pp-cli smoke plan [scope]` for future approved read-only smoke planning. Root validation, generated CLI builds, generated MCP builds, focused Go tests, broad Go tests, patch manifest validation, MCP runtime smoke, local package readiness, local snapshot archive build, and credential-free local product review passed before this slice. The full public CLI goal is not complete. Public release, actual approved live smoke, public-launch product review, and richer live workflow behavior remain open.
 
 ## Launch Criteria Scorecard
 
@@ -50,13 +50,13 @@ Agent envelopes are documented and covered for current local commands
 
 Local dogfood commands exist for preview checks
 
-- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests.
+- Evidence: See the 2026-05-09 Phase 4 dogfood run below for `about`, `setup check`, `docs search --source commands`, `sandbox guide`, `ops guide`, generated command dry-run agent output, MCP smoke/count, patch manifest validity, and Go tests. The next bounded slice added `smoke plan [scope]` as local-only planning for future approved read-only smoke.
 - Status: Partial.
 - Missing work: Public launch still needs packaging, public-launch product approval, and approved live smoke.
 
 MCP count semantics are resolved
 
-- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` returned 83 on 2026-05-09 with 10 Cobra shell-out tools.
+- Evidence: `.printing-press.json` tracks 70 generated endpoint tools; typed Go MCP registrations total 73 including 3 framework typed tools; runtime `tools/list` is expected to return 84 after `smoke_plan`, with 11 Cobra shell-out tools.
 - Status: Done for preview.
 - Missing work: Re-run runtime smoke after command tree changes.
 
@@ -70,7 +70,13 @@ Sandbox-safe walkthrough avoids side effects
 
 - Evidence: README keeps setup checks local, customer and payment exploration read-only, and live writes out of scope.
 - Status: Partial.
-- Missing work: Approved live read-only sandbox smoke with real data flow.
+- Missing work: Approved live read-only sandbox smoke with real data flow. `smoke plan [scope]` now makes the runbook explicit, but it does not run live smoke or grant approval.
+
+Approved live-smoke planning exists, but live smoke has not run
+
+- Evidence: `smoke plan [scope]` supports `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`; it emits safety metadata requiring explicit approval, secure credential flow, read-only intended commands, no writes, no token literals, and no live execution in the command.
+- Status: Partial.
+- Missing work: Secure credential approval and actual read-only live smoke execution remain open.
 
 Operational workflows are useful but safe
 
@@ -115,11 +121,13 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
   Status: Built and documented. Help-only guidance, no live write.
 - Ops guide: `/tmp/straddle-pp-cli ops guide reconciliation --json`.
   Status: Built and documented. Local-only guidance, no live operation.
+- Smoke plan: `/tmp/straddle-pp-cli smoke plan all --json`.
+  Status: Built and documented. Local-only runbook guidance, no live smoke execution or approval.
 - Generated command agent envelope: `/tmp/straddle-pp-cli customers list --dry-run --agent`.
   Status: Documented as target behavior. Use dry-run first, do not call the real API for this check.
 - Streaming agent envelope: use focused tests or local fake-server checks for `sync --agent` and real `tail --agent`.
   Status: Built and documented. Normal `--json` streaming remains raw NDJSON.
-- MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 83.
+- MCP smoke and count: build `straddle-pp-mcp`, run the README `tools/list` JSON-RPC smoke, expect runtime count 84.
   Status: Documented. Confirms generated endpoint tools plus typed framework tools plus Cobra shell-out tools.
 - Local packaging readiness: `make package-readiness` from `packages/cli/straddle-pp-cli`.
   Status: Documented. Builds and verifies both local preview binaries, including the MCP sibling, without GoReleaser or publishing.
@@ -259,5 +267,5 @@ Known caveat: broad Go and MCP tests that use `httptest` may need an environment
 - Ready for local preview product review: yes.
 - Ready for public CLI launch: no.
 - Ready for product packaging: partial local proof only, including non-publishing snapshot archive validation.
-- Ready for approved live smoke: no evidence yet.
-- Next narrow work: plan approved live smoke, complete public-release distribution decisions, and decide whether the generated cask needs signing, notarization, or extra Homebrew metadata before publishing.
+- Ready for approved live smoke: no. A local runbook command exists, but no approved live smoke has run.
+- Next narrow work: get explicit smoke approval and credential scope, complete public-release distribution decisions, and decide whether the generated cask needs signing, notarization, or extra Homebrew metadata before publishing.

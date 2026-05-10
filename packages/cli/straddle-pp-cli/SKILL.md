@@ -690,6 +690,19 @@ straddle-pp-cli ops guide monitoring --json
 
 The command returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
+## Smoke Plan
+
+Use `smoke plan` for local-only planning before any approved read-only live smoke. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
+
+```bash
+straddle-pp-cli smoke plan --json
+straddle-pp-cli smoke plan customers --json
+straddle-pp-cli smoke plan payments --agent
+straddle-pp-cli smoke plan all --json
+```
+
+The command returns a future runbook, docs lookup topics, dry-run command suggestions, MCP tools/list guidance, and explicit approval metadata. Docs lookup topics are query text, not commands for this local-only runbook. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
+
 ## Agent Mode
 
 Add `--agent` to any command. Expands to: `--json --compact --no-input --no-color --yes`.
@@ -864,7 +877,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 83 because the MCP runtime also exposes 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 84 because the MCP runtime also exposes 11 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 Register only through the user's MCP client and secure environment-variable flow. Do not put token values in command lines or checked-in config examples.
 

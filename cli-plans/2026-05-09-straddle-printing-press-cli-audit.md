@@ -39,8 +39,8 @@ The master workflow now lives in `cli-plans/2026-05-09-straddle-cli-full-workflo
 | Phase 1.5 Ecosystem Absorb Gate | Artifact created, pending final phase-artifact review | Ecosystem absorb artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the public Straddle OpenAPI spec. Root validation and generated Go verification passed for the first slice. |
-| Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, and ops guide, but approved live workflow execution and full workflow engines have not been built. |
-| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, local GoReleaser archive validation, and local-preview product review exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` returns 83 with 10 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, and `setup_check`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
+| Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, ops guide, and smoke plan, but approved live workflow execution and full workflow engines have not been built. |
+| Phase 4 Shipcheck | Partial | Shipcheck scorecard now exists at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`. First-slice validation, Go verification, reviews, audit fixes, packaging readiness proof, local GoReleaser archive validation, local-preview product review, and live-smoke planning exist. MCP count semantics are resolved: `.printing-press.json` metadata tracks 70 endpoint tools, typed Go MCP registrations total 73 after adding 3 framework typed tools, and runtime `tools/list` now expects 84 with 11 Cobra shell-out tools including `docs_search`, `ops_guide`, `sandbox_guide`, `setup_check`, and `smoke_plan`. Launch readiness remains partial because public packaging, approved live smoke, public-launch product approval, and richer workflow commands are incomplete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Evidence Snapshot
@@ -114,6 +114,7 @@ Result: config validation passed with no deprecation warning after moving from `
 | Featureful across reporting | `ops guide reporting` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, live reports, exports, or production workflow |
 | Featureful across monitoring | `ops guide monitoring` provides local-only planning guidance, docs lookup queries, read-side CLI surfaces to inspect, and safe next steps. | Partial, no approved live reads, polling, alerting, webhook delivery, or production workflow |
 | Featureful across sandbox testing | Sandbox-safe help, config, local build, read-only walkthrough, and help-only `sandbox guide [scenario]` flow are documented. For this slice, production calls and live writes are out of scope. | Partial |
+| Featureful across approved live smoke | `smoke plan [scope]` provides local-only runbook guidance for setup, customers, payments, funding, MCP tools/list, and all scopes. It returns docs lookup topics as text, not endpoint-calling docs commands. It requires explicit approval and secure credentials for any future live execution. | Partial, no actual approved live smoke has run |
 | Featureful across docs/search integration | Generated `search` remains synced local data search. `docs search` now provides product docs lookup, local command search, and API or SDK `search_docs` guidance. | Partial |
 | Do not overbuild first slice | Work stopped at generated baseline, docs, validation, and verification | Done |
 | Use subagent-driven development | Tasks 1 through 4 passed subagent implementation and review gates. Task 5 spec review passed. The first Task 5 quality review found README and audit wording issues that were fixed. The next quality re-review found spec, plan, and audit wording issues that this focused fix resolved. | Partial |
@@ -121,6 +122,7 @@ Result: config validation passed with no deprecation warning after moving from `
 | Future quality agents use Agent Skills and Straddle review | Plan Task 6 requires `agent-skills:code-review-and-quality` and `straddle-engineering:code-review`, with .NET-specific checks marked N/A for Go or Node CLI work | Done in plan |
 | CLI contract and honesty slice | Safe token input is done. Provenance-backed generated list and read commands use the target envelope. Command-specific local helpers routed through `printJSONFiltered` use the target envelope only for `--agent`, and normal `--json` stays raw. `agent-context --agent`, `about --agent`, and `setup check --agent` use the target envelope. Install honesty is documented. MCP smoke instructions are documented. Sandbox-safe read-only walkthrough is documented. The Streaming Agent Contract is implemented for `sync --agent` and real `tail --agent`. | Partial, because launch packaging remains open |
 | Local-preview product review | `cli-plans/2026-05-09-straddle-cli-product-review.md` approves local preview and rejects public launch. It covers CLI-first shape, MCP sibling, provenance, agent behavior, workflow readiness, safety, Ramp/reference parity, and blockers. | Done for local preview |
+| Live-smoke planning command | `straddle-pp-cli smoke plan [scope]` is implemented as a local-only PATCH command and exposed to MCP as read-only `smoke_plan`. | Done for planning only |
 
 ## Completed Gates
 
@@ -168,8 +170,10 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Local-preview product review is done.
    - Public-launch product approval remains open.
    - Ops guide is implemented as local-only guidance for reconciliation, fraud monitoring, collections, reporting, and monitoring.
+   - Smoke plan is implemented as local-only guidance for future approved read-only smoke across setup, customers, payments, funding, and MCP.
+   - Actual approved live smoke has not run.
    - Richer live workflow commands remain open.
-   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 83 tools because it includes those 73 typed tools plus 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
+   - MCP count discrepancy is resolved and validated. `.printing-press.json` `mcp_tool_count` tracks 70 generated endpoint tools. Typed `mcplib.NewTool(` registrations total 73 because `search`, `sql`, and `context` are local framework typed tools. Runtime `tools/list` now expects 84 tools because it includes those 73 typed tools plus 11 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`.
    - Patch-layer cleanup is documented for generated-code `// PATCH:` markers, `.printing-press-patches.json`, root registration overwrite risk, and MCP workflow exposure.
    - After spec review, quality review, and verification pass, stage only intended files and make a small commit before the next implementation slice.
 2. Keep these broader goals out of the next slice unless explicitly re-scoped:
@@ -179,6 +183,7 @@ Do not mark the broader goal complete from Task 5 alone. Later launch and workfl
    - Richer presentation polish beyond the local `about` command.
    - Full workflow engine for reconciliation, fraud monitoring, collections, reporting, and monitoring.
    - Live API reads, docs lookup, MCP execution, webhook posts, or production writes from `ops guide`.
+   - Live API reads, docs lookup execution, MCP execution, sandbox access, production access, or approval from `smoke plan`.
 3. Run a fresh completion audit after the next slice. Treat uncertainty as incomplete.
 
 ## Do Not Claim

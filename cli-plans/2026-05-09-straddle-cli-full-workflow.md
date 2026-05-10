@@ -47,8 +47,8 @@ This workflow is planning and documentation for the CLI effort. It does not auth
 | Phase 1.5 Ecosystem Absorb Gate | Artifact created, pending final phase-artifact review | Ecosystem absorb artifact exists. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 1.7 Browser-Sniff Gate | Artifact created, pending final phase-artifact review | Browser-sniff artifact exists, with HAR fallback noted. Do not treat it as fully accepted until final phase-artifact review passes. |
 | Phase 2 Generate | Done | Printing Press generated the Go CLI and MCP server from the Straddle public OpenAPI spec. Root validation and Go verification passed for the first slice. |
-| Phase 3 Build workflow commands | Not done | Generated baseline exists, but absorbed features and new workflow commands have not been built. |
-| Phase 4 Shipcheck | Partial | Dogfood-style verification, fix verification, review history, audit updates, and the scorecard at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md` exist for the current preview slice. Public launch readiness remains partial because packaging, product review, approved live smoke, and richer workflow commands are incomplete. |
+| Phase 3 Build workflow commands | Partial | Generated baseline exists. Local-only helper commands now cover docs search, sandbox guide, setup check, ops guide, and smoke plan. Approved live workflow execution and full workflow engines have not been built. |
+| Phase 4 Shipcheck | Partial | Dogfood-style verification, fix verification, review history, audit updates, local packaging proof, local archive validation, local-preview product review, smoke-plan work, and the scorecard at `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md` exist for the current preview slice. Public launch readiness remains partial because public release, actual approved live smoke, public-launch product review, and richer live workflow commands are incomplete. |
 | Phase 5 Live Smoke | Not done | No read-only API smoke or data-flow check has been run. |
 
 ## Phase 0 Resolve + Reuse

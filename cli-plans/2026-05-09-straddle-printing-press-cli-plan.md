@@ -492,9 +492,9 @@ After each slice passes spec review, quality review, and verification, the contr
 **Verification:**
 
 - [x] Run focused ops-guide CLI tests for workflow list, named workflow coverage including reporting and monitoring, invalid workflow, agent envelope, and deliver rejection.
-- [x] Run focused MCP tests for `ops_guide` shell-out exposure, read-only metadata, and runtime count 83.
+- [x] Run focused MCP tests for `ops_guide` shell-out exposure, read-only metadata, and the then-current runtime count 83.
 - [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
-- [x] Run targeted docs text checks for `ops guide`, `ops_guide`, supported workflow names, and runtime count `83` / shell-out count `10`.
+- [x] Run targeted docs text checks for `ops guide`, `ops_guide`, supported workflow names, and the then-current runtime count `83` / shell-out count `10`.
 
 **Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, and docs-search guidance.
 
@@ -601,6 +601,35 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Files touched:** `cli-plans/2026-05-09-straddle-cli-product-review.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
 
+#### Task 20: Implement local live-smoke planning flow
+
+**Description:** Implemented as a bounded patch-layer command. `smoke plan [scope]` is local-only live-smoke planning guidance for `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`. It returns docs lookup topics, dry-run command suggestions, MCP tools/list smoke guidance, and safety metadata for a future approved read-only smoke. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, run live smoke, or approve launch.
+
+**Acceptance criteria:**
+
+- [x] `smoke plan [scope]` exists under a `smoke` command tree.
+- [x] Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
+- [x] The command lists supported scopes when no scope is provided.
+- [x] Named scopes return docs lookup topics and read-only intended command suggestions.
+- [x] Suggested commands include `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP tools/list smoke guidance where relevant.
+- [x] Safety metadata states that the command requires explicit approval, requires sandbox or approved environment credentials through a secure secret flow, allows read-only intended commands only, has no writes, has no token literals, and performs no live execution.
+- [x] `smoke plan` rejects `--deliver` before delivery.
+- [x] `smoke plan --agent` uses the target envelope through the existing local JSON helper path.
+- [x] MCP runtime exposure includes `smoke_plan` as a read-only Cobra shell-out tool.
+
+**Verification:**
+
+- [x] Run focused smoke-plan CLI tests for scope list, named scopes, all scope, invalid scope, agent envelope, and deliver rejection.
+- [x] Run focused MCP tests for `smoke_plan` shell-out exposure, read-only metadata, and runtime count 84.
+- [x] Run `jq empty packages/cli/straddle-pp-cli/.printing-press-patches.json`.
+- [x] Run `npm run validate`.
+- [x] Run `go test -count=1 ./...` from `packages/cli/straddle-pp-cli`.
+- [x] Run `git diff --check`.
+
+**Dependencies:** Existing local JSON helper path, MCP Cobra shell-out exposure, docs-search guidance, setup check, and generated dry-run command behavior.
+
+**Files touched:** `packages/cli/straddle-pp-cli/internal/cli/root.go`, `packages/cli/straddle-pp-cli/internal/cli/smoke.go`, `packages/cli/straddle-pp-cli/internal/cli/smoke_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools.go`, `packages/cli/straddle-pp-cli/internal/mcp/tools_test.go`, `packages/cli/straddle-pp-cli/internal/mcp/cobratree/classify_test.go`, `packages/cli/straddle-pp-cli/.printing-press-patches.json`, `packages/cli/README.md`, `packages/cli/straddle-pp-cli/README.md`, `packages/cli/straddle-pp-cli/SKILL.md`, `cli-plans/2026-05-09-straddle-cli-ecosystem-absorb.md`, `cli-plans/2026-05-09-straddle-cli-full-workflow.md`, `cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-plan.md`, `cli-plans/2026-05-09-straddle-printing-press-cli-audit.md`.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -615,13 +644,14 @@ After each slice passes spec review, quality review, and verification, the contr
 | Docs imply a release path that does not exist yet | High | Separate local preview, future release, MCP registration, and public launch in generated docs. |
 | Broad uncommitted slices become hard to review | High | After a slice passes spec review, quality review, and verification, stage only intended files and make a small commit before starting the next slice. Commit the current baseline in logical chunks: generated baseline first, then hand-authored docs, validation, plans, and audit updates. |
 | Product review is mistaken for public launch approval | High | Keep the product review decision split: local preview approved, public launch not approved. |
+| Smoke planning is mistaken for actual live smoke | High | Keep docs explicit: `smoke plan` only prints a future runbook and does not grant approval, execute MCP, call APIs, or use credentials. |
 
 ## Open Questions
 
 - Should the preview eventually replace the public binary name `straddle`, or stay `straddle-pp-cli` until launch?
 - Should keychain credential storage be a launch blocker?
-- Which approved live-read operational workflow should follow the local-only `ops guide` planning slice?
-- What exact live sandbox smoke should follow local-preview product approval, and who approves the credential scope?
+- Which approved live-read operational workflow should follow the local-only `ops guide` and `smoke plan` planning slices?
+- Who approves the credential scope for the first actual live read-only smoke?
 
 ## Completion Audit Checklist
 

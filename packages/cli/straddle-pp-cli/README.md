@@ -555,6 +555,18 @@ straddle-pp-cli sandbox guide payment-lifecycle --agent
 
 Before any separately approved live sandbox execution, run `docs search` to verify current simulation parameters for the scenario. Live execution requires explicit sandbox credentials supplied through a secure flow.
 
+## Smoke Plan
+
+Use `smoke plan` for local-only planning before any approved read-only live smoke. With no scope, it lists supported scopes. Supported scopes are `setup`, `customers`, `payments`, `funding`, `mcp`, and `all`.
+
+```bash
+straddle-pp-cli smoke plan --json
+straddle-pp-cli smoke plan customers --json
+straddle-pp-cli smoke plan all --agent
+```
+
+`smoke plan [scope]` returns a runbook, docs lookup topics, dry-run command suggestions, and explicit safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, touch sandbox, touch production, include token literals, or run live smoke. Future live smoke still requires explicit approval plus a sandbox or approved environment credential supplied through a secure secret flow.
+
 ## Streaming Agent Contract
 
 This contract is implemented for `sync --agent` and real `tail --agent`.
@@ -595,6 +607,8 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli payments list --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
+/tmp/straddle-pp-cli smoke plan --json
+/tmp/straddle-pp-cli smoke plan all --json
 ```
 
 Local-first setup checks:
@@ -850,7 +864,7 @@ cd /Users/js/clawd/straddle/straddle-ai
 node scripts/validate-cli.js
 ```
 
-Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 83 because the MCP runtime also exposes 10 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
+Resolved count breakdown: `.printing-press.json` `mcp_tool_count` tracks generated endpoint tools only. `internal/mcp/tools.go` currently has 73 typed tools: 70 endpoint tools plus 3 local framework typed tools, `search`, `sql`, and `context`. The runtime `tools/list` count is now 84 because the MCP runtime also exposes 11 Cobra shell-out tools: `analytics`, `docs_search`, `import`, `ops_guide`, `sandbox_guide`, `setup_check`, `smoke_plan`, `sync`, `tail`, `workflow_archive`, and `workflow_status`. The validator asserts the source invariant: 73 typed tools minus 3 framework typed tools equals the 70 endpoint tools in `.printing-press.json`.
 
 ## Use with Claude Desktop
 
@@ -893,6 +907,20 @@ straddle-pp-cli ops guide monitoring --json
 ```
 
 `ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, and `monitoring`. It returns docs lookup queries, read-side CLI surfaces to inspect, safe next steps, and safety metadata. It does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
+
+## Live-Smoke Planning
+
+```bash
+straddle-pp-cli smoke plan --json
+straddle-pp-cli smoke plan setup --json
+straddle-pp-cli smoke plan customers --json
+straddle-pp-cli smoke plan payments --json
+straddle-pp-cli smoke plan funding --json
+straddle-pp-cli smoke plan mcp --json
+straddle-pp-cli smoke plan all --agent
+```
+
+`smoke plan [scope]` is local-only guidance for a future approved read-only smoke. It suggests commands such as `setup check --json`, `customers list --dry-run --agent`, `payments --dry-run --agent`, `funding-events list --dry-run --agent`, and MCP `tools/list` smoke guidance. Docs lookup topics are returned as query text, not as commands for this local-only runbook. It does not execute those commands.
 
 ## Configuration
 
