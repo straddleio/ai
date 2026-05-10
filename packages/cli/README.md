@@ -296,6 +296,15 @@ find packages/cli/straddle-pp-cli/cmd -maxdepth 2 -type f -print
 
 Ramp is a benchmark only. It is not the architecture and should not drive command definitions away from Straddle's public OpenAPI source.
 
+Run the executable local benchmark with:
+
+```bash
+straddle-pp-cli benchmark ramp --json
+straddle-pp-cli benchmark ramp --agent
+```
+
+`benchmark ramp` returns local evidence for CLI coverage, agent output, MCP readiness, docs discovery, credential guidance, presentation polish, operational workflows, and release readiness. It does not browse Ramp, call Straddle APIs, call docs endpoints, execute MCP, read secrets, write credentials, publish, or approve launch. Public npm, npx, Homebrew, GitHub release, docs, support, and public desktop MCP install remain approval blockers.
+
 Compare the preview against Ramp for:
 
 - Installer quality.

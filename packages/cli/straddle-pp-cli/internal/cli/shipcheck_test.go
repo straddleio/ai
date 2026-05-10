@@ -88,6 +88,7 @@ func TestShipcheckLocalObjectiveSurfaces(t *testing.T) {
 		"sandbox testing: sandbox guide",
 		"docs search: docs search",
 		"MCP: mcp config",
+		"Ramp benchmark: benchmark ramp",
 		"release readiness: release plan",
 		"workflow: reconciliation",
 		"workflow: fraud-monitoring",

@@ -206,6 +206,9 @@ Use 'straddle-pp-cli doctor --json' only for optional live sandbox reachability 
 	rootCmd.AddCommand(newProfileCmd(flags))
 	rootCmd.AddCommand(newFeedbackCmd(flags))
 	rootCmd.AddCommand(newWhichCmd(flags))
+	// PATCH: ramp-benchmark adds an executable local Ramp comparison surface
+	// without browsing, external calls, MCP execution, secrets, or publishing.
+	rootCmd.AddCommand(newBenchmarkCmd(flags))
 	rootCmd.AddCommand(newImportCmd(flags))
 	rootCmd.AddCommand(newSearchCmd(flags))
 	// PATCH: docs-search adds a first-class docs lookup flow separate from

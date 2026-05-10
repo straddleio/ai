@@ -1231,11 +1231,12 @@ func handleSQL(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToo
 // PATCH: mcp-config adds one Cobra shell-out runtime tool for local desktop MCP config generation.
 // PATCH: mcp-bundle adds one Cobra shell-out runtime tool for local desktop MCP bundle generation.
 // PATCH: shipcheck-local adds one Cobra shell-out runtime tool for local public-preview verification.
+// PATCH: ramp-benchmark adds one Cobra shell-out runtime tool for local Ramp benchmark output.
 const (
 	endpointToolCount       = 70
 	typedFrameworkToolCount = 3
 	typedToolCount          = endpointToolCount + typedFrameworkToolCount
-	runtimeToolCount        = 91
+	runtimeToolCount        = 92
 )
 
 // PATCH: mcp-count-breakdown records Cobra shell-out tools that are present in runtime tools/list but not generated endpoint metadata.
@@ -1250,8 +1251,10 @@ const (
 // PATCH: mcp-config records mcp_config as a read-only Cobra shell-out runtime tool.
 // PATCH: mcp-bundle records mcp_bundle as a local file-writing Cobra shell-out runtime tool.
 // PATCH: shipcheck-local records shipcheck_local as a read-only Cobra shell-out runtime tool.
+// PATCH: ramp-benchmark records benchmark_ramp as a read-only Cobra shell-out runtime tool.
 var runtimeShellOutTools = []string{
 	"analytics",
+	"benchmark_ramp",
 	"credentials_plan",
 	"docs_search",
 	"import",

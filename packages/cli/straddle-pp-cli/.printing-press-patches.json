@@ -496,6 +496,27 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'Test(RootHelpPrintsWordArtForFirstRun|About|ShipcheckLocalObjectiveSurfaces)' covers root --help rendering the Straddle ASCII banner, STRADDLE CLI title, setup check guidance, and normal command help while about JSON and agent output remain banner-free."
+    },
+    {
+      "id": "ramp-benchmark-command",
+      "summary": "Add an executable local Ramp comparison benchmark.",
+      "reason": "The Ramp reference should be tracked by a command agents can run and audit, not only README prose or archived planning docs.",
+      "files": [
+        "internal/cli/benchmark.go",
+        "internal/cli/benchmark_test.go",
+        "internal/cli/root.go",
+        "internal/cli/which.go",
+        "internal/cli/docs_test.go",
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestBenchmarkRamp|TestDocsSearchCommandsIndexesLocalHelperCommands|TestShipcheckLocal(ObjectiveSurfaces|CommandTreeRequiredPaths)', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, and make release-readiness cover benchmark ramp JSON, agent envelope, local-only safety, token non-leakage, public blockers, docs command indexing, shipcheck objective evidence, MCP context metadata, read-only MCP registration, generated CLI validation, snapshot archives, packaged shipcheck, MCP bundle, and local npm package proof."
     }
   ]
 }

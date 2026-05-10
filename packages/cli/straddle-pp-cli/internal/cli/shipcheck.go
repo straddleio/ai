@@ -205,6 +205,7 @@ func requiredShipcheckCommandPaths() []string {
 		"credentials plan",
 		"mcp config",
 		"mcp bundle",
+		"benchmark ramp",
 		"smoke plan",
 		"smoke run",
 		"customers list",
@@ -238,6 +239,7 @@ func checkShipcheckObjectiveSurfaces(root *cobra.Command) shipcheckCheck {
 		"sandbox testing":            "sandbox guide",
 		"docs search":                "docs search",
 		"MCP":                        "mcp config",
+		"Ramp benchmark":             "benchmark ramp",
 		"release readiness":          "release plan",
 	}
 
@@ -329,7 +331,7 @@ func checkShipcheckWorkflowPlans() shipcheckCheck {
 
 func checkShipcheckDocsCommandSearch() shipcheckCheck {
 	check := shipcheckCheck{Name: "docs_command_search", Passed: true}
-	for _, query := range []string{"workflow plan", "mcp config", "mcp bundle"} {
+	for _, query := range []string{"workflow plan", "mcp config", "mcp bundle", "benchmark ramp"} {
 		matches := rankWhich(whichIndex, query, 1)
 		if len(matches) == 0 || matches[0].Entry.Command != query {
 			check.Passed = false
