@@ -52,6 +52,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Current CLI compatibility inventory | `release plan compatibility --json` exists and records local proof commands for `/opt/homebrew/bin/straddle --version`, `/opt/homebrew/bin/straddle --help`, `/opt/homebrew/bin/straddle charges create --help`, the Stainless CLI remote, and Stainless markers in the source tree. It states that public `straddle` replacement is not approved and that the inventory is local evidence only. | Partial, reduces command-name blocker, no public command chosen |
 | Release naming plan | `release plan naming --json` exists and records that the preview command is `straddle-pp-cli`, the public `straddle` command or binary is not approved, compatibility review is incomplete, and any alias, migration, or replacement plan still needs approval. | Partial, reduces naming decision blocker, no public command chosen |
 | Docs and support plan | `release plan docs-support --json` exists and records that public docs and support are not approved yet, issue intake and support owner are missing, and public docs must not imply workflow execution, production readiness, or replacement of public `straddle`. | Partial, reduces docs/support blocker, no public docs or support approval |
+| Owner decision plan | `release plan owner-decisions --json` exists and records the public binary name, first release channel, macOS signing and notarization, desktop MCP packaging, credential storage, live read-only smoke, public docs/support, and operational workflow claim decisions still required. It states that no owner has approved public release, public command replacement, release channel, signing, desktop MCP packaging, credential posture, live smoke, docs/support scope, or operational workflow execution claims. | Partial, reduces owner-decision blocker, no public launch approval |
 | Validation | Fresh `npm run validate` passed with `Summary: 0 errors`; generated artifact validation checks config, CLI main, README, SKILL, spec title, MCP main, `internal/mcp`, MCP typed counts, and endpoint count. | Done for preview |
 | Go tests | Fresh `go test -count=1 ./...` passed in `packages/cli/straddle-pp-cli`. | Done for preview |
 | MCP runtime, not just source validation | Fresh JSON-RPC `tools/list` against a `/tmp` MCP build returned `tool_count: 87`, `workflow_plan.readOnlyHint: true`, `workflow_plan.destructiveHint: false`, `credentials_plan.readOnlyHint: true`, and `credentials_plan.destructiveHint: false`. | Done for preview |
@@ -116,6 +117,7 @@ go build -o /tmp/straddle-pp-cli-audit ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli-audit release plan compatibility --json
 /tmp/straddle-pp-cli-audit release plan docs-support --json
 /tmp/straddle-pp-cli-audit release plan naming --json
+/tmp/straddle-pp-cli-audit release plan owner-decisions --json
 /tmp/straddle-pp-cli-audit smoke plan approval --json
 rm -f /tmp/straddle-pp-cli-audit
 ```

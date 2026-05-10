@@ -122,7 +122,7 @@ func buildReleasePlanResponse(surface string) (releasePlanResponse, error) {
 			NoLiveExecution:  true,
 			LocalOutputOnly:  true,
 		},
-		RunbookPurpose: "Reduce the public-release distribution, docs, and support blockers by listing local proof commands, future approvals, artifact surfaces, and blockers. This command only prints the plan and does not publish, make live calls, or approve support.",
+		RunbookPurpose: "Reduce the public-release distribution, compatibility, owner-decision, docs, and support blockers by listing local proof commands, future approvals, artifact surfaces, and blockers. This command only prints local planning guidance and does not publish, make live calls, read secrets, approve launch, approve support, sign, notarize, or execute MCP tools.",
 		Blockers: []string{
 			"No public release artifact has been published, uploaded, or pushed.",
 			"Public docs and support are not approved yet.",
@@ -195,7 +195,7 @@ func renderReleasePlanResponse(cmd *cobra.Command, flags *rootFlags, payload rel
 }
 
 func releaseSurfaceNames() []string {
-	return []string{"archives", "compatibility", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
+	return []string{"archives", "compatibility", "docs-support", "homebrew", "mcp", "naming", "npm", "owner-decisions", "signing", "all"}
 }
 
 func releaseSurfacePlanByName(name string) (releaseSurfacePlan, bool) {
@@ -439,6 +439,63 @@ func releaseSurfacePlans() []releaseSurfacePlan {
 			Blockers: []string{
 				"No npm or npx path exists yet.",
 				"No package metadata, npm publishing automation, or npm credential flow is implemented.",
+			},
+		},
+		{
+			Name:    "owner-decisions",
+			Title:   "Owner decision packet",
+			Summary: "Summarize the owner choices still required before any public release without approving launch.",
+			LocalProofCommands: []string{
+				"straddle-pp-cli release plan owner-decisions --json",
+				"straddle-pp-cli release plan compatibility --json",
+				"straddle-pp-cli release plan naming --json",
+				"straddle-pp-cli release plan docs-support --json",
+				"straddle-pp-cli smoke plan approval --json",
+				"straddle-pp-cli credentials plan launch --json",
+			},
+			PublicArtifactSurfaces: []string{
+				"Public binary name",
+				"First release channel",
+				"macOS signing and notarization posture",
+				"Desktop MCP packaging posture",
+				"Credential storage posture",
+				"Live read-only smoke scope",
+				"Public docs and support scope",
+				"Operational workflow execution claims",
+			},
+			RequiredFutureApprovals: []string{
+				"Launch owner approval for public release, public binary name, first release channel, and public command replacement or deferral.",
+				"Release owner approval for archive publication, Homebrew, npm, npx, signing, notarization, checksums, and release notes.",
+				"MCP owner approval for desktop MCP packaging, install flow, hosted MCP relationship, and support boundary wording.",
+				"Security or owner approval for credential storage posture before broad public launch.",
+				"Approver signoff for the first live read-only smoke scope, environment, credentials, transcript path, expected evidence, and stop criteria.",
+				"Docs and support owner approval for public docs wording, support boundaries, issue intake, and known limits.",
+				"Product owner approval before any operational workflow execution claims are published.",
+			},
+			RequiredDecisions: []string{
+				"public binary name: keep straddle-pp-cli for preview or approve a public straddle replacement or alias after compatibility review.",
+				"first release channel: choose GitHub archives, Homebrew, npm, npx, private preview, or no public release.",
+				"macOS signing and notarization posture: require signed and notarized artifacts, allow unsigned preview with warning text, or defer macOS public distribution.",
+				"desktop MCP packaging posture: ship a desktop MCP package, keep MCP manual and local-build only, rely on hosted MCP, or defer.",
+				"credential storage posture: approve env/config, opt-in keychain, both, or another storage policy for the selected release scope.",
+				"live read-only smoke scope: approve setup only, setup plus one entity-list path, MCP tools/list, broader read-only smoke, or none.",
+				"public docs and support scope: approve install docs, release notes, known limits, support owner, issue intake path, and support boundaries.",
+				"operational workflow execution claims: keep workflow commands as planning guidance or approve and prove live workflow execution later.",
+			},
+			Blockers: []string{
+				"No owner has approved public release.",
+				"No owner has approved public command replacement.",
+				"No owner has approved release channel.",
+				"No owner has approved signing.",
+				"No owner has approved desktop MCP packaging.",
+				"No owner has approved credential posture.",
+				"No owner has approved live smoke.",
+				"No owner has approved docs/support scope.",
+				"No owner has approved operational workflow execution claims.",
+			},
+			Notes: []string{
+				"This command is local guidance only and does not publish, call APIs, read secrets, approve launch, approve support, execute MCP tools, sign, or notarize.",
+				"It turns the public-launch decision packet into machine-readable output for agents and owners, but public launch remains blocked.",
 			},
 		},
 		{

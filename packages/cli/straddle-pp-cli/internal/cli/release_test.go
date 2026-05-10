@@ -29,7 +29,7 @@ func TestReleasePlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 	if got.Command != "release plan" {
 		t.Fatalf("command = %q, want release plan", got.Command)
 	}
-	wantSurfaces := []string{"archives", "compatibility", "docs-support", "homebrew", "mcp", "naming", "npm", "signing", "all"}
+	wantSurfaces := []string{"archives", "compatibility", "docs-support", "homebrew", "mcp", "naming", "npm", "owner-decisions", "signing", "all"}
 	if strings.Join(got.AvailableSurfaces, ",") != strings.Join(wantSurfaces, ",") {
 		t.Fatalf("available surfaces = %#v, want %#v", got.AvailableSurfaces, wantSurfaces)
 	}
@@ -38,6 +38,21 @@ func TestReleasePlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 	}
 	if got.Safety.MakesAPICalls || got.Safety.CallsGitHub || got.Safety.CallsHomebrew || got.Safety.CallsNPM || got.Safety.SignsOrNotarizes || got.Safety.ExecutesMCP {
 		t.Fatalf("release plan should not call external systems, sign, notarize, or execute MCP: %#v", got.Safety)
+	}
+	for _, want := range []string{
+		"distribution, compatibility, owner-decision, docs, and support blockers",
+		"only prints local planning guidance",
+		"does not publish",
+		"make live calls",
+		"read secrets",
+		"approve launch",
+		"approve support",
+		"sign, notarize",
+		"execute MCP tools",
+	} {
+		if !strings.Contains(got.RunbookPurpose, want) {
+			t.Fatalf("runbook purpose missing %q: %q", want, got.RunbookPurpose)
+		}
 	}
 }
 
@@ -76,6 +91,14 @@ func TestReleasePlanSurfacesIncludeRequiredRunbookData(t *testing.T) {
 		},
 		"npm": {
 			"make release-check",
+		},
+		"owner-decisions": {
+			"straddle-pp-cli release plan owner-decisions --json",
+			"straddle-pp-cli release plan compatibility --json",
+			"straddle-pp-cli release plan naming --json",
+			"straddle-pp-cli release plan docs-support --json",
+			"straddle-pp-cli smoke plan approval --json",
+			"straddle-pp-cli credentials plan launch --json",
 		},
 		"signing": {
 			"make release-check",
@@ -187,6 +210,37 @@ func TestReleasePlanSpecialSurfacesStayHonest(t *testing.T) {
 	if !strings.Contains(stdout, "Compatibility inventory is local evidence only") || !strings.Contains(stdout, "No migration or alias plan is approved") {
 		t.Fatalf("compatibility surface should keep local evidence and migration blockers explicit:\n%s", stdout)
 	}
+
+	stdout, _, err = runCLIForDocsTest(t, "release", "plan", "owner-decisions", "--json")
+	if err != nil {
+		t.Fatalf("release plan owner-decisions --json returned error: %v", err)
+	}
+	for _, want := range []string{
+		"No owner has approved public release",
+		"No owner has approved public command replacement",
+		"No owner has approved release channel",
+		"No owner has approved signing",
+		"No owner has approved desktop MCP packaging",
+		"No owner has approved credential posture",
+		"No owner has approved live smoke",
+		"No owner has approved docs/support scope",
+		"No owner has approved operational workflow execution claims",
+		"public binary name",
+		"first release channel",
+		"macOS signing and notarization posture",
+		"desktop MCP packaging posture",
+		"credential storage posture",
+		"live read-only smoke scope",
+		"public docs and support scope",
+		"operational workflow execution claims",
+	} {
+		if !strings.Contains(stdout, want) {
+			t.Fatalf("owner-decisions surface missing %q:\n%s", want, stdout)
+		}
+	}
+	if strings.Contains(stdout, "public launch is approved") || strings.Contains(stdout, "production ready") || strings.Contains(stdout, "replaces public straddle") {
+		t.Fatalf("owner-decisions surface should not imply approved launch, production readiness, or public straddle replacement:\n%s", stdout)
+	}
 }
 
 func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
@@ -205,8 +259,8 @@ func TestReleasePlanAllIncludesEverySurfacePlan(t *testing.T) {
 	if got.Surface != "all" {
 		t.Fatalf("surface = %q, want all", got.Surface)
 	}
-	if len(got.SurfacePlans) != 8 {
-		t.Fatalf("all surface should include eight concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
+	if len(got.SurfacePlans) != 9 {
+		t.Fatalf("all surface should include nine concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
 	}
 	if got.SurfacePlan != nil {
 		t.Fatalf("all surface should use surface_plans, not surface_plan: %#v", got.SurfacePlan)

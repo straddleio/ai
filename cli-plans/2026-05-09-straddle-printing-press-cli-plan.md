@@ -634,12 +634,12 @@ After each slice passes spec review, quality review, and verification, the contr
 
 **Status:** Implemented in the 2026-05-09 release-plan slice.
 
-**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution, compatibility, docs, and support decision blockers by making archive, current-CLI compatibility, docs/support, Homebrew, MCP, naming, npm, and signing blockers explicit without publishing or using secrets.
+**Description:** Add `straddle-pp-cli release plan [surface]` as local-only guidance for public-release readiness. It reduces the distribution, compatibility, docs, support, and owner-decision blockers by making archive, current-CLI compatibility, docs/support, Homebrew, MCP, naming, npm, owner decision, and signing blockers explicit without publishing or using secrets.
 
 **Acceptance criteria:**
 
 - [x] `release plan [surface]` exists under a `release` command tree.
-- [x] Supported surfaces are `archives`, `compatibility`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `signing`, and `all`.
+- [x] Supported surfaces are `archives`, `compatibility`, `docs-support`, `homebrew`, `mcp`, `naming`, `npm`, `owner-decisions`, `signing`, and `all`.
 - [x] The command lists supported surfaces when no surface is provided.
 - [x] Named surfaces return local proof commands, required future approvals, public artifact surfaces, and blockers.
 - [x] Local proof commands include `make release-check`, `make release-snapshot`, archive inspection, and `make clean` where relevant.
