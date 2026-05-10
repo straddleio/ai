@@ -38,9 +38,9 @@ Local preview docs are honest
 
 Safe token path exists and is documented
 
-- Evidence: `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented, with `STRADDLE_TOKEN` and custom config paths; docs say not to commit, print, log, or pass tokens through argv. `credentials plan [surface]` now documents config-file auth, opt-in keychain auth, environment or secret-manager injection, MCP env injection, and the remaining launch approval set.
+- Evidence: `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented, with `STRADDLE_TOKEN` and custom config paths; docs say not to commit, print, log, or pass tokens through argv. `credentials plan [surface]` now documents config-file auth, opt-in keychain auth, environment or secret-manager injection, MCP env injection, packaged-client local smoke guidance, and the remaining launch approval set.
 - Status: Partial.
-- Missing work: Broader auth review, owner/security launch approval, packaged-client smoke, approved live read-only smoke, approved docs wording, and launch approval.
+- Missing work: Broader auth review, owner/security launch approval, reviewed packaged-client smoke, approved live read-only smoke, approved docs wording, and launch approval.
 
 Agent envelopes are documented and covered for current local commands
 
@@ -126,7 +126,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 - Release plan: `/tmp/straddle-pp-cli release plan all --json`.
   Status: Built and documented. Local-only public-release readiness guidance, no publishing, external calls, signing, notarization, MCP execution, or secrets.
 - Credentials plan: `/tmp/straddle-pp-cli credentials plan all --json`.
-  Status: Built and documented. Local-only credential storage readiness guidance, no secret reads, credential writes, API calls, docs calls, MCP execution, publishing, signing, notarization, or launch approval.
+  Status: Built and documented. Local-only credential storage readiness guidance, including packaged-client local smoke commands. No package builds, binary execution, secret reads, credential writes, API calls, docs calls, MCP execution, publishing, signing, notarization, or launch approval.
 - Generated command agent envelope: `/tmp/straddle-pp-cli customers list --dry-run --agent`.
   Status: Documented as target behavior. Use dry-run first, do not call the real API for this check.
 - Streaming agent envelope: use focused tests or local fake-server checks for `sync --agent` and real `tail --agent`.

@@ -64,11 +64,12 @@ For credential storage readiness guidance without reading or writing secrets:
 
 ```bash
 straddle-pp-cli credentials plan --json
+straddle-pp-cli credentials plan packaged-client --json
 straddle-pp-cli credentials plan all --json
 straddle-pp-cli credentials plan keychain --agent
 ```
 
-`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that keychain-backed storage exists as opt-in preview support, but broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
+`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `packaged-client`, `launch`, and `all`. It is local-only guidance. It does not build packages, run binaries, read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that keychain-backed storage exists as opt-in preview support, and the `packaged-client` surface makes local built-binary smoke steps machine-readable for `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, including JSON-RPC `tools/list` only. Packaged-client smoke is only planned or local evidence until run and reviewed. Broad public launch remains blocked and still needs owner/security approval, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
 
 Or install from the local module into `$GOPATH/bin`:
 

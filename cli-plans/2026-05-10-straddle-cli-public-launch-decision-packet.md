@@ -22,7 +22,7 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 - The generated MCP sibling exists from the same Printing Press command tree. The latest completion audit records a credential-free runtime `tools/list` smoke with `tool_count: 87`.
 - Release archive local proof exists. Prior release validation produced local darwin, linux, and windows snapshot archives containing both `straddle-pp-cli` and `straddle-pp-mcp`, plus a local Homebrew cask. Nothing was published, uploaded, pushed, signed, notarized, or written to a tap.
 - Safe token stdin exists. Docs prefer `auth set-token --stdin`, allow caller-supplied environment injection, and warn against checked-in config, logs, argv, and shell-history exposure.
-- Credential launch posture remains unapproved for broad public launch. `credentials plan launch` now reports that keychain-backed storage exists as opt-in preview support, but launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
+- Credential launch posture remains unapproved for broad public launch. `credentials plan launch` reports that keychain-backed storage exists as opt-in preview support. `credentials plan packaged-client` now makes local built-binary smoke commands machine-readable for `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, including JSON-RPC `tools/list` only, but it does not run smoke or execute MCP tools. Packaged-client smoke is only planned or local evidence until run and reviewed. Broad launch still needs owner/security approval, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture.
 - Live smoke has not run. Existing docs keep approved live read-only smoke open until sandbox or approved-environment credentials, command scope, data boundaries, expected outputs, and stop criteria are explicitly approved.
 - Ramp is a benchmark only. It should inform ergonomics, docs posture, MCP positioning, packaging expectations, and presentation checks.
 - Stainless is a reference only. It can inform existing Straddle behavior and compatibility questions, but it is not the architecture.
@@ -78,8 +78,8 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 <td>Credential storage posture</td>
 <td>For first public release, is env/config-only approved, or must OS secure storage ship first?</td>
 <td>Use env/config-only or keychain auth only for internal or approved preview until owners approve the public posture.</td>
-<td>Safe stdin and opt-in keychain support reduce exposure, but broad public launch still needs owner/security approval, packaged-client proof, and approved live read-only smoke.</td>
-<td>Owner/security decision, threat model for local config, keychain, and MCP launches, token redaction checks, no argv token paths in examples, packaged-client smoke, approved live read-only smoke, and approved docs wording.</td>
+<td>Safe stdin, opt-in keychain support, and machine-readable packaged-client local smoke steps reduce exposure, but packaged-client smoke is only planned or local evidence until run and reviewed. Broad public launch still needs owner/security approval and approved live read-only smoke.</td>
+<td>Owner/security decision, threat model for local config, keychain, and MCP launches, token redaction checks, no argv token paths in examples, reviewed packaged-client smoke, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture.</td>
 <td>Do not describe any credential path as sufficient for broad launch, do not print token literals, do not store secrets in generated docs, and do not add public onboarding that treats preview storage as final without approval.</td>
 </tr>
 <tr>

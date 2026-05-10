@@ -31,7 +31,7 @@ func TestCredentialsPlanNoArgJSONReturnsSurfacesAndSafety(t *testing.T) {
 	if got.Command != "credentials plan" {
 		t.Fatalf("command = %q, want credentials plan", got.Command)
 	}
-	wantSurfaces := []string{"config", "environment", "mcp", "keychain", "launch", "all"}
+	wantSurfaces := []string{"config", "environment", "mcp", "keychain", "packaged-client", "launch", "all"}
 	if strings.Join(got.AvailableSurfaces, ",") != strings.Join(wantSurfaces, ",") {
 		t.Fatalf("available surfaces = %#v, want %#v", got.AvailableSurfaces, wantSurfaces)
 	}
@@ -69,12 +69,35 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"keychain-backed storage exists as opt-in preview support",
 			"auth set-token --stdin --keychain",
 			"owner/security approval",
+			"Run and review packaged-client smoke before broad launch",
+			"packaged-client smoke is only planned or local evidence until run and reviewed",
+			"Signed/notarized packaging posture is still required before broad public launch",
+			"Desktop MCP packaging posture is still required before broad public launch",
 			"approved live read-only smoke",
+		},
+		"packaged-client": {
+			"built CLI/MCP binaries",
+			"make package-readiness",
+			"dist/local/straddle-pp-cli setup check --json",
+			"dist/local/straddle-pp-cli credentials plan packaged-client --json",
+			"dist/local/straddle-pp-cli auth status --json",
+			"dist/local/straddle-pp-mcp",
+			"JSON-RPC tools/list",
+			"credential-bearing MCP tools",
+			"packaged-client smoke is only planned or local evidence until run and reviewed",
+			"broad public launch remains blocked",
+			"does not build packages",
+			"does not read secrets",
+			"does not write credentials",
+			"does not approve launch",
 		},
 		"launch": {
 			"blocking decision set",
 			"keychain-backed storage exists as opt-in preview support",
-			"packaged-client smoke",
+			"Run and review packaged-client smoke before broad public launch",
+			"packaged-client smoke is only planned or local evidence until run and reviewed",
+			"Signed/notarized packaging posture is missing",
+			"Desktop MCP packaging posture is missing",
 			"approved live read-only smoke",
 			"docs wording",
 		},
@@ -114,6 +137,18 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			if len(got.SurfacePlan.Notes) == 0 {
 				t.Fatalf("%s surface should include notes", surface)
 			}
+			if surface == "packaged-client" {
+				foundMCPToolsListProof := false
+				for _, command := range got.SurfacePlan.LocalProofCommands {
+					if strings.Contains(command, "dist/local/straddle-pp-mcp") && strings.Contains(command, "tools/list") {
+						foundMCPToolsListProof = true
+						break
+					}
+				}
+				if !foundMCPToolsListProof {
+					t.Fatalf("packaged-client local proof commands should include a runnable dist/local/straddle-pp-mcp tools/list command: %#v", got.SurfacePlan.LocalProofCommands)
+				}
+			}
 			for _, want := range wantStrings {
 				if !strings.Contains(stdout, want) {
 					t.Fatalf("%s surface should include %q:\n%s", surface, want, stdout)
@@ -142,8 +177,8 @@ func TestCredentialsPlanAllIncludesEveryConcreteSurfacePlan(t *testing.T) {
 	if got.Surface != "all" {
 		t.Fatalf("surface = %q, want all", got.Surface)
 	}
-	if len(got.SurfacePlans) != 5 {
-		t.Fatalf("all surface should include five concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
+	if len(got.SurfacePlans) != 6 {
+		t.Fatalf("all surface should include six concrete surface plans, got %d: %#v", len(got.SurfacePlans), got.SurfacePlans)
 	}
 	if got.SurfacePlan != nil {
 		t.Fatalf("all surface should use surface_plans, not surface_plan: %#v", got.SurfacePlan)

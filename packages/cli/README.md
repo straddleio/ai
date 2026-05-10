@@ -155,6 +155,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli release plan owner-decisions --json
 /tmp/straddle-pp-cli release plan all --json
 /tmp/straddle-pp-cli credentials plan --json
+/tmp/straddle-pp-cli credentials plan packaged-client --json
 /tmp/straddle-pp-cli credentials plan all --json
 ```
 
@@ -223,11 +224,12 @@ For credential storage launch readiness, use:
 
 ```bash
 straddle-pp-cli credentials plan --json
+straddle-pp-cli credentials plan packaged-client --json
 straddle-pp-cli credentials plan all --json
 straddle-pp-cli credentials plan keychain --agent
 ```
 
-`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It says plainly that safe stdin config-file auth exists, keychain-backed storage exists as opt-in preview support, environment and secret-manager injection are supported for shells, CI, and MCP launches, and MCP environment injection is separate from CLI config-file auth. Broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording. Desktop MCP public install remains future work.
+`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `packaged-client`, `launch`, and `all`. It is local-only guidance. It does not build packages, run binaries, read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It says plainly that safe stdin config-file auth exists, keychain-backed storage exists as opt-in preview support, environment and secret-manager injection are supported for shells, CI, and MCP launches, and MCP environment injection is separate from CLI config-file auth. The `packaged-client` surface makes the local built-binary smoke steps machine-readable for `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, including JSON-RPC `tools/list` only. Packaged-client smoke is only planned or local evidence until run and reviewed. Broad public launch remains blocked and still needs owner/security approval, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture. Desktop MCP public install remains future work.
 
 ## Regenerate
 
@@ -317,7 +319,7 @@ Do not copy Stainless architecture into this package.
 The generated baseline is not ready to replace the public CLI until these gaps are closed:
 
 - Installer and public release packaging are not done. A local `make package-readiness` proof builds both preview binaries, and a local GoReleaser snapshot has built archives that include both the CLI and MCP sibling, but neither path publishes anything.
-- Safe token input exists for config-file auth and opt-in keychain auth, and `credentials plan [surface]` now documents config, environment, MCP, keychain, and launch decisions. Broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
+- Safe token input exists for config-file auth and opt-in keychain auth, and `credentials plan [surface]` now documents config, environment, MCP, keychain, packaged-client local smoke, and launch decisions. Packaged-client smoke is only planned or local evidence until run and reviewed. Broad public launch still needs owner/security approval, approved live read-only smoke, approved public docs wording, signed/notarized packaging posture, and desktop MCP packaging posture.
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
 - Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target Straddle envelope only for `--agent`; normal `--json` stays raw.
 - `about --agent` uses the target Straddle envelope for local preview status.
@@ -328,7 +330,7 @@ The generated baseline is not ready to replace the public CLI until these gaps a
 - Reconciliation, fraud monitoring, collections, reporting, and monitoring now have the help-only `straddle-pp-cli ops guide [workflow]` terminal flow and the structured local-only `straddle-pp-cli workflow plan [workflow]` command plan flow. Live execution, API reads, docs lookup execution, MCP execution, webhook posts, production writes, and full workflow engines remain out of scope.
 - Approved live-smoke planning now has the local-only `straddle-pp-cli smoke plan [scope]` terminal flow. The `approval` scope reduces the live-smoke blocker by turning required written approval into structured output, but it does not run live smoke or approve launch.
 - Public-release readiness now has the local-only `straddle-pp-cli release plan [surface]` terminal flow. It reduces the distribution, compatibility, docs, support, and owner-decision blockers by making archive, current-CLI compatibility, docs/support, Homebrew, MCP, naming, npm, owner decision, and signing decisions explicit, but it does not publish, approve launch, replace `straddle`, approve public docs, approve support, approve live smoke, or approve workflow execution claims.
-- Credential storage readiness now has the local-only `straddle-pp-cli credentials plan [surface]` terminal flow. It reduces the auth launch blocker by making config, environment, MCP, keychain, and launch decisions explicit, but it does not read or write credentials and does not approve launch.
+- Credential storage readiness now has the local-only `straddle-pp-cli credentials plan [surface]` terminal flow. It reduces the auth launch blocker by making config, environment, MCP, keychain, packaged-client local smoke, and launch decisions explicit, but it does not build packages, run binaries, read or write credentials, execute MCP tools, or approve launch.
 
 ## Later Polish
 

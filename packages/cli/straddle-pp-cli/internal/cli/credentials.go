@@ -117,7 +117,9 @@ func buildCredentialsPlanResponse(surface string) (credentialsPlanResponse, erro
 		RunbookPurpose: "Reduce the credential storage launch blocker by listing current support, safe local checks, required decisions, and blockers. This command only prints guidance.",
 		Blockers: []string{
 			"Keychain-backed storage exists as opt-in preview support, but broad public launch still needs owner/security approval.",
-			"Packaged-client smoke, approved live read-only smoke, and public docs wording remain required before broad launch.",
+			"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
+			"Approved live read-only smoke and public docs wording remain required before broad launch.",
+			"The blocker remains: broad public launch remains blocked.",
 			"Desktop MCP public install remains future work.",
 		},
 	}
@@ -184,7 +186,7 @@ func renderCredentialsPlanResponse(cmd *cobra.Command, flags *rootFlags, payload
 }
 
 func credentialsSurfaceNames() []string {
-	return []string{"config", "environment", "mcp", "keychain", "launch", "all"}
+	return []string{"config", "environment", "mcp", "keychain", "packaged-client", "launch", "all"}
 }
 
 func credentialsSurfacePlanByName(name string) (credentialsSurfacePlan, bool) {
@@ -291,18 +293,67 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			LaunchDecisionNeeded: []string{
 				"Get owner/security approval before recommending keychain auth for broad public launch.",
-				"Run packaged-client smoke before broad launch.",
+				"Run and review packaged-client smoke before broad launch.",
+				"Decide signed/notarized packaging posture before broad public launch.",
+				"Decide desktop MCP packaging posture before broad public launch.",
 				"Run approved live read-only smoke before broad launch.",
 				"Approve public docs wording for preview keychain support and fallback guidance.",
 			},
 			Blockers: []string{
 				"Owner/security approval is still required.",
-				"Packaged-client smoke is still required.",
+				"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
+				"Signed/notarized packaging posture is still required before broad public launch.",
+				"Desktop MCP packaging posture is still required before broad public launch.",
 				"Approved live read-only smoke is still required.",
 				"Public docs wording is still required.",
 			},
 			Notes: []string{
 				"This command does not probe OS credential stores or read keychain values.",
+			},
+		},
+		{
+			Name:           "packaged-client",
+			Title:          "Packaged CLI and MCP credential smoke plan",
+			Summary:        "Describe local credential smoke for built CLI/MCP binaries without running smoke or approving public release.",
+			CurrentSupport: "Packaged-client credential smoke is planned for built CLI/MCP binaries in dist/local, not public release artifacts.",
+			LocalProofCommands: []string{
+				"make package-readiness",
+				"dist/local/straddle-pp-cli --help",
+				"dist/local/straddle-pp-cli setup check --json",
+				"dist/local/straddle-pp-cli credentials plan packaged-client --json",
+				"dist/local/straddle-pp-cli auth status --json",
+				"node -e 'const {spawn}=require(\"node:child_process\"); const cp=spawn(\"dist/local/straddle-pp-mcp\"); let buf=\"\"; let timer=setTimeout(()=>{console.error(\"timed out\"); cp.kill(); process.exit(1);},5000); function send(msg){cp.stdin.write(JSON.stringify(msg)+\"\\n\");} cp.stdout.on(\"data\", d=>{buf+=d; for(;;){const i=buf.indexOf(\"\\n\"); if(i<0) break; const line=buf.slice(0,i).trim(); buf=buf.slice(i+1); if(!line) continue; const msg=JSON.parse(line); if(msg.id===1){send({jsonrpc:\"2.0\",method:\"notifications/initialized\",params:{}}); send({jsonrpc:\"2.0\",id:2,method:\"tools/list\",params:{}});} if(msg.id===2){clearTimeout(timer); const tools=msg.result.tools||[]; console.log(JSON.stringify({tool_count:tools.length, first_tools:tools.slice(0,5).map(t=>t.name)})); cp.kill(); process.exit(0);}}}); send({jsonrpc:\"2.0\",id:1,method:\"initialize\",params:{protocolVersion:\"2024-11-05\",capabilities:{},clientInfo:{name:\"straddle-ai-local-smoke\",version:\"0\"}}});'",
+				"make clean",
+			},
+			LocalChecks: []string{
+				"Confirm packaged binaries exist in dist/local.",
+				"Confirm packaged CLI help works.",
+				"Confirm packaged setup check does not read secrets.",
+				"Confirm credential planning works from the packaged CLI.",
+				"Confirm packaged auth status can report unauthenticated state without printing tokens.",
+				"Confirm dist/local/straddle-pp-mcp is used only for JSON-RPC tools/list smoke without executing credential-bearing MCP tools.",
+				"Confirm local build outputs are cleaned with make clean.",
+			},
+			LaunchDecisionNeeded: []string{
+				"Owner/security launch decision still needs approval before broad launch.",
+				"Public docs wording still needs approval before broad launch.",
+				"Signed/notarized packaging posture still needs approval before broad launch.",
+				"Desktop MCP packaging posture still needs approval before broad launch.",
+				"Approved live read-only smoke still needs approval before broad launch.",
+			},
+			Blockers: []string{
+				"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
+				"The blocker remains: broad public launch remains blocked.",
+				"Owner/security approval is still required.",
+				"Public docs wording is still required.",
+				"Signed/notarized packaging posture is still required.",
+				"Desktop MCP packaging posture is still required.",
+				"Approved live read-only smoke is still required.",
+			},
+			Notes: []string{
+				"This surface describes packaged-client credential smoke for built CLI/MCP binaries, not public release.",
+				"This command does not build packages, does not run binaries, does not read secrets, does not write credentials, does not call Straddle APIs, does not execute MCP tools, does not publish, does not sign, does not notarize, and does not approve launch.",
+				"Use dist/local/straddle-pp-mcp only as the binary for JSON-RPC tools/list smoke and do not execute credential-bearing MCP tools.",
 			},
 		},
 		{
@@ -320,14 +371,18 @@ func credentialsSurfacePlans() []credentialsSurfacePlan {
 			},
 			LaunchDecisionNeeded: []string{
 				"Get owner/security approval before broad public launch.",
-				"Run packaged-client smoke before broad public launch.",
+				"Run and review packaged-client smoke before broad public launch.",
+				"Decide signed/notarized packaging posture before broad public launch.",
+				"Decide desktop MCP packaging posture before broad public launch.",
 				"Run approved live read-only smoke before broad public launch.",
 				"Decide whether MCP env injection is enough for first release while desktop MCP public install remains future work.",
 				"Decide public docs wording for config path customization, secret-manager injection, and keychain preview support.",
 			},
 			Blockers: []string{
 				"Owner/security approval is missing.",
-				"Packaged-client smoke is missing.",
+				"The blocker remains: packaged-client smoke is only planned or local evidence until run and reviewed.",
+				"Signed/notarized packaging posture is missing.",
+				"Desktop MCP packaging posture is missing.",
 				"Approved live read-only smoke is missing.",
 				"Public docs wording is missing.",
 				"Desktop MCP public install remains future work.",
