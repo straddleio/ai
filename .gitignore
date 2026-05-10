@@ -19,3 +19,6 @@ examples/
 
 # Demo files
 demo.*
+
+# Local package artifacts
+packages/cli/straddle-pp-cli/dist/

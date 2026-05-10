@@ -506,14 +506,14 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli --help
 ```
 
-For local packaging readiness, build both preview binaries into `dist/local/` and verify they exist:
+For local packaging readiness, build both preview binaries into `dist/local/`, verify they exist, and run packaged `shipcheck local` against the packaged MCP sibling:
 
 ```bash
 cd /Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli
 make package-readiness
 ```
 
-This local check includes the CLI binary, the generated `straddle-pp-mcp` sibling, and copied `.printing-press.json` provenance metadata. It does not publish archives, update a Homebrew tap, provide an `npx` package, or create a desktop MCP bundle.
+This local check includes the CLI binary, the generated `straddle-pp-mcp` sibling, copied `.printing-press.json` provenance metadata, and the packaged executable shipcheck. It does not publish archives, update a Homebrew tap, provide an `npx` package, or create a desktop MCP bundle.
 
 For local release archive validation, run GoReleaser in non-publishing snapshot mode:
 

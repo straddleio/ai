@@ -38,7 +38,9 @@ package-local:
 	"$(DIST_DIR)/straddle-pp-cli" --help >/dev/null
 	printf 'local package ready: %s\n' "$(DIST_DIR)"
 
+# PATCH: package-readiness runs the packaged CLI shipcheck against the packaged MCP sibling.
 package-readiness: package-local
+	"$(DIST_DIR)/straddle-pp-cli" shipcheck local --mcp-binary "$(DIST_DIR)/straddle-pp-mcp" --json >/dev/null
 
 release-check:
 	$(GORELEASER) check
