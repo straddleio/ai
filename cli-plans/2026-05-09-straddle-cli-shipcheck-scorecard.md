@@ -1,6 +1,6 @@
 # Straddle CLI Shipcheck Scorecard
 
-Date: 2026-05-09
+Date: 2026-05-10
 
 ## Verdict
 
@@ -231,6 +231,32 @@ This was a local no-secret packaged-client credential smoke. It did not use cred
 | `dist/local/straddle-pp-cli auth status --json` | Expected unauthenticated | Exited 4 with `authenticated: false`, config path `/Users/js/.config/straddle-pp-cli/config.toml`, empty source, and a local setup or secret-injection hint. No token value printed. |
 | JSON-RPC `initialize` plus `tools/list` against `dist/local/straddle-pp-mcp` | Pass | Returned `tool_count: 87` and first tools `account-settings_get-settings`, `accounts_capability-requests_create`, `accounts_capability-requests_list`, `accounts_create`, and `accounts_get`. No MCP tool was executed. |
 | `make clean` | Pass | Removed local `bin/`, `build/`, and `dist/` outputs after the smoke. |
+
+## Fresh Non-Live Shipcheck After Compatibility Inventory
+
+Run date: 2026-05-10.
+
+Run scope: non-live, credential-free, local-only evidence for the current CLI preview after the compatibility inventory commit. This run did not approve public launch or live smoke.
+
+No Straddle API calls, docs endpoint calls, MCP tool calls, production calls, publishing, signing, notarization, npm registry actions, Homebrew, or tap actions happened. Stainless remained reference only; Printing Press remained the generator foundation.
+
+Run from `/Users/js/clawd/straddle/straddle-ai` unless noted.
+
+| Command | Result | Observed summary |
+|---------|--------|------------------|
+| `npm run validate` | Pass | Sync consistency, frontmatter, manifests, versions, MCP configs, internal references, and generated CLI artifact checks passed with `Summary: 0 errors`. Generated MCP typed counts remained 70 endpoint tools, 3 framework tools, 73 typed tools total. |
+| `go test -count=1 ./...` from `packages/cli/straddle-pp-cli` | Pass | All generated project packages passed. Packages with tests reported pass for `internal/cli`, `internal/cliutil`, `internal/config`, `internal/mcp`, `internal/mcp/cobratree`, and `internal/store`; no-test packages stayed unchanged. |
+| `make package-readiness` from `packages/cli/straddle-pp-cli` | Pass | Built `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, verified both binaries executable, ran packaged CLI help, and printed `local package ready: dist/local`. |
+| `dist/local/straddle-pp-cli --help` | Pass | Packaged CLI root help listed setup, auth, credentials, release, smoke, workflow, endpoint groups, agent defaults, and the optional live doctor warning. |
+| `dist/local/straddle-pp-cli setup check --json` | Pass | Reported local-preview safety flags with no docs endpoint calls, no Straddle API calls, no MCP execution, no webhook posts, and no production writes. Config existed false, auth configured false, and packaged MCP sibling available true. |
+| `dist/local/straddle-pp-cli about --agent` | Pass | Emitted the target JSON envelope with `schema_version: "1.0"`, `error: null`, `data.command: "about"`, `data.status: "local preview"`, `requires_auth: false`, `makes_api_calls: false`, and `writes_production: false`. |
+| `dist/local/straddle-pp-cli release plan all --json` | Pass | Returned local-only release planning for archives, compatibility, docs support, Homebrew, MCP, naming, npm distribution, owner decisions, and signing. Safety metadata confirmed no API calls, no GitHub calls, no Homebrew calls, no npm calls, no MCP execution, no secrets, no publishing, no signing, no notarization, and no launch approval. |
+| `dist/local/straddle-pp-cli credentials plan packaged-client --json` | Pass | Returned packaged-client credential smoke guidance only. Safety metadata confirmed no secret reads, no secret prints, no credential writes, no Straddle API calls, no docs endpoint calls, no MCP tool execution, no publishing, no signing, no notarization, and no launch approval. |
+| `dist/local/straddle-pp-cli smoke plan approval --json` | Pass | Returned the approval packet fields, expected evidence, stop criteria, and redaction guidance for a future read-only live smoke. Safety metadata confirmed guidance only, local only, no live execution, no API calls, no docs endpoint calls, no MCP execution, no sandbox writes, no production writes, and explicit approval required. |
+| JSON-RPC `initialize`, `notifications/initialized`, and `tools/list` against `dist/local/straddle-pp-mcp` | Pass | Returned `tool_count: 87`; first tools were `account-settings_get-settings`, `accounts_capability-requests_create`, `accounts_capability-requests_list`, `accounts_create`, and `accounts_get`. No MCP tool was called. |
+| `make clean` from `packages/cli/straddle-pp-cli` | Pass | Removed local `bin/`, `build/`, and `dist/` outputs. |
+
+Fresh shipcheck verdict: local generation, broad tests, packaged CLI, packaged MCP `tools/list`, and cleanup still work. Public launch and live smoke remain blocked.
 
 ## Product Review Slice Results
 

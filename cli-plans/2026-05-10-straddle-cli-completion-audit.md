@@ -158,6 +158,32 @@ Observed summaries:
 {"name":"make_clean","result":"pass","removed":["bin","build","dist"]}
 ```
 
+Fresh non-live shipcheck after compatibility inventory:
+
+Run date: 2026-05-10.
+
+Scope: non-live, credential-free, local-only evidence. It proves the current Printing Press generated preview can still validate, test, package, print safe local plans, expose packaged MCP metadata, and clean up local outputs. It does not approve public launch or live smoke.
+
+No Straddle API calls, docs endpoint calls, MCP tool calls, production calls, publishing, signing, notarization, npm registry actions, Homebrew, or tap actions happened. Stainless remained reference only; Printing Press remained the generator foundation.
+
+Commands and observed summaries:
+
+```json
+{"name":"npm_validate","result":"pass","summary":"0 errors; generated MCP typed counts remained 70 endpoint tools, 3 framework tools, and 73 typed tools total"}
+{"name":"go_test_all","result":"pass","package_dir":"packages/cli/straddle-pp-cli","summary":"all generated project packages passed"}
+{"name":"package_readiness","result":"pass","local_binaries":["dist/local/straddle-pp-cli","dist/local/straddle-pp-mcp"],"summary":"both packaged binaries executable and packaged CLI help passed"}
+{"name":"packaged_cli_help","result":"pass","summary":"root help listed setup, auth, credentials, release, smoke, workflow, endpoint groups, and agent flags"}
+{"name":"setup_check","result":"pass","calls_docs_endpoint":false,"calls_straddle_api":false,"executes_mcp":false,"writes_production":false,"auth_configured":false,"mcp_available":true}
+{"name":"about_agent","result":"pass","schema_version":"1.0","error":null,"status":"local preview","requires_auth":false,"makes_api_calls":false,"writes_production":false}
+{"name":"release_plan_all","result":"pass","local_only":true,"no_publishing":true,"no_signing":true,"no_notarization":true,"no_live_execution":true,"requires_approval":true}
+{"name":"credentials_packaged_client","result":"pass","guidance_only":true,"local_only":true,"does_not_read_secrets":true,"calls_straddle_apis":false,"calls_docs_endpoints":false,"executes_mcp_tools":false,"approves_launch":false}
+{"name":"smoke_plan_approval","result":"pass","guidance_only":true,"local_only":true,"makes_api_calls":false,"calls_docs_endpoint":false,"executes_mcp":false,"no_live_execution_in_command":true,"requires_explicit_approval":true}
+{"name":"mcp_packaged_tools_list","result":"pass","tool_count":87,"first_tools":["account-settings_get-settings","accounts_capability-requests_create","accounts_capability-requests_list","accounts_create","accounts_get"],"mcp_tools_called":false}
+{"name":"make_clean","result":"pass","removed":["bin","build","dist"]}
+```
+
+Conclusion: local generation, tests, packaged CLI, packaged MCP `tools/list`, and cleanup still work. Public launch remains blocked. Live smoke remains blocked.
+
 ## Missing Work
 
 These are blockers for claiming the activated goal is complete:

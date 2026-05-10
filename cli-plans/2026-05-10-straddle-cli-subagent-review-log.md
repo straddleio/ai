@@ -35,6 +35,35 @@ Every implementation slice must complete these gates before the controller selec
 
 ## Latest Slice Review Detail
 
+### Fresh non-live shipcheck after compatibility inventory
+
+Run date: 2026-05-10.
+
+What changed:
+
+- Recorded a fresh non-live, credential-free, local-only shipcheck in the shipcheck scorecard and completion audit.
+- Kept public launch and live smoke blocked.
+- Recorded cleanup evidence showing `make clean` removed local outputs.
+
+Evidence:
+
+- `npm run validate` passed with `Summary: 0 errors`; generated MCP typed counts remained 70 endpoint tools, 3 framework tools, and 73 typed tools total.
+- `go test -count=1 ./...` passed from `packages/cli/straddle-pp-cli`.
+- `make package-readiness` built executable packaged binaries at `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, then verified packaged CLI help.
+- Packaged `dist/local/straddle-pp-cli --help` worked.
+- Packaged `setup check --json` reported no docs endpoint calls, no Straddle API calls, no MCP execution, no webhook posts, and no production writes.
+- Packaged `about --agent` emitted a valid target JSON envelope for local preview and reported no auth requirement, no API calls, and no production writes.
+- Packaged `release plan all --json`, `credentials plan packaged-client --json`, and `smoke plan approval --json` printed local-only planning or approval guidance without approving launch, reading secrets, publishing, signing, notarizing, or executing MCP tools.
+- JSON-RPC `initialize`, `notifications/initialized`, and `tools/list` against `dist/local/straddle-pp-mcp` returned `tool_count: 87`; first tools were `account-settings_get-settings`, `accounts_capability-requests_create`, `accounts_capability-requests_list`, `accounts_create`, and `accounts_get`. No MCP tool was called.
+- `make clean` removed `bin/`, `build/`, and `dist/`.
+
+Safety boundary:
+
+- No Straddle API calls, docs endpoint calls, MCP tool calls, production calls, publishing, signing, notarization, npm registry actions, Homebrew, or tap actions happened.
+- Stainless remained reference only; Printing Press remained the generator foundation.
+
+Controller verification for this documentation slice is expected to cover `git diff --check`, added-line unsafe punctuation scans, added-line credential example scans, and post-clean output directory checks before handoff.
+
 ### Current CLI compatibility inventory slice
 
 What changed:
