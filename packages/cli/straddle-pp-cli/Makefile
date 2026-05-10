@@ -1,7 +1,7 @@
 DIST_DIR ?= dist/local
 GORELEASER ?= go run github.com/goreleaser/goreleaser/v2@v2.15.4
 
-.PHONY: build test lint install clean build-mcp install-mcp build-all package-local package-readiness release-check release-snapshot npm-package-readiness release-readiness
+.PHONY: build test lint install clean build-mcp install-mcp build-all package-local package-readiness release-check release-snapshot npm-package-readiness release-readiness completion-audit
 
 build:
 	go build -o bin/straddle-pp-cli ./cmd/straddle-pp-cli
@@ -57,3 +57,7 @@ npm-package-readiness:
 release-readiness: test package-readiness release-check release-snapshot
 	sh scripts/verify-release-artifacts.sh dist
 	$(MAKE) npm-package-readiness
+
+# PATCH: completion-audit verifies the objective-to-artifact proof against packaged CLI and MCP artifacts.
+completion-audit: release-readiness
+	sh scripts/verify-completion-audit.sh dist

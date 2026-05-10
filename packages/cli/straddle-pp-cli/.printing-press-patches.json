@@ -586,6 +586,20 @@
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublicApprovalTemplate' covers strict JSON shape, current local_preview_commit, false approval defaults, evidence keys for every public approval, no public shipcheck response rendering, token literal absence, and modified-build rejection."
     },
     {
+      "id": "completion-audit-command",
+      "summary": "Add one local command that audits objective coverage against packaged artifacts.",
+      "reason": "The prompt-to-artifact checklist should be executable and repeatable, not dependent on archived planning docs or narrative status summaries.",
+      "files": [
+        "Makefile",
+        "scripts/verify-completion-audit.sh",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "make completion-audit runs release-readiness, then verifies packaged CLI and MCP artifacts for Printing Press/OpenAPI provenance, Ramp benchmark dimensions, command docs search, workflow plans, MCP tools/list smoke, approval template shape, public launch blockers, and redacted release-candidate approval validation without publishing, upload, API calls, docs calls, secrets, signing, notarization, production writes, or credential-bearing MCP tools."
+    },
+    {
       "id": "public-release-candidate-workflow",
       "summary": "Add a manual non-publishing release-candidate workflow.",
       "reason": "After local preview passes and owners provide an approval JSON record, agents need an executable review artifact path that validates public readiness against the built CLI without publishing, signing, notarizing, calling Straddle APIs, calling credential-bearing MCP tools, reading secrets, or uploading raw approval contents.",
