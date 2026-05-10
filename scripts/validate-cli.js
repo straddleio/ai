@@ -51,7 +51,7 @@ function validateCli(cliDir = DEFAULT_CLI_DIR) {
   const mcpToolsPath = path.join(cliDir, 'internal', 'mcp', 'tools.go');
 
   const hasPrintingPressConfig = mustExist(printingPressConfigPath, 'Printing Press config');
-  mustExist(cliMainPath, 'CLI main.go');
+  mustExist(cliMainPath, 'CLI entrypoint');
   mustExist(path.join(cliDir, 'README.md'), 'generated README.md');
   mustExist(path.join(cliDir, 'SKILL.md'), 'generated SKILL.md');
 
@@ -77,9 +77,9 @@ function validateCli(cliDir = DEFAULT_CLI_DIR) {
   const shouldCheckMcp = Boolean(configuredMcpBinary) || fs.existsSync(defaultMcpMainPath);
 
   if (shouldCheckMcp) {
-    mustExist(mcpMainPath, 'MCP main.go');
+    mustExist(mcpMainPath, 'MCP entrypoint');
     mustBeDirectory(path.join(cliDir, 'internal', 'mcp'), 'internal/mcp');
-    if (mustExist(mcpToolsPath, 'MCP tools.go')) {
+    if (mustExist(mcpToolsPath, 'MCP tools source')) {
       const toolsGo = fs.readFileSync(mcpToolsPath, 'utf8');
       const typedMcpToolNames = [...toolsGo.matchAll(/mcplib\.NewTool\(\s*"([^"]+)"/g)].map((match) => match[1]);
       const typedFrameworkToolNames = typedMcpToolNames.filter((name) => TYPED_FRAMEWORK_MCP_TOOLS.has(name));

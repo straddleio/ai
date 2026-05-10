@@ -44,6 +44,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: packages/cli/straddle-pp-cli/go.mod
+          cache-dependency-path: packages/cli/straddle-pp-cli/go.sum
 
       - name: Sync plugin files
         run: npm run sync

@@ -16,6 +16,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: packages/cli/straddle-pp-cli/go.mod
+          cache-dependency-path: packages/cli/straddle-pp-cli/go.sum
       - run: npm run sync
       - run: npm run validate
       - run: node scripts/validate-cli.js
