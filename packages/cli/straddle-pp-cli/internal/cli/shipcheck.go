@@ -891,6 +891,8 @@ func checkShipcheckSafetyContract() shipcheckCheck {
 
 type shipcheckPrintingPressConfig struct {
 	PrintingPressVersion string `json:"printing_press_version"`
+	GeneratorRepository  string `json:"generator_repository"`
+	LibraryRepository    string `json:"library_repository"`
 	PrinterName          string `json:"printer_name"`
 	SpecURL              string `json:"spec_url"`
 	SpecPath             string `json:"spec_path"`
@@ -900,6 +902,8 @@ type shipcheckPrintingPressConfig struct {
 
 const (
 	shipcheckDocsOpenAPIPath       = "sdks/straddle-docs/docs/api-reference/openapi.json"
+	shipcheckGeneratorRepository   = "https://github.com/mvanhorn/cli-printing-press"
+	shipcheckLibraryRepository     = "https://github.com/mvanhorn/printing-press-library"
 	shipcheckExpectedMCPBinary     = "straddle-pp-mcp"
 	shipcheckStrictProvenanceEnv   = "STRADDLE_PP_SHIPCHECK_STRICT_PROVENANCE"
 	shipcheckPackagedCLIBinaryName = "straddle-pp-cli"
@@ -934,6 +938,18 @@ func checkShipcheckProvenanceFromDirs(searchDirs []string) shipcheckCheck {
 		return check
 	}
 	check.Evidence = append(check.Evidence, "generator: CLI Printing Press "+generator)
+	if strings.TrimSpace(config.GeneratorRepository) != shipcheckGeneratorRepository {
+		check.Note = ".printing-press.json must identify generator_repository " + shipcheckGeneratorRepository
+		check.Evidence = append(check.Evidence, "generator repository: missing or unexpected")
+		return check
+	}
+	check.Evidence = append(check.Evidence, "generator repository: "+shipcheckGeneratorRepository)
+	if strings.TrimSpace(config.LibraryRepository) != shipcheckLibraryRepository {
+		check.Note = ".printing-press.json must identify library_repository " + shipcheckLibraryRepository
+		check.Evidence = append(check.Evidence, "library repository: missing or unexpected")
+		return check
+	}
+	check.Evidence = append(check.Evidence, "library repository: "+shipcheckLibraryRepository)
 	if printer := strings.TrimSpace(config.PrinterName); printer != "" {
 		check.Evidence = append(check.Evidence, "printer: "+printer)
 	}

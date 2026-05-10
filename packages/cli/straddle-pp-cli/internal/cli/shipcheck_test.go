@@ -409,6 +409,8 @@ func TestShipcheckLocalProvenanceSuccess(t *testing.T) {
 	}
 	for _, want := range []string{
 		"generator: CLI Printing Press 4.2.0",
+		"generator repository: https://github.com/mvanhorn/cli-printing-press",
+		"library repository: https://github.com/mvanhorn/printing-press-library",
 		"docs openapi: ",
 		"checksum: matched sha256:" + sourceHash,
 		"mcp sibling: straddle-pp-mcp",
@@ -416,6 +418,24 @@ func TestShipcheckLocalProvenanceSuccess(t *testing.T) {
 		if !shipcheckEvidenceContains(check.Evidence, want) {
 			t.Fatalf("provenance evidence missing %q: %#v", want, check.Evidence)
 		}
+	}
+}
+
+func TestShipcheckLocalProvenanceMissingGeneratorRepositoryFails(t *testing.T) {
+	packageDir, _ := writeShipcheckProvenanceFixture(t, "source-openapi", "transformed-spec")
+	writeShipcheckPrintingPressConfig(t, packageDir, shipcheckProvenanceFixtureConfig{
+		SourcePath:          shipcheckProvenanceFixtureSourcePath(packageDir),
+		Checksum:            "sha256:" + sha256StringHex("source-openapi"),
+		GeneratorRepository: "https://example.invalid/not-printing-press",
+	})
+
+	check := checkShipcheckProvenanceFromDirs([]string{packageDir})
+
+	if check.Passed {
+		t.Fatalf("provenance check should fail on unexpected generator repository: %#v", check)
+	}
+	if !strings.Contains(check.Note, "generator_repository") {
+		t.Fatalf("generator repository error should be clear, got %#v", check)
 	}
 }
 
@@ -771,9 +791,11 @@ func shipcheckCheckByName(t *testing.T, checks []shipcheckCheck, name string) sh
 }
 
 type shipcheckProvenanceFixtureConfig struct {
-	SourcePath string
-	Checksum   string
-	MCPBinary  string
+	SourcePath          string
+	Checksum            string
+	MCPBinary           string
+	GeneratorRepository string
+	LibraryRepository   string
 }
 
 func writeShipcheckProvenanceFixture(t *testing.T, sourceOpenAPI string, transformedSpec string) (string, string) {
@@ -811,8 +833,18 @@ func writeShipcheckPrintingPressConfig(t *testing.T, packageDir string, config s
 	if mcpBinary == "" {
 		mcpBinary = "straddle-pp-mcp"
 	}
+	generatorRepository := config.GeneratorRepository
+	if generatorRepository == "" {
+		generatorRepository = shipcheckGeneratorRepository
+	}
+	libraryRepository := config.LibraryRepository
+	if libraryRepository == "" {
+		libraryRepository = shipcheckLibraryRepository
+	}
 	raw, err := json.MarshalIndent(map[string]any{
 		"printing_press_version": "4.2.0",
+		"generator_repository":   generatorRepository,
+		"library_repository":     libraryRepository,
 		"printer_name":           "hello-keith",
 		"spec_path":              config.SourcePath,
 		"spec_url":               config.SourcePath,

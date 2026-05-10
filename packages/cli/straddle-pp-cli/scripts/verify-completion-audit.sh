@@ -84,6 +84,15 @@ for (const required of [
     throw new Error(`objective surface evidence missing ${required}`);
   }
 }
+const provenanceEvidence = (checks.get('provenance').evidence || []).join('\n');
+for (const required of [
+  'generator repository: https://github.com/mvanhorn/cli-printing-press',
+  'library repository: https://github.com/mvanhorn/printing-press-library'
+]) {
+  if (!provenanceEvidence.toLowerCase().includes(required.toLowerCase())) {
+    throw new Error(`provenance evidence missing ${required}`);
+  }
+}
 if (JSON.stringify(payload).match(/Bearer |STRADDLE_TOKEN=|sk_live|sk_test/i)) {
   throw new Error('shipcheck local leaked token-shaped text');
 }

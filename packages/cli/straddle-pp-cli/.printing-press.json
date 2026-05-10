@@ -2,6 +2,8 @@
   "schema_version": 1,
   "generated_at": "2026-05-09T05:44:02.46878Z",
   "printing_press_version": "4.2.0",
+  "generator_repository": "https://github.com/mvanhorn/cli-printing-press",
+  "library_repository": "https://github.com/mvanhorn/printing-press-library",
   "api_name": "straddle",
   "display_name": "Straddle",
   "cli_name": "straddle-pp-cli",

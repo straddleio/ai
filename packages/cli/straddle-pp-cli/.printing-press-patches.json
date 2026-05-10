@@ -651,6 +651,19 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'TestRegisterToolsMarksSmokeRunDestructive|TestRegisterAll' covers smoke_run readOnlyHint false and destructiveHint true."
+    },
+    {
+      "id": "upstream-generator-provenance",
+      "summary": "Require explicit upstream Printing Press repository provenance in shipcheck.",
+      "reason": "The completion audit should prove this CLI is rooted in mvanhorn/cli-printing-press and the public Printing Press library, not only in a generic generator name.",
+      "files": [
+        ".printing-press.json",
+        "internal/cli/shipcheck.go",
+        "internal/cli/shipcheck_test.go",
+        "scripts/verify-completion-audit.sh",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckLocalProvenance' covers generator_repository and library_repository evidence and failure on unexpected generator repository. scripts/verify-completion-audit.sh now requires both upstream repository evidence strings in shipcheck local provenance output."
     }
   ]
 }
