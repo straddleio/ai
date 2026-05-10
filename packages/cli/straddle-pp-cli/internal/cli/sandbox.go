@@ -61,6 +61,7 @@ func newSandboxGuideCmd(flags *rootFlags) *cobra.Command {
 
 This command is local guidance only. It does not call Straddle APIs, does not call the docs endpoint, and does not write sandbox or production data.`,
 		Example: `  straddle-pp-cli sandbox guide
+  straddle-pp-cli sandbox guide all --json
   straddle-pp-cli sandbox guide ach-returns --json
   straddle-pp-cli sandbox guide payment-lifecycle --agent`,
 		Annotations: map[string]string{
@@ -103,7 +104,11 @@ func buildSandboxGuideResponse(scenario string) (sandboxGuideResponse, error) {
 		Policy:                policy,
 		DocsLookupInstruction: docsInstruction,
 	}
-	if scenario == "" {
+	// PATCH: completion-audit-sandbox-all makes the explicit all selector behave like the default scenario list.
+	if scenario == "" || scenario == "all" {
+		if scenario == "all" {
+			payload.Scenario = "all"
+		}
 		payload.AvailableScenarios = sandboxScenarios()
 		return payload, nil
 	}

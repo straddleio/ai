@@ -49,6 +49,33 @@ func TestSandboxGuideNoArgJSONReturnsScenariosAndPolicy(t *testing.T) {
 	}
 }
 
+func TestSandboxGuideAllJSONReturnsScenariosAndPolicy(t *testing.T) {
+	stdout, stderr, err := runCLIForDocsTest(t, "sandbox", "guide", "all", "--json")
+	if err != nil {
+		t.Fatalf("sandbox guide all --json returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("sandbox guide all wrote stderr: %q", stderr)
+	}
+
+	var got sandboxGuideResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("sandbox guide all --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Scenario != "all" {
+		t.Fatalf("scenario = %q, want all", got.Scenario)
+	}
+	if len(got.AvailableScenarios) != 8 {
+		t.Fatalf("scenario count = %d, want 8: %#v", len(got.AvailableScenarios), got.AvailableScenarios)
+	}
+	if got.ScenarioGuide != nil {
+		t.Fatalf("all should list scenarios, not return a single scenario guide: %#v", got.ScenarioGuide)
+	}
+	if !got.Policy.GuidanceOnly || !got.Policy.SandboxOnly || got.Policy.MakesAPICalls || got.Policy.CallsDocsEndpoint || got.Policy.WritesProduction {
+		t.Fatalf("all should preserve local-only sandbox policy: %#v", got.Policy)
+	}
+}
+
 func TestSandboxGuideACHReturnsJSONIncludesGuidanceAndDocsLookup(t *testing.T) {
 	stdout, stderr, err := runCLIForDocsTest(t, "sandbox", "guide", "ach-returns", "--json")
 	if err != nil {

@@ -183,7 +183,8 @@ This command refuses to run without --approval-file. Supported scopes are setup,
   straddle-pp-cli smoke run customers --approval-file ./approval.json --json
   straddle-pp-cli smoke run mcp --approval-file ./approval.json --mcp-binary ./bin/straddle-pp-mcp --json`,
 		Annotations: map[string]string{
-			"mcp:read-only": "true",
+			// PATCH: smoke-run MCP metadata is destructive because approved runs can write transcript artifacts and perform live read calls.
+			"mcp:destructive": "true",
 		},
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

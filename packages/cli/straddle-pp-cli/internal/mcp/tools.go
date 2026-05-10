@@ -1245,7 +1245,7 @@ const (
 // PATCH: setup-check records setup_check as a read-only Cobra shell-out runtime tool.
 // PATCH: ops-guide records ops_guide as a read-only Cobra shell-out runtime tool.
 // PATCH: smoke-plan records smoke_plan as a read-only Cobra shell-out runtime tool.
-// PATCH: smoke-run-approval-gated records smoke_run as a read-only Cobra shell-out runtime tool.
+// PATCH: smoke-run-approval-gated records smoke_run as an approval-gated but destructive Cobra shell-out runtime tool.
 // PATCH: release-plan records release_plan as a read-only Cobra shell-out runtime tool.
 // PATCH: credentials-plan records credentials_plan as a read-only Cobra shell-out runtime tool.
 // PATCH: workflow-plan records workflow_plan as a read-only Cobra shell-out runtime tool.

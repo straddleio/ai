@@ -197,7 +197,6 @@ func TestHandleContextIncludesMCPCountBreakdown(t *testing.T) {
 // PATCH: setup-check verifies the local setup check shell-out is read-only.
 // PATCH: ops-guide verifies the local ops guide shell-out is read-only.
 // PATCH: smoke-plan verifies the local smoke plan shell-out is read-only.
-// PATCH: smoke-run-approval-gated verifies the approval-gated smoke run shell-out is read-only.
 // PATCH: release-plan verifies the local release plan shell-out is read-only.
 // PATCH: credentials-plan verifies the local credentials plan shell-out is read-only.
 // PATCH: workflow-plan verifies the local workflow plan shell-out is read-only.
@@ -210,7 +209,7 @@ func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 	RegisterTools(mcpServer)
 
 	tools := mcpServer.ListTools()
-	for _, name := range []string{"benchmark_ramp", "credentials_plan", "docs_search", "mcp_config", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "shipcheck_local", "shipcheck_public", "smoke_plan", "smoke_run", "workflow_plan"} {
+	for _, name := range []string{"benchmark_ramp", "credentials_plan", "docs_search", "mcp_config", "ops_guide", "release_plan", "sandbox_guide", "setup_check", "shipcheck_local", "shipcheck_public", "smoke_plan", "workflow_plan"} {
 		tool, ok := tools[name]
 		if !ok {
 			t.Fatalf("%s MCP tool was not registered; tools = %#v", name, tools)
@@ -221,6 +220,23 @@ func TestRegisterToolsMarksDocsSearchReadOnly(t *testing.T) {
 		if tool.Tool.Annotations.DestructiveHint == nil || *tool.Tool.Annotations.DestructiveHint {
 			t.Fatalf("%s destructiveHint = %v, want false", name, tool.Tool.Annotations.DestructiveHint)
 		}
+	}
+}
+
+// PATCH: smoke-run-approval-gated verifies approval-gated smoke run is not advertised as read-only because it can write transcript artifacts and perform approved live reads.
+func TestRegisterToolsMarksSmokeRunDestructive(t *testing.T) {
+	mcpServer := server.NewMCPServer("test", "0.0.0")
+	RegisterTools(mcpServer)
+
+	tool, ok := mcpServer.ListTools()["smoke_run"]
+	if !ok {
+		t.Fatalf("smoke_run MCP tool was not registered")
+	}
+	if tool.Tool.Annotations.ReadOnlyHint == nil || *tool.Tool.Annotations.ReadOnlyHint {
+		t.Fatalf("smoke_run readOnlyHint = %v, want false", tool.Tool.Annotations.ReadOnlyHint)
+	}
+	if tool.Tool.Annotations.DestructiveHint == nil || !*tool.Tool.Annotations.DestructiveHint {
+		t.Fatalf("smoke_run destructiveHint = %v, want true", tool.Tool.Annotations.DestructiveHint)
 	}
 }
 

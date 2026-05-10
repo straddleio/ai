@@ -56,7 +56,7 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	smokeRun := &cobra.Command{
 		Use: "run [scope]",
 		Annotations: map[string]string{
-			ReadOnlyAnnotation: "true",
+			DestructiveAnnotation: "true",
 		},
 		Run: func(*cobra.Command, []string) {},
 	}
@@ -146,6 +146,12 @@ func TestRegisterAllExposesNestedDocsSearchAndSkipsTopLevelSearch(t *testing.T) 
 	}
 	if _, ok := tools["smoke_run"]; !ok {
 		t.Fatalf("smoke_run shell-out tool was not registered; tools = %#v", tools)
+	}
+	if tools["smoke_run"].Tool.Annotations.ReadOnlyHint == nil || *tools["smoke_run"].Tool.Annotations.ReadOnlyHint {
+		t.Fatalf("smoke_run readOnlyHint = %v, want false", tools["smoke_run"].Tool.Annotations.ReadOnlyHint)
+	}
+	if tools["smoke_run"].Tool.Annotations.DestructiveHint == nil || !*tools["smoke_run"].Tool.Annotations.DestructiveHint {
+		t.Fatalf("smoke_run destructiveHint = %v, want true", tools["smoke_run"].Tool.Annotations.DestructiveHint)
 	}
 	if _, ok := tools["release_plan"]; !ok {
 		t.Fatalf("release_plan shell-out tool was not registered; tools = %#v", tools)

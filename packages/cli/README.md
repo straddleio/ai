@@ -69,7 +69,7 @@ The root `straddle-pp-cli --help` screen and `straddle-pp-cli about` both print 
 
 `straddle-pp-cli mcp bundle --mcp-binary <path> --output <dir> --json` writes a local desktop MCP bundle artifact. It verifies the MCP binary exists and is a file, copies it into the bundle as `straddle-pp-mcp`, writes `manifest.json`, and writes reviewable config fragments for `claude-desktop`, `codex`, `cursor`, and `stdio`. The fragments name `STRADDLE_TOKEN` only as an env var name. It does not install, write user config, read profiles, read secrets, execute MCP, call APIs, publish, sign, notarize, or approve launch. Public desktop MCP install, marketplace packaging, signing, notarization, and support approval remain blocked.
 
-`straddle-pp-cli sandbox guide [scenario]` is a local help-only sandbox testing guide. It absorbs the previous `/sandbox-test` scenario list without executing writes, calling Straddle APIs, or calling the docs endpoint. Run `docs search` first before any separately approved live sandbox execution to verify current simulation parameters.
+`straddle-pp-cli sandbox guide [scenario|all]` is a local help-only sandbox testing guide. It absorbs the previous `/sandbox-test` scenario list without executing writes, calling Straddle APIs, or calling the docs endpoint. Run `docs search` first before any separately approved live sandbox execution to verify current simulation parameters.
 
 `straddle-pp-cli ops guide [workflow]` is local-only operational planning guidance. Supported workflows are `reconciliation`, `fraud-monitoring`, `collections`, `reporting`, `monitoring`, and `all`. It lists docs lookup queries and CLI surfaces to inspect, but it does not call Straddle APIs, call docs endpoints, execute MCP tools, post webhooks, or write production data. Live operational execution requires separate approval and a fresh docs lookup.
 
@@ -148,6 +148,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli charges get --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
+/tmp/straddle-pp-cli sandbox guide all --json
 /tmp/straddle-pp-cli smoke plan --json
 /tmp/straddle-pp-cli smoke plan approval --json
 /tmp/straddle-pp-cli smoke plan all --json

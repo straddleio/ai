@@ -243,9 +243,12 @@ func TestDocsSearchCommandsJSONUsesLocalCapabilityIndex(t *testing.T) {
 func TestDocsSearchCommandsIndexesLocalHelperCommands(t *testing.T) {
 	tests := map[string]string{
 		"workflow plan":    "workflow plan",
+		"ops guide":        "ops guide",
 		"mcp config":       "mcp config",
 		"mcp bundle":       "mcp bundle",
 		"benchmark ramp":   "benchmark ramp",
+		"monitoring tail":  "tail",
+		"tail":             "tail",
 		"shipcheck public": "shipcheck public",
 	}
 

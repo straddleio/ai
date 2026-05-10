@@ -476,7 +476,8 @@ func checkShipcheckWorkflowPlans() shipcheckCheck {
 
 func checkShipcheckDocsCommandSearch() shipcheckCheck {
 	check := shipcheckCheck{Name: "docs_command_search", Passed: true}
-	for _, query := range []string{"workflow plan", "mcp config", "mcp bundle", "benchmark ramp"} {
+	// PATCH: completion-audit-discovery proves explicit helper surfaces resolve through docs command search.
+	for _, query := range []string{"workflow plan", "ops guide", "mcp config", "mcp bundle", "benchmark ramp", "tail", "shipcheck public"} {
 		matches := rankWhich(whichIndex, query, 1)
 		if len(matches) == 0 || matches[0].Entry.Command != query {
 			check.Passed = false

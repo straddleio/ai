@@ -555,6 +555,45 @@
         ".printing-press-patches.json"
       ],
       "validated_outcome": "go test -count=1 ./internal/cli -run 'TestShipcheckPublic|TestShipcheckLocal|TestDocsSearchCommandsIndexesLocalHelperCommands', go test -count=1 ./internal/mcp -run 'TestHandleContextIncludesMCPCountBreakdown|TestRegisterToolsMarksDocsSearchReadOnly', go test -count=1 ./..., npm run validate, node scripts/validate-cli.js, make package-readiness, packaged shipcheck public --json smoke, packaged MCP tools/list smoke, and make release-readiness cover shipcheck public JSON and agent output, intentional nonzero exit on missing approvals, local preview pass-through, docs command indexing, MCP runtime metadata count 93 with shipcheck_public, generated CLI validation, packaged shipcheck, MCP bundle, snapshot archives, and local npm package proof."
+    },
+    {
+      "id": "completion-audit-discovery",
+      "summary": "Make monitoring and ops helper commands resolve through local docs command search.",
+      "reason": "The completion audit found that monitoring queries could resolve to unrelated generated endpoint commands even though monitoring is an explicit goal surface.",
+      "files": [
+        "internal/cli/which.go",
+        "internal/cli/docs_test.go",
+        "internal/cli/shipcheck.go",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestDocsSearchCommandsIndexesLocalHelperCommands|TestShipcheckLocal' and make package-readiness plus packaged docs search smokes cover command indexing for ops guide, tail, monitoring tail, and shipcheck public, plus shipcheck local docs_command_search."
+    },
+    {
+      "id": "completion-audit-sandbox-all",
+      "summary": "Let sandbox guide all explicitly list every sandbox scenario.",
+      "reason": "The completion audit found that sandbox guide all failed even though other workflow-style local guidance commands support an explicit all selector.",
+      "files": [
+        "internal/cli/sandbox.go",
+        "internal/cli/sandbox_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSandboxGuide' and make release-readiness cover sandbox guide all --json as local-only guidance, docs updates, packaged shipcheck local, public shipcheck blocker proof, snapshot archives, MCP bundle, and local npm package proof."
+    },
+    {
+      "id": "completion-audit-smoke-run-mcp-safety",
+      "summary": "Mark smoke run as a destructive MCP shell-out instead of read-only.",
+      "reason": "Smoke run is approval-gated, but it can write transcript artifacts and perform approved live reads, so MCP hosts must not treat it as read-only.",
+      "files": [
+        "internal/cli/smoke.go",
+        "internal/mcp/tools.go",
+        "internal/mcp/tools_test.go",
+        "internal/mcp/cobratree/classify_test.go",
+        ".printing-press-patches.json"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/mcp ./internal/mcp/cobratree -run 'TestRegisterToolsMarksSmokeRunDestructive|TestRegisterAll' covers smoke_run readOnlyHint false and destructiveHint true."
     }
   ]
 }

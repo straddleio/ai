@@ -641,10 +641,11 @@ straddle-pp-cli docs search "create charge" --source api --json
 
 ## Sandbox Guide
 
-Use `sandbox guide` for help-only sandbox testing guidance. It lists the sandbox scenarios from `/sandbox-test` and returns concise scenario steps without calling Straddle APIs, calling the docs endpoint, or writing sandbox or production data.
+Use `sandbox guide` for help-only sandbox testing guidance. It lists the sandbox scenarios from `/sandbox-test` and returns concise scenario steps without calling Straddle APIs, calling the docs endpoint, or writing sandbox or production data. Use `sandbox guide all --json` when an agent needs the full scenario set explicitly.
 
 ```bash
 straddle-pp-cli sandbox guide --json
+straddle-pp-cli sandbox guide all --json
 straddle-pp-cli sandbox guide ach-returns --json
 straddle-pp-cli sandbox guide payment-lifecycle --agent
 ```
@@ -706,6 +707,7 @@ go build -o /tmp/straddle-pp-cli ./cmd/straddle-pp-cli
 /tmp/straddle-pp-cli payments --help
 /tmp/straddle-pp-cli sandbox guide --help
 /tmp/straddle-pp-cli sandbox guide --json
+/tmp/straddle-pp-cli sandbox guide all --json
 /tmp/straddle-pp-cli smoke plan --json
 /tmp/straddle-pp-cli smoke plan all --json
 /tmp/straddle-pp-cli workflow plan --json
