@@ -2,9 +2,10 @@
 set -eu
 
 # PATCH: public-release-candidate-workflow keeps public launch review executable without publishing.
-# Non-publishing CI helper: writes the supplied approval JSON locally, validates
-# it with the built CLI, and records review metadata. It never publishes,
-# signs, notarizes, calls Straddle APIs, or reads secrets.
+# Non-publishing CI helper: writes the supplied approval JSON to a temporary
+# runner path, validates it with the built CLI, and records redacted review
+# metadata. It never publishes, signs, notarizes, calls Straddle APIs, or reads
+# secrets.
 
 candidate_label="${CANDIDATE_LABEL:-}"
 approval_json="${APPROVAL_JSON:-}"
@@ -51,9 +52,14 @@ cli_path="$(find dist -maxdepth 2 -path "dist/straddle-pp-cli_${goos}_${goarch}_
 test -n "$cli_path" || fail "missing built CLI in dist for ${goos}_${goarch}"
 test -x "$cli_path" || fail "built CLI is not executable: $cli_path"
 
+tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
+tmp_dir="$(mktemp -d "${tmp_root%/}/straddle-pp-cli-approval.XXXXXX")"
+trap 'rm -rf "$tmp_dir"' EXIT HUP INT TERM
+
 review_dir="dist/review/$candidate_label"
-approval_file="$review_dir/public-approval.json"
-shipcheck_file="$review_dir/shipcheck-public.json"
+approval_file="$tmp_dir/public-approval.json"
+shipcheck_file="$tmp_dir/shipcheck-public.json"
+redacted_shipcheck_file="$review_dir/shipcheck-public-redacted.json"
 metadata_file="$review_dir/release-candidate.json"
 mkdir -p "$review_dir"
 
@@ -81,27 +87,44 @@ NODE
 
 "$cli_path" shipcheck public --approval-file "$approval_file" --json >"$shipcheck_file"
 
-node - "$shipcheck_file" <<'NODE'
+node - "$shipcheck_file" "$redacted_shipcheck_file" <<'NODE'
 const fs = require('node:fs');
 
-const shipcheckPath = process.argv[2];
+const [shipcheckPath, redactedPath] = process.argv.slice(2);
 const result = JSON.parse(fs.readFileSync(shipcheckPath, 'utf8'));
 
 if (result.ready !== true || result.local_preview_passed !== true) {
   console.error('shipcheck public approval did not mark the candidate ready');
   process.exit(1);
 }
+
+const redacted = {
+  command: result.command,
+  ready: result.ready,
+  local_preview_passed: result.local_preview_passed,
+  checks: (result.checks || []).map((check) => ({
+    name: check.name,
+    status: check.status,
+    required: check.required,
+    evidence_count: Array.isArray(check.evidence) ? check.evidence.length : 0
+  })),
+  safety: result.safety,
+  next_approval_steps_count: Array.isArray(result.next_approval_steps) ? result.next_approval_steps.length : 0
+};
+
+fs.writeFileSync(redactedPath, `${JSON.stringify(redacted, null, 2)}\n`);
 NODE
 
-node - "$metadata_file" "$candidate_label" "$cli_path" "$approval_file" "$shipcheck_file" <<'NODE'
+node - "$metadata_file" "$candidate_label" "$cli_path" "$redacted_shipcheck_file" <<'NODE'
 const fs = require('node:fs');
 
-const [metadataPath, candidateLabel, cliPath, approvalFile, shipcheckFile] = process.argv.slice(2);
+const [metadataPath, candidateLabel, cliPath, redactedShipcheckFile] = process.argv.slice(2);
 const payload = {
   candidate_label: candidateLabel,
   cli_path: cliPath,
-  approval_file: approvalFile,
-  shipcheck_public_json: shipcheckFile,
+  raw_approval_file_uploaded: false,
+  raw_shipcheck_file_uploaded: false,
+  shipcheck_public_redacted_json: redactedShipcheckFile,
   non_publishing: true,
   blocked_actions: [
     'github_release',

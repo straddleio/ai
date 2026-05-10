@@ -573,7 +573,7 @@
     {
       "id": "public-release-candidate-workflow",
       "summary": "Add a manual non-publishing release-candidate workflow.",
-      "reason": "After local preview passes and owners provide an approval JSON record, agents need an executable review artifact path that validates public readiness against the built CLI without publishing, signing, notarizing, calling Straddle APIs, executing MCP tools, or reading secrets.",
+      "reason": "After local preview passes and owners provide an approval JSON record, agents need an executable review artifact path that validates public readiness against the built CLI without publishing, signing, notarizing, calling Straddle APIs, calling credential-bearing MCP tools, reading secrets, or uploading raw approval contents.",
       "files": [
         "../../../.github/workflows/cli-release-candidate.yml",
         "scripts/ci-public-release-candidate.sh",
@@ -582,7 +582,7 @@
         "../README.md",
         ".printing-press-patches.json"
       ],
-      "validated_outcome": "sh -n scripts/ci-public-release-candidate.sh, npm run sync, npm run validate, node scripts/validate-cli.js, make test, make release-readiness, Ruby YAML parse, and actionlint cover workflow syntax, helper syntax, plugin sync and validation, generated CLI validation, Go tests, non-publishing archive proof, and GitHub Actions linting. The approval success path requires a clean checkout so Go build metadata reports vcs.modified=false."
+      "validated_outcome": "sh -n scripts/ci-public-release-candidate.sh, npm run sync, npm run validate, node scripts/validate-cli.js, make test, make release-readiness, Ruby YAML parse, actionlint, invalid-input helper smokes, and a clean-HEAD mechanical approval smoke cover workflow syntax, helper syntax, plugin sync and validation, generated CLI validation, Go tests, non-publishing archive proof, redacted review metadata, and GitHub Actions linting."
     },
     {
       "id": "completion-audit-discovery",
