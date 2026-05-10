@@ -198,6 +198,22 @@ Run from `/Users/js/clawd/straddle/straddle-ai` unless a command notes the gener
 | Targeted release-honesty text check | Pass | Docs still say local preview, future work, no current public installer, no `npx`, no published release artifacts, and no desktop MCP bundle. |
 | `make clean` from `packages/cli/straddle-pp-cli` | Pass | Removes local `bin/`, `build/`, and `dist/` build outputs. |
 
+## Keychain Packaging Smoke Results
+
+Run time: 2026-05-10.
+
+Run from `/Users/js/clawd/straddle/straddle-ai/packages/cli/straddle-pp-cli`.
+
+This run happened after adding opt-in keychain auth and the `github.com/zalando/go-keyring` dependency. It only built local binaries and validated release configuration. It did not call Straddle APIs, use credentials, publish, upload, push a Homebrew tap, sign, notarize, or run live smoke.
+
+| Command | Result | Observed output |
+|---------|--------|-----------------|
+| `make package-readiness` | Pass | Built `dist/local/straddle-pp-cli` and `dist/local/straddle-pp-mcp`, verified both binaries are executable, ran `straddle-pp-cli --help`, and printed `local package ready: dist/local`. |
+| `make release-check` | Pass | Ran `go run github.com/goreleaser/goreleaser/v2@latest check`; 1 configuration file validated. |
+| `make clean` | Pass | Removed local `bin/`, `build/`, and `dist/` outputs after inspection. |
+
+Remaining packaging work: broad public launch still needs published-release approval, signing and notarization decisions, packaged-client keychain smoke, approved live read-only smoke, and public docs wording.
+
 ## Product Review Slice Results
 
 Run time: 2026-05-09.
