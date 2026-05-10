@@ -38,9 +38,9 @@ Local preview docs are honest
 
 Safe token path exists and is documented
 
-- Evidence: `auth set-token --stdin` is documented, with `STRADDLE_TOKEN` and custom config paths; docs say not to commit, print, log, or pass tokens through argv. `credentials plan [surface]` now documents config-file auth, environment or secret-manager injection, MCP env injection, the missing OS keychain or secure-store implementation, and the launch decision set.
+- Evidence: `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented, with `STRADDLE_TOKEN` and custom config paths; docs say not to commit, print, log, or pass tokens through argv. `credentials plan [surface]` now documents config-file auth, opt-in keychain auth, environment or secret-manager injection, MCP env injection, and the remaining launch approval set.
 - Status: Partial.
-- Missing work: Broader auth review, explicit env/config-only approval or OS secure storage implementation, launch approval.
+- Missing work: Broader auth review, owner/security launch approval, packaged-client smoke, approved live read-only smoke, approved docs wording, and launch approval.
 
 Agent envelopes are documented and covered for current local commands
 

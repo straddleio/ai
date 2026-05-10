@@ -64,7 +64,7 @@ straddle-pp-cli credentials plan all --json
 straddle-pp-cli credentials plan keychain --agent
 ```
 
-`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
+`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It states that keychain-backed storage exists as opt-in preview support, but broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording. MCP `STRADDLE_TOKEN` environment injection is separate from CLI config-file auth, and desktop MCP public install remains future work.
 
 Or install from the local module into `$GOPATH/bin`:
 
@@ -103,6 +103,14 @@ Use stdin when you need to write a sandbox token into the local CLI config:
 ```bash
 read -r -s STRADDLE_TOKEN_INPUT
 straddle-pp-cli auth set-token --stdin <<<"$STRADDLE_TOKEN_INPUT"
+unset STRADDLE_TOKEN_INPUT
+```
+
+Use opt-in keychain storage when you want the token stored in the OS keychain and only keychain metadata written to config:
+
+```bash
+read -r -s STRADDLE_TOKEN_INPUT
+straddle-pp-cli auth set-token --stdin --keychain <<<"$STRADDLE_TOKEN_INPUT"
 unset STRADDLE_TOKEN_INPUT
 ```
 
@@ -663,6 +671,7 @@ Supported auth paths:
 
 - `STRADDLE_TOKEN` for shells, CI, and MCP launches that inject credentials through the environment.
 - Config-file auth through `auth set-token --stdin`.
+- Opt-in OS keychain auth through `auth set-token --stdin --keychain`.
 - Custom config paths through `--config /path/to/config.toml`, for example `auth set-token --stdin --config /path/to/config.toml`.
 
 Or set `STRADDLE_TOKEN` as an environment variable.

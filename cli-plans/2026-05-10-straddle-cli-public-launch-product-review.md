@@ -48,7 +48,7 @@ It is not good enough for public users because the required launch decisions and
 - No public `straddle` command-name decision has been made.
 - No broad-public macOS signing or notarization proof exists.
 - No desktop MCP package, hosted MCP relationship decision, or public MCP support model exists.
-- Credential launch posture is undecided. The choice is still env/config-only with explicit risk acceptance, or OS secure storage first.
+- Credential launch posture is still not approved for broad public launch. Keychain-backed storage exists as opt-in preview support, but owner/security approval, packaged-client smoke, approved live read-only smoke, and public docs wording are still missing.
 - No approved live read-only smoke has run with scoped non-production credentials and redacted expected output.
 - Public docs, support ownership, issue intake, and support boundaries are not approved.
 - Operational workflow commands remain planning guidance, not proven workflow execution.
@@ -59,7 +59,7 @@ It is not good enough for public users because the required launch decisions and
 - Release channel: pass requires approved first channel, fresh non-publishing release check, archive inspection, checksum plan, release notes, rollback plan, and no secret exposure in logs. Current result: fail. Local archive proof exists, but no channel approval or publish plan is accepted.
 - macOS signing and notarization: pass requires Apple owner, certificate storage plan, CI signing plan, notarization proof, clean-machine Gatekeeper install evidence, and approved warning text if unsigned preview is allowed. Current result: fail. No signing or notarization proof exists.
 - MCP packaging: pass requires desktop client matrix, install and uninstall docs, packaged `straddle-pp-mcp` smoke, secure token-injection examples, hosted MCP relationship decision, and support owner approval. Current result: fail. Local stdio runtime smoke exists only.
-- Credential posture: pass requires security and product decision for env/config-only with risk acceptance, or implemented OS secure storage with migration and redaction checks. Current result: fail. Decision remains open.
+- Credential posture: pass requires owner/security approval for the chosen storage posture, packaged-client smoke, approved live read-only smoke, public docs wording, and redaction checks. Current result: fail. Approval remains open.
 - Live read-only smoke: pass requires written approval naming environment, credential source, allowed read-only commands, data boundaries, stop criteria, transcript path, and reviewer signoff after redacted results. Current result: fail. No approved live smoke has run.
 - Docs and support: pass requires approved install path, command name, known limits, support owner, issue intake, support boundaries, security wording, and final docs review against current behavior. Current result: fail. Local docs are preview-scoped only.
 - Operational workflow claims: pass requires public wording that says planning guidance only, or live workflow specs, smoke evidence, error handling, audit logs, and owner signoff proving execution. Current result: fail. Current workflows are planning guidance only.

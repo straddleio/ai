@@ -1,9 +1,35 @@
 {
   "schema_version": 1,
-  "applied_at": "2026-05-09",
+  "applied_at": "2026-05-10",
   "base_run_id": "2026-05-09T05:44:02.46878Z",
   "base_printing_press_version": "4.2.0",
   "patches": [
+    {
+      "id": "keychain-auth",
+      "summary": "Add opt-in OS keychain token storage for auth set-token --stdin --keychain.",
+      "reason": "The preview needs a secure-store path that keeps token values out of config files while preserving env override behavior and keeping broad public launch approval explicit.",
+      "files": [
+        "go.mod",
+        "go.sum",
+        "internal/config/config.go",
+        "internal/config/config_test.go",
+        "internal/cli/auth.go",
+        "internal/cli/auth_test.go",
+        "internal/cli/setup_test.go",
+        "internal/cli/credentials.go",
+        "internal/cli/credentials_test.go",
+        "README.md",
+        "SKILL.md",
+        "../README.md",
+        "../../../cli-plans/2026-05-09-straddle-cli-shipcheck-scorecard.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-audit.md",
+        "../../../cli-plans/2026-05-09-straddle-printing-press-cli-plan.md",
+        "../../../cli-plans/2026-05-10-straddle-cli-completion-audit.md",
+        "../../../cli-plans/2026-05-10-straddle-cli-public-launch-decision-packet.md",
+        "../../../cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md"
+      ],
+      "validated_outcome": "go test -count=1 ./internal/config ./internal/cli -run 'Test(Auth.*Keychain|AuthStatusReportsKeychain|Load.*Keychain|SetupCheck.*Keychain|CredentialsPlanNamed)' covers keychain save, status, logout, setup check classification, env override, missing keychain behavior, and credentials plan wording."
+    },
     {
       "id": "safe-token-stdin",
       "summary": "Add safe stdin token setup, env-token persistence protection, and stdin-first guidance for auth set-token.",

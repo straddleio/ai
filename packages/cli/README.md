@@ -189,7 +189,7 @@ Task 1 created the first generated baseline with these quality facts:
 - `gofmt` was clean.
 - `go test ./...` passed.
 
-The first auth contract slice added `straddle-pp-cli auth set-token --stdin` for config-file token setup. This is still not a public launch candidate. Reviewers still need to inspect command coverage, generation provenance, MCP shape, and the remaining workflow gaps.
+The auth contract slices added `straddle-pp-cli auth set-token --stdin` for config-file token setup and `straddle-pp-cli auth set-token --stdin --keychain` for opt-in OS keychain storage. This is still not a public launch candidate. Reviewers still need to inspect command coverage, generation provenance, MCP shape, packaged-client smoke, docs wording, and the remaining workflow gaps.
 
 The first presentation slice added `straddle-pp-cli about` for local preview status, ASCII word art, OpenAPI source, MCP sibling, and next checks: `setup check`, `agent-context`, and `which`. JSON and agent output are structured.
 
@@ -204,6 +204,12 @@ The preview supports three credential paths:
   straddle-pp-cli auth set-token --stdin <<<"$STRADDLE_TOKEN_INPUT"
   unset STRADDLE_TOKEN_INPUT
   ```
+- Opt-in OS keychain auth through safe stdin input:
+  ```bash
+  read -r -s STRADDLE_TOKEN_INPUT
+  straddle-pp-cli auth set-token --stdin --keychain <<<"$STRADDLE_TOKEN_INPUT"
+  unset STRADDLE_TOKEN_INPUT
+  ```
 - A custom config file with `--config /path/to/config.toml`, including `auth set-token --stdin --config /path/to/config.toml` and `auth status --config /path/to/config.toml`.
 
 Do not commit tokens. Do not print tokens in logs. Do not pass tokens in argv.
@@ -216,7 +222,7 @@ straddle-pp-cli credentials plan all --json
 straddle-pp-cli credentials plan keychain --agent
 ```
 
-`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It says plainly that safe stdin config-file auth exists, environment and secret-manager injection are supported for shells, CI, and MCP launches, MCP environment injection is separate from CLI config-file auth, no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage. Desktop MCP public install remains future work.
+`credentials plan` covers `config`, `environment`, `mcp`, `keychain`, `launch`, and `all`. It is local-only guidance. It does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch. It says plainly that safe stdin config-file auth exists, keychain-backed storage exists as opt-in preview support, environment and secret-manager injection are supported for shells, CI, and MCP launches, and MCP environment injection is separate from CLI config-file auth. Broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording. Desktop MCP public install remains future work.
 
 ## Regenerate
 
@@ -306,7 +312,7 @@ Do not copy Stainless architecture into this package.
 The generated baseline is not ready to replace the public CLI until these gaps are closed:
 
 - Installer and public release packaging are not done. A local `make package-readiness` proof builds both preview binaries, and a local GoReleaser snapshot has built archives that include both the CLI and MCP sibling, but neither path publishes anything.
-- Safe token input exists for config-file auth, and `credentials plan [surface]` now documents config, environment, MCP, keychain, and launch decisions. The keychain or secure-store decision still blocks public launch readiness until Straddle approves env/config-only for first release or implements OS secure storage.
+- Safe token input exists for config-file auth and opt-in keychain auth, and `credentials plan [surface]` now documents config, environment, MCP, keychain, and launch decisions. Broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 - Provenance-backed generated list and read commands now use the target Straddle envelope.
 - Command-specific local helpers routed through `printJSONFiltered`, such as `which --agent`, now use the target Straddle envelope only for `--agent`; normal `--json` stays raw.
 - `about --agent` uses the target Straddle envelope for local preview status.

@@ -13,6 +13,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/zalando/go-keyring"
+	"straddle-pp-cli/internal/config"
 )
 
 func runCLIForSetupTest(t *testing.T, args ...string) (string, string, error) {
@@ -328,6 +331,57 @@ func TestSetupCheckAgentUsesTargetEnvelope(t *testing.T) {
 	}
 	if got.Warnings == nil || got.TraceID != nil || got.Error != nil {
 		t.Fatalf("target envelope metadata mismatch: warnings=%#v trace=%#v error=%#v", got.Warnings, got.TraceID, got.Error)
+	}
+}
+
+func TestSetupCheckClassifiesAvailableKeychainAuth(t *testing.T) {
+	keyring.MockInit()
+	home := setupTestHome(t)
+	token := "setup-keychain-secret"
+	if err := keyring.Set(config.DefaultKeychainService, config.DefaultKeychainAccount, token); err != nil {
+		t.Fatalf("set keychain token: %v", err)
+	}
+	configPath := writeSetupConfig(t, home, "base_url = \"https://sandbox.straddle.com\"\nkeychain_service = \""+config.DefaultKeychainService+"\"\nkeychain_account = \""+config.DefaultKeychainAccount+"\"\n")
+
+	stdout, stderr, err := runCLIForSetupTest(t, "setup", "check", "--json", "--config", configPath)
+	if err != nil {
+		t.Fatalf("setup check keychain returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("setup check keychain wrote stderr: %q", stderr)
+	}
+	if strings.Contains(stdout, token) {
+		t.Fatalf("setup check leaked keychain token:\n%s", stdout)
+	}
+
+	var got setupCheckResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("setup check keychain emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if !got.Auth.Configured || got.Auth.Source != "keychain" {
+		t.Fatalf("setup check auth mismatch: %#v", got.Auth)
+	}
+}
+
+func TestSetupCheckClassifiesUnavailableKeychainAuth(t *testing.T) {
+	keyring.MockInit()
+	home := setupTestHome(t)
+	configPath := writeSetupConfig(t, home, "base_url = \"https://sandbox.straddle.com\"\nkeychain_service = \""+config.DefaultKeychainService+"\"\nkeychain_account = \""+config.DefaultKeychainAccount+"\"\n")
+
+	stdout, stderr, err := runCLIForSetupTest(t, "setup", "check", "--json", "--config", configPath)
+	if err != nil {
+		t.Fatalf("setup check missing keychain returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("setup check missing keychain wrote stderr: %q", stderr)
+	}
+
+	var got setupCheckResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("setup check missing keychain emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Auth.Configured || got.Auth.Source != "keychain_unavailable" {
+		t.Fatalf("setup check unavailable keychain auth mismatch: %#v", got.Auth)
 	}
 }
 

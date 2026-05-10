@@ -8,7 +8,7 @@ Goal status: not complete.
 
 The repo now has a strong local preview of a Printing Press generated Straddle CLI and MCP sibling. It is generated from the Straddle OpenAPI spec, has agent-friendly output paths, local safety commands, workflow planning commands, release and credential planning commands, docs, validation, MCP runtime smoke proof, and a small commit history.
 
-It is not yet a public Straddle CLI launch. Public release artifacts are not published, no approved live read-only smoke has run, the public-launch product review gate now exists and rejects approval, no decision has been made between env/config-only auth and OS secure storage, and practical operational workflows are still local planning guidance rather than proven live workflows.
+It is not yet a public Straddle CLI launch. Public release artifacts are not published, no approved live read-only smoke has run, the public-launch product review gate now exists and rejects approval, keychain-backed storage is only opt-in preview support without owner/security launch approval, and practical operational workflows are still local planning guidance rather than proven live workflows.
 
 ## Objective Restated As Deliverables
 
@@ -46,7 +46,7 @@ It is not yet a public Straddle CLI launch. Public release artifacts are not pub
 | Monitoring workflow | `ops guide monitoring` and `workflow plan monitoring` provide local guidance and structured phases. | Partial, no polling, alerting, or webhook delivery |
 | Sandbox testing | `sandbox guide` and `smoke plan` are local-only planning commands; docs require explicit approval and secure sandbox credentials before live work. | Partial, no live smoke |
 | Docs search | `docs search` separates product docs, command search, and API or SDK `search_docs` guidance. | Done for preview |
-| Safe token guidance | `auth set-token --stdin` is documented; `credentials plan launch` reports no secret reads/writes and lists the keychain or env/config launch decision. | Partial, secure-store decision open |
+| Safe token guidance | `auth set-token --stdin` and `auth set-token --stdin --keychain` are documented; `credentials plan launch` reports no secret reads/writes and lists keychain preview support plus remaining launch approvals. | Partial, owner/security approval, packaged-client smoke, approved live read-only smoke, and docs wording open |
 | Release path | `make package-readiness`, `make release-check`, and `make release-snapshot` exist and prior scorecard evidence says local archives include both CLI and MCP. | Partial, no public publish |
 | Validation | Fresh `npm run validate` passed with `Summary: 0 errors`; generated artifact validation checks config, CLI main, README, SKILL, spec title, MCP main, `internal/mcp`, MCP typed counts, and endpoint count. | Done for preview |
 | Go tests | Fresh `go test -count=1 ./...` passed in `packages/cli/straddle-pp-cli`. | Done for preview |
@@ -117,7 +117,7 @@ Observed summaries:
 ```json
 {"name":"about","schema_version":"1.0","error":null,"data.command":"about","data.status":"local preview"}
 {"name":"workflow","workflow_count":5,"first_workflow":"reconciliation"}
-{"name":"credentials","surface":"launch","blockers":["No OS keychain or secure-store implementation exists yet.","Launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage.","Desktop MCP public install remains future work."]}
+{"name":"credentials","surface":"launch","blockers":["Owner/security approval is missing.","Packaged-client smoke is missing.","Public docs wording is missing.","Desktop MCP public install remains future work."]}
 ```
 
 ## Missing Work
@@ -127,7 +127,7 @@ These are blockers for claiming the activated goal is complete:
 1. Public release is not published. There is no public Homebrew tap update, `npx` package, release download, signed or notarized macOS path, desktop MCP package, or final public install doc.
 2. No approved live read-only smoke has run with scoped sandbox credentials and expected outputs.
 3. The public-launch product review gate exists at `cli-plans/2026-05-10-straddle-cli-public-launch-product-review.md`, but it rejects approval until owner decisions and approved live smoke happen.
-4. Credential launch posture is undecided. The repo needs either explicit approval for env/config-only first public release or an OS secure-store implementation.
+4. Credential launch posture is still not approved for broad public launch. The repo now has opt-in preview keychain support, but still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 5. Operational workflows are still planning guidance. Reconciliation, fraud monitoring, collections, reporting, and monitoring have useful local plans, but no approved live read execution or workflow engines.
 6. The generated preview is still named `straddle-pp-cli`. Replacing or publishing the public `straddle` binary needs an explicit naming and migration decision.
 7. Phase 5 live smoke remains not done.

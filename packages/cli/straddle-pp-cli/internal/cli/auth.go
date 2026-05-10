@@ -96,15 +96,20 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 	// PATCH: Add stdin token setup while keeping legacy positional token compatibility.
 	var fromStdin bool
+	var useKeychain bool
 	cmd := &cobra.Command{
 		Use:   "set-token --stdin",
-		Short: "Save an API token to the config file",
-		Long: "Save an API token to the config file.\n\n" +
+		Short: "Save an API token to the config file or opt-in OS keychain",
+		Long: "Save an API token to the config file, or to the OS keychain when --keychain is provided.\n\n" +
 			"Pass the token on stdin with --stdin so it does not appear in shell history or process lists.",
 		Example: "  read -r -s STRADDLE_TOKEN_INPUT\n" +
 			"  straddle-pp-cli auth set-token --stdin <<<\"$STRADDLE_TOKEN_INPUT\"\n" +
+			"  straddle-pp-cli auth set-token --stdin --keychain <<<\"$STRADDLE_TOKEN_INPUT\"\n" +
 			"  unset STRADDLE_TOKEN_INPUT",
 		Args: func(cmd *cobra.Command, args []string) error {
+			if useKeychain && !fromStdin {
+				return fmt.Errorf("--keychain requires --stdin")
+			}
 			if fromStdin && len(args) > 0 {
 				return fmt.Errorf("do not provide both --stdin and a token argument")
 			}
@@ -139,6 +144,23 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 				}
 			}
 
+			if useKeychain {
+				// PATCH: keychain-auth stores the stdin token in the OS keychain
+				// and saves only keychain metadata in the config file.
+				if err := cfg.SaveKeychainToken(token); err != nil {
+					return configErr(fmt.Errorf("saving token to keychain: %w", err))
+				}
+				if flags.asJSON {
+					return printJSONFiltered(cmd.OutOrStdout(), map[string]any{
+						"saved":       true,
+						"source":      "keychain",
+						"config_path": cfg.Path,
+					}, flags)
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "Token saved to OS keychain. Metadata saved to %s\n", cfg.Path)
+				return nil
+			}
+
 			// Clear any legacy auth_header so AuthHeader() falls through to
 			// the newly-saved credential. Without this, a pre-existing
 			// auth_header value (common after regenerate) shadows the saved
@@ -163,6 +185,7 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVar(&fromStdin, "stdin", false, "Read the token from stdin")
+	cmd.Flags().BoolVar(&useKeychain, "keychain", false, "Store the stdin token in the OS keychain and save only keychain metadata to config")
 	return cmd
 }
 

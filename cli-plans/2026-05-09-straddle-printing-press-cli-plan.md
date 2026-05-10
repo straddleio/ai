@@ -679,7 +679,7 @@ After each slice passes spec review, quality review, and verification, the contr
 - [x] Named surfaces return current support, local proof commands or local checks, launch decisions, blockers, and notes.
 - [x] `all` returns all concrete surface plans.
 - [x] Safety metadata states that the command is local-only guidance and does not read secrets, print secrets, write credentials, call Straddle APIs, call docs endpoints, execute MCP tools, inspect the environment token value, publish, sign, notarize, or approve launch.
-- [x] `keychain` states that no OS keychain or secure-store implementation exists yet, and launch needs an explicit decision: approve env/config-only for first public release or implement OS secure storage.
+- [x] `keychain` states that keychain-backed storage exists as opt-in preview support through `auth set-token --stdin --keychain`, and broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 - [x] `mcp` distinguishes MCP `STRADDLE_TOKEN` environment injection from CLI config-file auth, and states desktop MCP public install remains future work.
 - [x] `config` states current config-file token setup uses `auth set-token --stdin`, config path can be customized, and launch-grade storage still needs approval.
 - [x] `environment` states env and secret-manager injection are supported for shells, CI, and MCP launches, and token values should not be printed, logged, committed, or passed through argv.
@@ -749,13 +749,13 @@ After each slice passes spec review, quality review, and verification, the contr
 | Broad uncommitted slices become hard to review | High | After a slice passes spec review, quality review, and verification, stage only intended files and make a small commit before starting the next slice. Commit the current baseline in logical chunks: generated baseline first, then hand-authored docs, validation, plans, and audit updates. |
 | Product review is mistaken for public launch approval | High | Keep the product review decision split: local preview approved, public launch not approved. |
 | Smoke planning is mistaken for actual live smoke | High | Keep docs explicit: `smoke plan` only prints a future runbook and does not grant approval, execute MCP, call APIs, or use credentials. |
-| Credential storage planning is mistaken for secure-store implementation | High | Keep docs explicit: `credentials plan` prints local guidance only, no OS keychain or secure-store implementation exists yet, and launch still needs an explicit env/config-only or secure-store decision. |
+| Credential storage planning is mistaken for launch approval | High | Keep docs explicit: keychain-backed storage exists as opt-in preview support, while broad public launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording. |
 | Workflow planning is mistaken for live workflow execution | High | Keep docs explicit: `workflow plan` only prints local structured command plans and does not run API, docs, MCP, webhook, sandbox, production, credential, or write actions. |
 
 ## Open Questions
 
 - Should the preview eventually replace the public binary name `straddle`, or stay `straddle-pp-cli` until launch?
-- Should keychain credential storage be a launch blocker? Current planning says the blocker is the decision: approve env/config-only for first public release or implement OS secure storage.
+- What exact docs wording should describe opt-in preview keychain support before broad public launch?
 - Which approved live-read operational workflow should follow the local-only `ops guide`, `workflow plan`, and `smoke plan` planning slices?
 - Who approves the credential scope for the first actual live read-only smoke?
 

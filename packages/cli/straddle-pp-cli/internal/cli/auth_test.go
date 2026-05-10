@@ -5,11 +5,14 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/zalando/go-keyring"
 	"straddle-pp-cli/internal/config"
 )
 
@@ -185,4 +188,197 @@ func TestAuthStatusJSONUnauthenticatedRoutesThroughSetupCheck(t *testing.T) {
 	}
 	statusText := stdout + stderr + err.Error()
 	assertCLIAuthReadinessGuidance(t, statusText)
+}
+
+func TestAuthSetTokenKeychainStoresSecretOutsideConfig(t *testing.T) {
+	keyring.MockInit()
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "config.toml")
+	token := "keychain-token-secret"
+
+	stdout, stderr, err := runCLIForAuthTest(t, token+"\n", "auth", "set-token", "--stdin", "--keychain", "--config", configPath)
+	if err != nil {
+		t.Fatalf("auth set-token --stdin --keychain returned error: %v", err)
+	}
+	if strings.Contains(stdout+stderr, token) {
+		t.Fatalf("command output leaked token")
+	}
+
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read saved config: %v", err)
+	}
+	configText := string(data)
+	if strings.Contains(configText, token) || strings.Contains(configText, "access_token = \""+token+"\"") || strings.Contains(configText, "token = \""+token+"\"") {
+		t.Fatalf("saved config persisted keychain token:\n%s", configText)
+	}
+	if !strings.Contains(configText, "keychain_service") || !strings.Contains(configText, "keychain_account") {
+		t.Fatalf("saved config should contain keychain metadata:\n%s", configText)
+	}
+
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		t.Fatalf("load keychain config: %v", err)
+	}
+	if got := cfg.AuthHeader(); got != "Bearer "+token {
+		t.Fatalf("keychain auth header mismatch")
+	}
+	if got := cfg.AuthSource; got != "keychain" {
+		t.Fatalf("auth source = %q, want keychain", got)
+	}
+}
+
+func TestAuthSetTokenKeychainFailureReturnsStableError(t *testing.T) {
+	rawErr := errors.New("raw OS keychain failure detail")
+	keyring.MockInitWithError(rawErr)
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "config.toml")
+	token := "keychain-set-failure-secret"
+
+	stdout, stderr, err := runCLIForAuthTest(t, token+"\n", "auth", "set-token", "--stdin", "--keychain", "--config", configPath)
+	if err == nil {
+		t.Fatalf("auth set-token --stdin --keychain should fail when keychain Set fails")
+	}
+	output := stdout + stderr + err.Error()
+	if !strings.Contains(output, "keychain_unavailable") {
+		t.Fatalf("keychain Set failure should return stable keychain_unavailable, got %q", output)
+	}
+	if strings.Contains(output, rawErr.Error()) || strings.Contains(output, token) {
+		t.Fatalf("keychain Set failure leaked raw detail or token: %q", output)
+	}
+}
+
+func TestAuthStatusReportsKeychainSourceWithoutToken(t *testing.T) {
+	keyring.MockInit()
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "config.toml")
+	token := "keychain-status-secret"
+
+	if _, _, err := runCLIForAuthTest(t, token+"\n", "auth", "set-token", "--stdin", "--keychain", "--config", configPath); err != nil {
+		t.Fatalf("auth set-token --stdin --keychain returned error: %v", err)
+	}
+
+	stdout, stderr, err := runCLIForAuthTest(t, "", "auth", "status", "--json", "--config", configPath)
+	if err != nil {
+		t.Fatalf("auth status --json returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("auth status --json wrote stderr: %q", stderr)
+	}
+	if strings.Contains(stdout, token) {
+		t.Fatalf("auth status leaked keychain token:\n%s", stdout)
+	}
+
+	var got struct {
+		Authenticated bool   `json:"authenticated"`
+		Source        string `json:"source"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("auth status emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if !got.Authenticated || got.Source != "keychain" {
+		t.Fatalf("auth status mismatch: %#v", got)
+	}
+
+	humanOut, humanErr, err := runCLIForAuthTest(t, "", "auth", "status", "--config", configPath)
+	if err != nil {
+		t.Fatalf("auth status human returned error: %v", err)
+	}
+	humanText := humanOut + humanErr
+	if !strings.Contains(humanText, "Source: keychain") || strings.Contains(humanText, token) {
+		t.Fatalf("auth status human should report keychain source without token, got %q", humanText)
+	}
+}
+
+func TestAuthLogoutDeletesKeychainTokenAndClearsMetadata(t *testing.T) {
+	keyring.MockInit()
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "config.toml")
+	token := "keychain-logout-secret"
+
+	if _, _, err := runCLIForAuthTest(t, token+"\n", "auth", "set-token", "--stdin", "--keychain", "--config", configPath); err != nil {
+		t.Fatalf("auth set-token --stdin --keychain returned error: %v", err)
+	}
+
+	stdout, stderr, err := runCLIForAuthTest(t, "", "auth", "logout", "--json", "--config", configPath)
+	if err != nil {
+		t.Fatalf("auth logout --json returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("auth logout --json wrote stderr: %q", stderr)
+	}
+	if strings.Contains(stdout, token) {
+		t.Fatalf("auth logout leaked keychain token:\n%s", stdout)
+	}
+
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read config after logout: %v", err)
+	}
+	configText := string(data)
+	if strings.Contains(configText, token) || strings.Contains(configText, "keychain_service") || strings.Contains(configText, "keychain_account") {
+		t.Fatalf("logout should clear token values and keychain metadata:\n%s", configText)
+	}
+
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		t.Fatalf("load config after logout: %v", err)
+	}
+	if got := cfg.AuthHeader(); got != "" {
+		t.Fatalf("auth header after logout = %q, want empty", got)
+	}
+}
+
+func TestAuthLogoutSucceedsWhenKeychainItemAlreadyMissing(t *testing.T) {
+	keyring.MockInit()
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "config.toml")
+	configText := "keychain_service = \"" + config.DefaultKeychainService + "\"\n" +
+		"keychain_account = \"" + config.DefaultKeychainAccount + "\"\n"
+	if err := os.WriteFile(configPath, []byte(configText), 0o600); err != nil {
+		t.Fatalf("write keychain metadata config: %v", err)
+	}
+
+	stdout, stderr, err := runCLIForAuthTest(t, "", "auth", "logout", "--json", "--config", configPath)
+	if err != nil {
+		t.Fatalf("auth logout --json with missing keychain item returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("auth logout --json wrote stderr: %q", stderr)
+	}
+	if !strings.Contains(stdout, `"cleared": true`) {
+		t.Fatalf("logout should report cleared, got %q", stdout)
+	}
+
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read config after missing-keychain logout: %v", err)
+	}
+	if strings.Contains(string(data), "keychain_service") || strings.Contains(string(data), "keychain_account") {
+		t.Fatalf("logout should clear missing keychain metadata:\n%s", string(data))
+	}
+}
+
+func TestAuthLogoutKeychainDeleteFailureReturnsStableError(t *testing.T) {
+	rawErr := errors.New("raw OS delete failure detail")
+	keyring.MockInitWithError(rawErr)
+	t.Setenv("STRADDLE_TOKEN", "")
+	configPath := filepath.Join(t.TempDir(), "config.toml")
+	configText := "keychain_service = \"" + config.DefaultKeychainService + "\"\n" +
+		"keychain_account = \"" + config.DefaultKeychainAccount + "\"\n"
+	if err := os.WriteFile(configPath, []byte(configText), 0o600); err != nil {
+		t.Fatalf("write keychain metadata config: %v", err)
+	}
+
+	stdout, stderr, err := runCLIForAuthTest(t, "", "auth", "logout", "--json", "--config", configPath)
+	if err == nil {
+		t.Fatalf("auth logout --json should fail when keychain Delete fails")
+	}
+	output := stdout + stderr + err.Error()
+	if !strings.Contains(output, "keychain_unavailable") {
+		t.Fatalf("keychain Delete failure should return stable keychain_unavailable, got %q", output)
+	}
+	if strings.Contains(output, rawErr.Error()) {
+		t.Fatalf("keychain Delete failure leaked raw detail: %q", output)
+	}
 }

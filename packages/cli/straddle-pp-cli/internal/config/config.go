@@ -4,6 +4,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,20 +12,36 @@ import (
 	"time"
 
 	"github.com/pelletier/go-toml/v2"
+	"github.com/zalando/go-keyring"
+)
+
+const (
+	DefaultKeychainService = "straddle-pp-cli"
+	DefaultKeychainAccount = "straddle-token"
+	errKeychainUnavailable = "keychain_unavailable"
+)
+
+var (
+	keyringGet    = keyring.Get
+	keyringSet    = keyring.Set
+	keyringDelete = keyring.Delete
 )
 
 type Config struct {
-	BaseURL       string            `toml:"base_url"`
-	AuthHeaderVal string            `toml:"auth_header"`
-	Headers       map[string]string `toml:"headers,omitempty"`
-	AuthSource    string            `toml:"-"`
-	AccessToken   string            `toml:"access_token"`
-	RefreshToken  string            `toml:"refresh_token"`
-	TokenExpiry   time.Time         `toml:"token_expiry"`
-	ClientID      string            `toml:"client_id"`
-	ClientSecret  string            `toml:"client_secret"`
-	Path          string            `toml:"-"`
-	StraddleToken string            `toml:"token"`
+	BaseURL         string            `toml:"base_url"`
+	AuthHeaderVal   string            `toml:"auth_header"`
+	Headers         map[string]string `toml:"headers,omitempty"`
+	AuthSource      string            `toml:"-"`
+	AccessToken     string            `toml:"access_token"`
+	RefreshToken    string            `toml:"refresh_token"`
+	TokenExpiry     time.Time         `toml:"token_expiry"`
+	ClientID        string            `toml:"client_id"`
+	ClientSecret    string            `toml:"client_secret"`
+	KeychainService string            `toml:"keychain_service,omitempty"`
+	KeychainAccount string            `toml:"keychain_account,omitempty"`
+	KeychainStatus  string            `toml:"-"`
+	Path            string            `toml:"-"`
+	StraddleToken   string            `toml:"token"`
 }
 
 func Load(configPath string) (*Config, error) {
@@ -56,6 +73,20 @@ func Load(configPath string) (*Config, error) {
 		cfg.StraddleToken = v
 		cfg.AuthSource = "env:STRADDLE_TOKEN"
 	}
+	// PATCH: keychain-auth resolves opt-in keychain metadata before file tokens
+	// without surfacing OS-specific errors or writing secret material to config.
+	if cfg.AuthSource == "" && cfg.UsesKeychain() {
+		token, err := keyringGet(cfg.KeychainService, cfg.KeychainAccount)
+		if err == nil && strings.TrimSpace(token) != "" {
+			cfg.StraddleToken = token
+			cfg.AuthSource = "keychain"
+			cfg.KeychainStatus = "available"
+		} else {
+			cfg.clearRuntimeTokenFields()
+			cfg.AuthSource = "keychain_unavailable"
+			cfg.KeychainStatus = "unavailable"
+		}
+	}
 
 	// Label config-file-derived credentials so doctor can distinguish
 	// "credentials persisted on disk" from "no credentials at all" — without
@@ -80,12 +111,17 @@ func Load(configPath string) (*Config, error) {
 }
 
 func (c *Config) AuthHeader() string {
+	// Runtime credentials from env or keychain must beat stale config headers.
+	if c.StraddleToken != "" && (c.AuthSource == "env:STRADDLE_TOKEN" || c.AuthSource == "keychain") {
+		return "Bearer " + c.StraddleToken
+	}
 	if c.AuthHeaderVal != "" {
 		return c.AuthHeaderVal
 	}
-	// Env-var token wins over file-stored AccessToken (env > config convention).
 	if c.StraddleToken != "" {
-		c.AuthSource = "env:STRADDLE_TOKEN"
+		if c.AuthSource == "" {
+			c.AuthSource = "config"
+		}
 		return "Bearer " + c.StraddleToken
 	}
 	if c.AccessToken != "" {
@@ -109,19 +145,108 @@ func applyAuthFormat(format string, replacements map[string]string) string {
 }
 
 func (c *Config) SaveTokens(clientID, clientSecret, accessToken, refreshToken string, expiry time.Time) error {
+	c.clearPersistentTokenFields()
 	c.ClientID = clientID
 	c.ClientSecret = clientSecret
 	c.AccessToken = accessToken
 	c.RefreshToken = refreshToken
 	c.TokenExpiry = expiry
+	c.KeychainService = ""
+	c.KeychainAccount = ""
+	c.KeychainStatus = ""
 	return c.save()
 }
 
+func (c *Config) SaveKeychainToken(token string) error {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return fmt.Errorf("token is empty")
+	}
+	service := DefaultKeychainService
+	account := DefaultKeychainAccount
+	if strings.TrimSpace(c.KeychainService) != "" {
+		service = strings.TrimSpace(c.KeychainService)
+	}
+	if strings.TrimSpace(c.KeychainAccount) != "" {
+		account = strings.TrimSpace(c.KeychainAccount)
+	}
+	previousToken, previousErr := keyringGet(service, account)
+	if previousErr != nil && !errors.Is(previousErr, keyring.ErrNotFound) {
+		return sanitizeKeychainError(previousErr)
+	}
+	if err := keyringSet(service, account, token); err != nil {
+		return sanitizeKeychainError(err)
+	}
+	c.clearPersistentTokenFields()
+	c.KeychainService = service
+	c.KeychainAccount = account
+	c.AuthSource = "keychain"
+	c.KeychainStatus = "available"
+	if err := c.save(); err != nil {
+		if previousErr == nil {
+			if restoreErr := keyringSet(service, account, previousToken); restoreErr != nil {
+				c.clearKeychainMetadata()
+				return fmt.Errorf("saving keychain metadata: %w; rollback: %w", err, sanitizeKeychainError(restoreErr))
+			}
+		} else if errors.Is(previousErr, keyring.ErrNotFound) {
+			if deleteErr := keyringDelete(service, account); deleteErr != nil && !errors.Is(deleteErr, keyring.ErrNotFound) {
+				c.clearKeychainMetadata()
+				return fmt.Errorf("saving keychain metadata: %w; rollback: %w", err, sanitizeKeychainError(deleteErr))
+			}
+		} else {
+			c.clearKeychainMetadata()
+			return fmt.Errorf("saving keychain metadata: %w; rollback: %w", err, sanitizeKeychainError(previousErr))
+		}
+		c.clearKeychainMetadata()
+		return fmt.Errorf("saving keychain metadata: %w", err)
+	}
+	return nil
+}
+
 func (c *Config) ClearTokens() error {
+	if c.UsesKeychain() {
+		if err := keyringDelete(c.KeychainService, c.KeychainAccount); err != nil && !errors.Is(err, keyring.ErrNotFound) {
+			return sanitizeKeychainError(err)
+		}
+	}
+	c.clearPersistentTokenFields()
+	c.clearKeychainMetadata()
+	return c.save()
+}
+
+func (c *Config) UsesKeychain() bool {
+	return strings.TrimSpace(c.KeychainService) != "" && strings.TrimSpace(c.KeychainAccount) != ""
+}
+
+func (c *Config) clearRuntimeTokenFields() {
+	c.AuthHeaderVal = ""
 	c.AccessToken = ""
 	c.RefreshToken = ""
 	c.TokenExpiry = time.Time{}
-	return c.save()
+	c.ClientID = ""
+	c.ClientSecret = ""
+	c.StraddleToken = ""
+}
+
+func (c *Config) clearPersistentTokenFields() {
+	c.AuthHeaderVal = ""
+	c.AccessToken = ""
+	c.RefreshToken = ""
+	c.TokenExpiry = time.Time{}
+	c.ClientID = ""
+	c.ClientSecret = ""
+	c.StraddleToken = ""
+}
+
+func (c *Config) clearKeychainMetadata() {
+	c.KeychainService = ""
+	c.KeychainAccount = ""
+	c.KeychainStatus = ""
+	c.AuthSource = ""
+}
+
+func sanitizeKeychainError(error) error {
+	return errors.New(errKeychainUnavailable)
 }
 
 func (c *Config) save() error {

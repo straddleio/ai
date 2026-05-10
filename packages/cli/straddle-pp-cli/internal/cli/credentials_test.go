@@ -66,13 +66,17 @@ func TestCredentialsPlanNamedSurfacesIncludeRequiredRunbookData(t *testing.T) {
 			"desktop MCP public install remains future work",
 		},
 		"keychain": {
-			"No OS keychain or secure-store implementation exists yet",
-			"approve env/config-only for first public release or implement OS secure storage",
+			"keychain-backed storage exists as opt-in preview support",
+			"auth set-token --stdin --keychain",
+			"owner/security approval",
+			"approved live read-only smoke",
 		},
 		"launch": {
 			"blocking decision set",
-			"env/config-only",
-			"OS secure storage",
+			"keychain-backed storage exists as opt-in preview support",
+			"packaged-client smoke",
+			"approved live read-only smoke",
+			"docs wording",
 		},
 	}
 

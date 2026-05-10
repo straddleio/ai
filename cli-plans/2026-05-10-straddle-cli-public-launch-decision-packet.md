@@ -18,7 +18,7 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 - The generated MCP sibling exists from the same Printing Press command tree. The latest completion audit records a credential-free runtime `tools/list` smoke with `tool_count: 87`.
 - Release archive local proof exists. Prior release validation produced local darwin, linux, and windows snapshot archives containing both `straddle-pp-cli` and `straddle-pp-mcp`, plus a local Homebrew cask. Nothing was published, uploaded, pushed, signed, notarized, or written to a tap.
 - Safe token stdin exists. Docs prefer `auth set-token --stdin`, allow caller-supplied environment injection, and warn against checked-in config, logs, argv, and shell-history exposure.
-- Credential launch posture remains undecided. `credentials plan launch` reports that no OS keychain or secure-store implementation exists yet, and launch needs a decision between env/config-only for first public release and implementing OS secure storage.
+- Credential launch posture remains unapproved for broad public launch. `credentials plan launch` now reports that keychain-backed storage exists as opt-in preview support, but launch still needs owner/security approval, packaged-client smoke, approved live read-only smoke, and approved docs wording.
 - Live smoke has not run. Existing docs keep approved live read-only smoke open until sandbox or approved-environment credentials, command scope, data boundaries, expected outputs, and stop criteria are explicitly approved.
 - Ramp is a benchmark only. It should inform ergonomics, docs posture, MCP positioning, packaging expectations, and presentation checks.
 - Stainless is a reference only. It can inform existing Straddle behavior and compatibility questions, but it is not the architecture.
@@ -73,10 +73,10 @@ Not scope: public launch approval. This packet does not approve publishing, sign
 <tr>
 <td>Credential storage posture</td>
 <td>For first public release, is env/config-only approved, or must OS secure storage ship first?</td>
-<td>Use env/config-only only for internal or approved preview. For broad public launch, require OS secure storage or a signed risk acceptance from product and security owners.</td>
-<td>Safe stdin reduces exposure, but config-file auth is not the same as launch-grade credential storage. The current docs say this remains open.</td>
-<td>Security owner decision, threat model for local config and MCP launches, token redaction checks, no argv token paths in examples, storage migration plan if secure storage is deferred, and approved docs wording.</td>
-<td>Do not describe env/config-only as sufficient for launch, do not print token literals, do not store secrets in generated docs, and do not add public onboarding that treats config-file tokens as final without approval.</td>
+<td>Use env/config-only or keychain auth only for internal or approved preview until owners approve the public posture.</td>
+<td>Safe stdin and opt-in keychain support reduce exposure, but broad public launch still needs owner/security approval, packaged-client proof, and approved live read-only smoke.</td>
+<td>Owner/security decision, threat model for local config, keychain, and MCP launches, token redaction checks, no argv token paths in examples, packaged-client smoke, approved live read-only smoke, and approved docs wording.</td>
+<td>Do not describe any credential path as sufficient for broad launch, do not print token literals, do not store secrets in generated docs, and do not add public onboarding that treats preview storage as final without approval.</td>
 </tr>
 <tr>
 <td>Live smoke scope</td>
