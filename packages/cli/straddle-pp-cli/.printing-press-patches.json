@@ -284,8 +284,8 @@
     },
     {
       "id": "smoke-run-approval-gated",
-      "summary": "Add an approval-file-gated smoke run surface for setup and customers, including redacted transcript artifact writing.",
-      "reason": "The preview needs a narrow executable read-only smoke path that cannot run by default, rejects production-looking targets and token literals, writes reviewable redacted evidence, and can be tested with local fake servers before any future approved live read.",
+      "summary": "Add an approval-file-gated smoke run surface for setup, customers, and MCP, including redacted transcript artifact writing.",
+      "reason": "The preview needs narrow executable read-only smoke paths that cannot run by default, reject production-looking targets and token literals, write reviewable redacted evidence, and can be tested with local fake servers or fake MCP helpers before any future approved live read.",
       "files": [
         "README.md",
         "SKILL.md",
@@ -297,7 +297,7 @@
         "internal/mcp/cobratree/classify_test.go",
         "../README.md"
       ],
-      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSmokeRun' covers approval-file requirements, production base URL rejection, scope mismatch, token literal rejection, unsupported run scopes, setup with no API call, customers against a local fake server, redacted transcript JSON writing, parent directory creation, 0600 file mode, and failed customers_list transcript evidence before error return."
+      "validated_outcome": "go test -count=1 ./internal/cli -run 'TestSmokeRun' covers approval-file requirements, production base URL rejection, scope mismatch, token literal rejection, unsupported run scopes, setup with no API call, customers against a local fake server, MCP tools/list against a fake stdio helper, unsafe --mcp-binary rejection, redacted transcript JSON writing, parent directory creation, 0600 file mode, and failed customers_list or mcp_tools_list transcript evidence before error return."
     },
     {
       "id": "release-plan",

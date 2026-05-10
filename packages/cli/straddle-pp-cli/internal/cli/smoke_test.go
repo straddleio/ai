@@ -11,13 +11,23 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
 
+const fakeMCPBinaryPrefix = "fake-straddle-pp-mcp"
+
 // PATCH: smoke-plan covers local-only approved live-smoke planning guidance and safety metadata.
-// PATCH: smoke-run-approval-gated covers approval gates and fake-server smoke execution.
+// PATCH: smoke-run-approval-gated covers approval gates plus fake server and fake MCP smoke execution.
 // PATCH: smoke-run-approval-gated covers redacted transcript artifact writing.
+func TestMain(m *testing.M) {
+	if isFakeMCPHelperProcess() {
+		os.Exit(runFakeMCPHelperProcess())
+	}
+	os.Exit(m.Run())
+}
+
 func TestSmokePlanNoArgJSONReturnsScopesAndSafety(t *testing.T) {
 	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "plan", "--json")
 	if err != nil {
@@ -444,13 +454,13 @@ func TestSmokeRunRejectsBaseURLWithCredentialBearingParts(t *testing.T) {
 func TestSmokeRunRejectsUnsupportedFirstSliceScopes(t *testing.T) {
 	approvalPath := writeSmokeApprovalFile(t, map[string]any{})
 
-	for _, scope := range []string{"all", "payments", "funding", "mcp"} {
+	for _, scope := range []string{"all", "payments", "funding"} {
 		t.Run(scope, func(t *testing.T) {
 			_, _, err := runCLIForDocsTest(t, "smoke", "run", scope, "--approval-file", approvalPath, "--json")
 			if err == nil {
 				t.Fatalf("smoke run should reject unsupported scope %q", scope)
 			}
-			if !strings.Contains(err.Error(), "supported run scopes are setup, customers") {
+			if !strings.Contains(err.Error(), "supported run scopes are setup, customers, mcp") {
 				t.Fatalf("error should list supported run scopes, got %v", err)
 			}
 		})
@@ -641,6 +651,183 @@ func TestSmokeRunCustomersWritesFailedTranscriptBeforeReturningError(t *testing.
 	assertSmokeTranscriptDirMode(t, filepath.Dir(transcriptPath))
 }
 
+func TestSmokeRunMCPSucceedsAgainstFakeMCPAndWritesTranscript(t *testing.T) {
+	for _, item := range []struct {
+		key   string
+		value string
+	}{
+		{key: "TOKEN", value: "fixture-token"},
+		{key: "SECRET", value: "fixture-secret"},
+		{key: "API_KEY", value: "fixture-api-key"},
+		{key: "AWS_ACCESS_KEY_ID", value: "fixture-aws-access-key-id"},
+		{key: "AWS_SECRET_ACCESS_KEY", value: "fixture-aws-secret-access-key"},
+		{key: "STRADDLE_TOKEN", value: "fixture-smoke-token"},
+	} {
+		t.Setenv(item.key, item.value)
+	}
+
+	mcpBinary := writeFakeMCPBinary(t, []string{"mcp_config", "smoke_run", "setup_check"})
+	transcriptPath := filepath.Join(t.TempDir(), "nested", "mcp", "smoke-transcript.json")
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{
+		"allowed_scope":     "mcp",
+		"base_url":          "http://127.0.0.1:1",
+		"credential_source": "none",
+		"transcript_path":   transcriptPath,
+	})
+
+	stdout, stderr, err := runCLIForDocsTest(t, "smoke", "run", "mcp", "--approval-file", approvalPath, "--mcp-binary", mcpBinary, "--json")
+	if err != nil {
+		t.Fatalf("smoke run mcp returned error: %v", err)
+	}
+	if stderr != "" {
+		t.Fatalf("smoke run mcp wrote stderr: %q", stderr)
+	}
+
+	var got smokeRunResponse
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("smoke run mcp --json emitted invalid JSON: %v\n%s", err, stdout)
+	}
+	if got.Command != "smoke run" || got.Scope != "mcp" || !got.Approved || !got.ReadOnly {
+		t.Fatalf("wrong mcp smoke response: %#v", got)
+	}
+	if len(got.Checks) != 2 {
+		t.Fatalf("mcp smoke should report approval and MCP tools/list checks: %#v", got.Checks)
+	}
+	check := got.Checks[1]
+	if check.Name != "mcp_tools_list" || !check.Passed || check.Method != "tools/list" || check.Path != "stdio" || check.ToolCount != 3 {
+		t.Fatalf("wrong MCP tools/list check: %#v", check)
+	}
+	if !strings.Contains(check.Note, "local stdio MCP") || !strings.Contains(check.Note, "no Straddle API call") {
+		t.Fatalf("MCP check should clearly be local stdio and not an API call: %#v", check)
+	}
+	if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
+		t.Fatalf("smoke run mcp should not print token values:\n%s", stdout)
+	}
+
+	transcript := readSmokeTranscript(t, transcriptPath)
+	if transcript.Command != "smoke run" || transcript.Scope != "mcp" || transcript.Environment != "local-test" {
+		t.Fatalf("mcp transcript has wrong command evidence: %#v", transcript)
+	}
+	if transcript.BaseURL != "http://127.0.0.1:1" || transcript.CredentialSource != "none" || transcript.TranscriptPath != transcriptPath {
+		t.Fatalf("mcp transcript has wrong redacted approval evidence: %#v", transcript)
+	}
+	if len(transcript.Checks) != 2 || transcript.Checks[1].Name != "mcp_tools_list" || !transcript.Checks[1].Passed || transcript.Checks[1].ToolCount != 3 {
+		t.Fatalf("mcp transcript has wrong tools/list evidence: %#v", transcript.Checks)
+	}
+	assertSmokeTranscriptRedacted(t, transcriptPath)
+	assertSmokeTranscriptMode(t, transcriptPath)
+	assertSmokeTranscriptDirMode(t, filepath.Dir(transcriptPath))
+}
+
+func TestSmokeRunMCPMissingRequiredToolsFailsAndWritesTranscript(t *testing.T) {
+	tests := []struct {
+		name  string
+		tools []string
+		want  string
+	}{
+		{
+			name:  "missing mcp_config",
+			tools: []string{"smoke_run", "setup_check"},
+			want:  "mcp_config",
+		},
+		{
+			name:  "missing smoke_run",
+			tools: []string{"mcp_config", "setup_check"},
+			want:  "smoke_run",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mcpBinary := writeFakeMCPBinary(t, tt.tools)
+			transcriptPath := filepath.Join(t.TempDir(), "failed", "mcp", "smoke-transcript.json")
+			approvalPath := writeSmokeApprovalFile(t, map[string]any{
+				"allowed_scope":     "mcp",
+				"credential_source": "none",
+				"transcript_path":   transcriptPath,
+			})
+
+			stdout, _, err := runCLIForDocsTest(t, "smoke", "run", "mcp", "--approval-file", approvalPath, "--mcp-binary", mcpBinary, "--json")
+			if err == nil {
+				t.Fatalf("smoke run mcp should fail when %s is missing", tt.want)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("mcp missing-tool error should mention %s, got %v", tt.want, err)
+			}
+			if strings.Contains(stdout, "fixture-smoke-token") || strings.Contains(stdout, "Bearer ") {
+				t.Fatalf("smoke run mcp failure should not print token values:\n%s", stdout)
+			}
+
+			transcript := readSmokeTranscript(t, transcriptPath)
+			if transcript.Command != "smoke run" || transcript.Scope != "mcp" {
+				t.Fatalf("failed mcp transcript has wrong run evidence: %#v", transcript)
+			}
+			if len(transcript.Checks) != 2 {
+				t.Fatalf("failed mcp transcript should include approval and MCP tools/list checks: %#v", transcript.Checks)
+			}
+			failedCheck := transcript.Checks[1]
+			if failedCheck.Name != "mcp_tools_list" || failedCheck.Passed || failedCheck.Method != "tools/list" || failedCheck.Path != "stdio" || failedCheck.ToolCount != len(tt.tools) {
+				t.Fatalf("failed mcp transcript should contain failed tools/list check: %#v", failedCheck)
+			}
+			if !strings.Contains(failedCheck.Note, tt.want) {
+				t.Fatalf("failed mcp transcript note should mention %s: %#v", tt.want, failedCheck)
+			}
+			assertSmokeTranscriptRedacted(t, transcriptPath)
+			assertSmokeTranscriptMode(t, transcriptPath)
+			assertSmokeTranscriptDirMode(t, filepath.Dir(transcriptPath))
+		})
+	}
+}
+
+func TestSmokeRunMCPRejectsUnsafeBinaryInputs(t *testing.T) {
+	approvalPath := writeSmokeApprovalFile(t, map[string]any{"allowed_scope": "mcp"})
+	tests := []struct {
+		name   string
+		binary string
+		want   string
+	}{
+		{
+			name:   "blank",
+			binary: " ",
+			want:   "mcp binary must not be blank",
+		},
+		{
+			name:   "token literal",
+			binary: "Bearer fixture-secret-token",
+			want:   "mcp binary must not contain token literals",
+		},
+		{
+			name:   "straddle token env assignment",
+			binary: "STRADDLE_TOKEN=fixture-secret-token straddle-pp-mcp",
+			want:   "mcp binary must not contain secret environment assignments",
+		},
+		{
+			name:   "generic secret env assignment",
+			binary: "CUSTOM_SECRET=fixture-secret straddle-pp-mcp",
+			want:   "mcp binary must not contain secret environment assignments",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stdout, _, err := runCLIForDocsTest(t, "smoke", "run", "mcp", "--approval-file", approvalPath, "--mcp-binary", tt.binary, "--json")
+			if err == nil {
+				t.Fatalf("smoke run mcp should reject %s binary", tt.name)
+			}
+			var cliErr *cliError
+			if !errors.As(err, &cliErr) || cliErr.code != 2 {
+				t.Fatalf("%s should be a usage error, got %#v", tt.name, err)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("%s error should contain %q, got %v", tt.name, tt.want, err)
+			}
+			if strings.Contains(stdout, "fixture-secret-token") || strings.Contains(stdout, "Bearer ") {
+				t.Fatalf("unsafe binary rejection should not print token values:\n%s", stdout)
+			}
+		})
+	}
+}
+
 func TestSmokeRunRewritesPermissiveTranscriptWithPrivateMode(t *testing.T) {
 	transcriptPath := filepath.Join(t.TempDir(), "existing-transcript.json")
 	if err := os.WriteFile(transcriptPath, []byte(`{"old":true}`), 0o644); err != nil {
@@ -815,6 +1002,144 @@ func readSmokeTranscript(t *testing.T, path string) smokeRunResponse {
 		t.Fatalf("smoke transcript should be valid JSON: %v\n%s", err, string(raw))
 	}
 	return got
+}
+
+func writeFakeMCPBinary(t *testing.T, toolNames []string) string {
+	t.Helper()
+
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatalf("resolve test executable: %v", err)
+	}
+
+	path := filepath.Join(t.TempDir(), fakeMCPBinaryName())
+	source, err := os.Open(exe)
+	if err != nil {
+		t.Fatalf("open test executable: %v", err)
+	}
+	defer source.Close()
+	target, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o700)
+	if err != nil {
+		t.Fatalf("create fake MCP binary: %v", err)
+	}
+	if _, err := io.Copy(target, source); err != nil {
+		_ = target.Close()
+		t.Fatalf("copy test executable to fake MCP binary: %v", err)
+	}
+	if err := target.Close(); err != nil {
+		t.Fatalf("close fake MCP binary: %v", err)
+	}
+	if err := os.Chmod(path, 0o700); err != nil {
+		t.Fatalf("chmod fake MCP binary: %v", err)
+	}
+
+	config := struct {
+		Tools []string `json:"tools"`
+	}{
+		Tools: toolNames,
+	}
+	data, err := json.Marshal(config)
+	if err != nil {
+		t.Fatalf("marshal fake MCP config: %v", err)
+	}
+	if err := os.WriteFile(path+".json", data, 0o600); err != nil {
+		t.Fatalf("write fake MCP config: %v", err)
+	}
+	return path
+}
+
+func fakeMCPBinaryName() string {
+	if runtime.GOOS == "windows" {
+		return fakeMCPBinaryPrefix + ".exe"
+	}
+	return fakeMCPBinaryPrefix
+}
+
+func isFakeMCPHelperProcess() bool {
+	return strings.HasPrefix(filepath.Base(os.Args[0]), fakeMCPBinaryPrefix)
+}
+
+func runFakeMCPHelperProcess() int {
+	for _, key := range []string{"TOKEN", "SECRET", "API_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "STRADDLE_TOKEN"} {
+		if _, ok := os.LookupEnv(key); ok {
+			_, _ = io.WriteString(os.Stderr, key+" leaked to fake MCP\n")
+			return 42
+		}
+	}
+
+	raw, err := os.ReadFile(os.Args[0] + ".json")
+	if err != nil {
+		_, _ = io.WriteString(os.Stderr, "read fake MCP config: "+err.Error()+"\n")
+		return 1
+	}
+	var config struct {
+		Tools []string `json:"tools"`
+	}
+	if err := json.Unmarshal(raw, &config); err != nil {
+		_, _ = io.WriteString(os.Stderr, "decode fake MCP config: "+err.Error()+"\n")
+		return 1
+	}
+
+	decoder := json.NewDecoder(os.Stdin)
+	encoder := json.NewEncoder(os.Stdout)
+
+	if !fakeMCPReadMethod(decoder, "initialize") {
+		return 1
+	}
+	if err := encoder.Encode(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"result": map[string]any{
+			"protocolVersion": "2024-11-05",
+			"capabilities": map[string]any{
+				"tools": map[string]any{},
+			},
+			"serverInfo": map[string]string{
+				"name":    "fake-straddle-pp-mcp",
+				"version": "0",
+			},
+		},
+	}); err != nil {
+		_, _ = io.WriteString(os.Stderr, "write fake MCP initialize response: "+err.Error()+"\n")
+		return 1
+	}
+	if !fakeMCPReadMethod(decoder, "notifications/initialized") {
+		return 1
+	}
+	if !fakeMCPReadMethod(decoder, "tools/list") {
+		return 1
+	}
+
+	tools := make([]map[string]string, 0, len(config.Tools))
+	for _, name := range config.Tools {
+		tools = append(tools, map[string]string{"name": name})
+	}
+	if err := encoder.Encode(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      2,
+		"result": map[string]any{
+			"tools": tools,
+		},
+	}); err != nil {
+		_, _ = io.WriteString(os.Stderr, "write fake MCP tools/list response: "+err.Error()+"\n")
+		return 1
+	}
+	return 0
+}
+
+func fakeMCPReadMethod(decoder *json.Decoder, want string) bool {
+	var request struct {
+		Method string `json:"method"`
+	}
+	if err := decoder.Decode(&request); err != nil {
+		_, _ = io.WriteString(os.Stderr, "read fake MCP "+want+" request: "+err.Error()+"\n")
+		return false
+	}
+	if request.Method != want {
+		_, _ = io.WriteString(os.Stderr, "fake MCP got method "+request.Method+", want "+want+"\n")
+		return false
+	}
+	return true
 }
 
 func assertSmokeTranscriptRedacted(t *testing.T, path string) {
